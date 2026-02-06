@@ -6,7 +6,31 @@ import axios from 'axios';
 
 // Sync external tools from Kali Tools directory
 // Scrapes https://www.kali.org/tools/ incrementally to avoid timeouts
+export async function GET(req: NextRequest) {
+    return handleSync(req);
+}
+
 export async function POST(req: NextRequest) {
+    return handleSync(req);
+}
+
+async function handleSync(req: NextRequest) {
+    // 0. Authorization Check
+    const url = new URL(req.url);
+    const key = url.searchParams.get('key');
+    const validKey = process.env.CRON_SECRET;
+
+    // Check if it's the Vercel Cron calling (it doesn't pass the key by default, but we can configure it)
+    // Or if it's a manual trigger.
+    if (validKey && key !== validKey) {
+        // If CRON_SECRET is set but key is wrong, check for admin session
+        // For simplicity in this demo, we'll allow if key matches or if called by Vercel's special header
+        const cronHeader = req.headers.get('x-vercel-cron');
+        if (!cronHeader) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+    }
+
     await connectDB();
     try {
         // 1. Fetch Main Index
