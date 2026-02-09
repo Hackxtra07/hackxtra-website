@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
         // Fetch destination email from settings
         const settings = await Settings.findOne();
-        const destinationEmail = settings?.contactEmail || process.env.DEFAULT_CONTACT_EMAIL || 'admin@example.com';
+        const destinationEmail = settings?.contactEmail || process.env.DEFAULT_CONTACT_EMAIL || 'hackxtras.official@gmail.com';
 
         // Check for SMTP config
         const smtpConfig = {

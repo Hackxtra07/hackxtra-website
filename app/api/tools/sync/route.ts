@@ -20,13 +20,14 @@ async function handleSync(req: NextRequest) {
     const key = url.searchParams.get('key');
     const validKey = process.env.CRON_SECRET;
 
-    // Check if it's the Vercel Cron calling (it doesn't pass the key by default, but we can configure it)
-    // Or if it's a manual trigger.
-    if (validKey && key !== validKey) {
-        // If CRON_SECRET is set but key is wrong, check for admin session
-        // For simplicity in this demo, we'll allow if key matches or if called by Vercel's special header
-        const cronHeader = req.headers.get('x-vercel-cron');
-        if (!cronHeader) {
+    // Check for Vercel Cron or manual key
+    const cronHeader = req.headers.get('x-vercel-cron');
+    const isCronOrKey = (validKey && key === validKey) || cronHeader;
+
+    if (!isCronOrKey) {
+        // If not cron/key, check for admin session
+        const user = await authenticateRequest(req);
+        if (!user || user.role !== 'admin') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
     }

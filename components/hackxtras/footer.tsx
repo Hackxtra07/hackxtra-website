@@ -24,12 +24,6 @@ const footerLinks = {
     { label: "Resources", href: "/resources" },
     { label: "Documentary", href: "/documentary" },
   ],
-  legal: [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "Cookie Policy", href: "#" },
-    { label: "Accessibility", href: "#" },
-  ],
 };
 
 const socialLinks = [
@@ -53,7 +47,7 @@ export function Footer() {
           transition={{ duration: 0.6 }}
         >
           {/* Top Section */}
-          <div className="mb-12 grid gap-12 md:grid-cols-5">
+          <div className="mb-12 grid gap-12 md:grid-cols-4">
             {/* Brand */}
             <div className="md:col-span-1">
               <Link href="/" className="flex items-center gap-2.5 mb-4">
@@ -93,7 +87,7 @@ export function Footer() {
             <div>
               <h3 className="font-semibold text-foreground text-sm mb-4">Company</h3>
               <ul className="space-y-3">
-                {footerLinks.company.map((link) => (
+                {footerLinks.company.filter(link => link.href !== "#").map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
@@ -109,7 +103,7 @@ export function Footer() {
             <div>
               <h3 className="font-semibold text-foreground text-sm mb-4">Resources</h3>
               <ul className="space-y-3">
-                {footerLinks.resources.map((link) => (
+                {footerLinks.resources.filter(link => link.href !== "#").map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
@@ -125,23 +119,7 @@ export function Footer() {
             <div>
               <h3 className="font-semibold text-foreground text-sm mb-4">Learning</h3>
               <ul className="space-y-3">
-                {footerLinks.learning.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-foreground text-sm mb-4">Legal</h3>
-              <ul className="space-y-3">
-                {footerLinks.legal.map((link) => (
+                {footerLinks.learning.filter(link => link.href !== "#").map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}

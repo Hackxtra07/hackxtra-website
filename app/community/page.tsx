@@ -82,7 +82,13 @@ const channels = [
   },
 ];
 
+import { useEffect, useState } from "react";
+import * as LucideIcons from "lucide-react";
+
 export default function CommunityPage() {
+  const [config, setConfig] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
   const leaderboardRef = useRef(null);
@@ -90,6 +96,27 @@ export default function CommunityPage() {
     once: true,
     margin: "-100px",
   });
+
+  useEffect(() => {
+    fetch("/api/community")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setConfig(data.data);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const getIcon = (name: string) => {
+    const Icon = (LucideIcons as any)[name] || LucideIcons.HelpCircle;
+    return <Icon className="h-5 w-5" />;
+  };
+
+  const stats = config?.stats || communityStats;
+  const contributors = config?.topContributors || topContributors;
+  const events = config?.upcomingEvents || upcomingEvents;
+  const popularChannels = config?.popularChannels || channels;
+
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center pt-32"><LucideIcons.Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -163,13 +190,13 @@ export default function CommunityPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-16 grid grid-cols-2 gap-4 sm:grid-cols-4"
           >
-            {communityStats.map((stat) => (
+            {stats.map((stat: any) => (
               <div
                 key={stat.label}
                 className="flex flex-col items-center rounded-xl border border-border/50 bg-card/30 p-6 text-center"
               >
                 <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
-                  <stat.icon className="h-5 w-5" />
+                  {getIcon(stat.icon)}
                 </div>
                 <div className="font-display text-2xl font-semibold text-foreground">
                   {stat.value}
@@ -202,7 +229,7 @@ export default function CommunityPage() {
                   <Trophy className="h-5 w-5 text-primary" />
                 </div>
                 <div className="space-y-4">
-                  {topContributors.map((user, index) => (
+                  {contributors.map((user: any, index: number) => (
                     <div
                       key={user.name}
                       className="flex items-center gap-4 rounded-lg p-2 transition-colors hover:bg-muted/50"
@@ -222,7 +249,7 @@ export default function CommunityPage() {
                         </p>
                       </div>
                       <span className="font-mono text-sm text-primary">
-                        {user.points.toLocaleString()}
+                        {user.points?.toLocaleString()}
                       </span>
                     </div>
                   ))}
@@ -256,7 +283,7 @@ export default function CommunityPage() {
                   <Calendar className="h-5 w-5 text-primary" />
                 </div>
                 <div className="space-y-4">
-                  {upcomingEvents.map((event) => (
+                  {events.map((event: any) => (
                     <div
                       key={event.title}
                       className="flex flex-col gap-3 rounded-lg border border-border/30 bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -274,7 +301,7 @@ export default function CommunityPage() {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Users className="h-3.5 w-3.5" />
+                          <LucideIcons.Users className="h-3.5 w-3.5" />
                           {event.participants}
                         </span>
                         <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -295,13 +322,13 @@ export default function CommunityPage() {
                   <MessageSquare className="h-5 w-5 text-primary" />
                 </div>
                 <div className="space-y-3">
-                  {channels.map((channel) => (
+                  {popularChannels.map((channel: any) => (
                     <div
                       key={channel.name}
                       className="group flex cursor-pointer items-center gap-4 rounded-lg p-3 transition-colors hover:bg-muted/50"
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition-colors group-hover:border-primary/30 group-hover:text-primary">
-                        <channel.icon className="h-5 w-5" />
+                        {getIcon(channel.icon)}
                       </div>
                       <div className="flex-1">
                         <p className="font-medium text-foreground">

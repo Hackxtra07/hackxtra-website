@@ -682,3 +682,71 @@ export const Tool = mongoose.models.Tool || mongoose.model<ITool>('Tool', toolSc
 
 
 
+// Community Configs Model
+export interface ICommunityStats {
+  icon: string;
+  value: string;
+  label: string;
+}
+
+export interface IContributor {
+  name: string;
+  role: string;
+  points: number;
+  avatar: string;
+}
+
+export interface IEvent {
+  title: string;
+  date: string;
+  time: string;
+  participants: number;
+  type: string;
+}
+
+export interface ICommunityChannel {
+  icon: string;
+  name: string;
+  description: string;
+  members: number;
+}
+
+export interface ICommunityConfigs extends Document {
+  stats: ICommunityStats[];
+  topContributors: IContributor[];
+  upcomingEvents: IEvent[];
+  popularChannels: ICommunityChannel[];
+  updatedAt: Date;
+}
+
+const communityConfigsSchema = new Schema<ICommunityConfigs>(
+  {
+    stats: [{
+      icon: String,
+      value: String,
+      label: String
+    }],
+    topContributors: [{
+      name: String,
+      role: String,
+      points: Number,
+      avatar: String
+    }],
+    upcomingEvents: [{
+      title: String,
+      date: String,
+      time: String,
+      participants: Number,
+      type: String
+    }],
+    popularChannels: [{
+      icon: String,
+      name: String,
+      description: String,
+      members: Number
+    }]
+  },
+  { timestamps: true }
+);
+
+export const CommunityConfigs = mongoose.models.CommunityConfigs || mongoose.model<ICommunityConfigs>('CommunityConfigs', communityConfigsSchema);
