@@ -213,46 +213,48 @@ export default function AdminCommunityPage() {
                         </div>
                     ))}
                 </CardContent>
-                {/* Channels */}
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Popular Channels</CardTitle>
-                        <Button variant="outline" size="sm" onClick={addChannel}><Plus className="h-4 w-4 mr-2" /> Add Channel</Button>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {config.popularChannels.map((channel: any, i: number) => (
-                            <div key={i} className="grid grid-cols-4 gap-2 items-end p-4 border rounded-lg bg-muted/20">
-                                <div className="grid gap-2">
-                                    <label className="text-xs font-medium">Name</label>
-                                    <Input value={channel.name} onChange={(e) => {
+            </Card>
+
+            {/* Channels */}
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Popular Channels</CardTitle>
+                    <Button variant="outline" size="sm" onClick={addChannel}><Plus className="h-4 w-4 mr-2" /> Add Channel</Button>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {config.popularChannels.map((channel: any, i: number) => (
+                        <div key={i} className="grid grid-cols-4 gap-2 items-end p-4 border rounded-lg bg-muted/20">
+                            <div className="grid gap-2">
+                                <label className="text-xs font-medium">Name</label>
+                                <Input value={channel.name} onChange={(e) => {
+                                    const next = [...config.popularChannels];
+                                    next[i].name = e.target.value;
+                                    setConfig({ ...config, popularChannels: next });
+                                }} placeholder="general" />
+                            </div>
+                            <div className="grid gap-2 col-span-2">
+                                <label className="text-xs font-medium">Description</label>
+                                <Input value={channel.description} onChange={(e) => {
+                                    const next = [...config.popularChannels];
+                                    next[i].description = e.target.value;
+                                    setConfig({ ...config, popularChannels: next });
+                                }} />
+                            </div>
+                            <div className="flex gap-2">
+                                <div className="grid gap-2 flex-1">
+                                    <label className="text-xs font-medium">Members</label>
+                                    <Input type="number" value={channel.members} onChange={(e) => {
                                         const next = [...config.popularChannels];
-                                        next[i].name = e.target.value;
-                                        setConfig({ ...config, popularChannels: next });
-                                    }} placeholder="general" />
-                                </div>
-                                <div className="grid gap-2 col-span-2">
-                                    <label className="text-xs font-medium">Description</label>
-                                    <Input value={channel.description} onChange={(e) => {
-                                        const next = [...config.popularChannels];
-                                        next[i].description = e.target.value;
+                                        next[i].members = parseInt(e.target.value);
                                         setConfig({ ...config, popularChannels: next });
                                     }} />
                                 </div>
-                                <div className="flex gap-2">
-                                    <div className="grid gap-2 flex-1">
-                                        <label className="text-xs font-medium">Members</label>
-                                        <Input type="number" value={channel.members} onChange={(e) => {
-                                            const next = [...config.popularChannels];
-                                            next[i].members = parseInt(e.target.value);
-                                            setConfig({ ...config, popularChannels: next });
-                                        }} />
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="text-red-500" onClick={() => removeChannel(i)}><Trash2 className="h-4 w-4" /></Button>
-                                </div>
+                                <Button variant="ghost" size="icon" className="text-red-500" onClick={() => removeChannel(i)}><Trash2 className="h-4 w-4" /></Button>
                             </div>
-                        ))}
-                    </CardContent>
-                </Card>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
         </div>
     );
 }
