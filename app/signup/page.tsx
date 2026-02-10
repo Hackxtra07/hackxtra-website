@@ -39,6 +39,9 @@ export default function SignupPage() {
 
       localStorage.setItem('userToken', data.token);
       localStorage.setItem('userData', JSON.stringify(data.user));
+      // Ensure any admin tokens are cleared
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminEmail');
 
       toast({ title: "Account created!", description: "Welcome to HackXtras." });
       router.push('/profile');

@@ -229,7 +229,23 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                         <Youtube className="mr-2 h-4 w-4" />
                                         Watch on YouTube
                                     </Button>
-                                    <Button variant="outline" className="w-full border-border/50 hover:bg-muted">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full border-border/50 hover:bg-muted"
+                                        onClick={() => {
+                                            const shareData = {
+                                                title: course.title,
+                                                text: course.description,
+                                                url: window.location.href,
+                                            };
+                                            if (navigator.share) {
+                                                navigator.share(shareData).catch(console.error);
+                                            } else {
+                                                navigator.clipboard.writeText(window.location.href);
+                                                alert("Link copied to clipboard!");
+                                            }
+                                        }}
+                                    >
                                         <Share2 className="mr-2 h-4 w-4" />
                                         Share Course
                                     </Button>

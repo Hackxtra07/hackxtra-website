@@ -13,7 +13,9 @@ export const metadata = {
 
 async function getNews() {
     await connectDB();
-    const news = await News.find({ isPublished: true }).sort({ publishedAt: -1, createdAt: -1 });
+    const news = await News.find({ isPublished: true })
+        .sort({ publishedAt: -1, createdAt: -1 })
+        .lean();
     return news;
 }
 

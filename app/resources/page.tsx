@@ -74,7 +74,15 @@ function ResourceCard({
       </p>
 
       <div className="mt-5 border-t border-border/30 pt-4">
-        <Button size="sm" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button
+          size="sm"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+          onClick={() => {
+            if (resource.url) {
+              window.open(resource.url, '_blank');
+            }
+          }}
+        >
           <Download className="mr-1.5 h-3.5 w-3.5" />
           Download
         </Button>
@@ -90,9 +98,9 @@ export default function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const fetchResources = async () => {
+    const fetchResources = async (showLoading = true) => {
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
         setError(null);
         const response = await fetch("/api/resources");
         if (!response.ok) {
@@ -101,14 +109,21 @@ export default function ResourcesPage() {
         const data = await response.json();
         setResources(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load resources");
-        setResources([]);
+        if (showLoading) {
+          setError(err instanceof Error ? err.message : "Failed to load resources");
+          setResources([]);
+        }
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     };
 
     fetchResources();
+
+    // Set up polling interval (30 seconds)
+    const interval = setInterval(() => fetchResources(false), 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const headerRef = useRef(null);

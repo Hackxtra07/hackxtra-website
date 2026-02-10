@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/mongodb";
+import mongoose from "mongoose";
 import { News } from "@/lib/models";
 import { Header } from "@/components/hackxtras/header";
 import { Button } from "@/components/ui/button";
@@ -35,10 +36,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 async function getNewsItem(id: string) {
     try {
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return null;
+        }
         await connectDB();
-        const newsItem = await News.findById(id);
+        const newsItem = await News.findById(id).lean();
         return newsItem;
     } catch (e) {
+        console.error("Error fetching news item:", e);
         return null;
     }
 }

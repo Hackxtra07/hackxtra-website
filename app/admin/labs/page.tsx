@@ -19,6 +19,7 @@ interface Lab {
   objectives: string[];
   tools: string[];
   timeToComplete: number;
+  url?: string;
 }
 
 export default function AdminLabsPage() {
@@ -35,6 +36,7 @@ export default function AdminLabsPage() {
     objectives: '',
     tools: '',
     timeToComplete: 60,
+    url: '',
   });
 
   useEffect(() => {
@@ -99,6 +101,7 @@ export default function AdminLabsPage() {
       objectives: lab.objectives.join('\n'),
       tools: lab.tools.join('\n'),
       timeToComplete: lab.timeToComplete,
+      url: lab.url || '',
     });
     setEditingId(lab._id);
     setShowForm(true);
@@ -113,6 +116,7 @@ export default function AdminLabsPage() {
       objectives: '',
       tools: '',
       timeToComplete: 60,
+      url: '',
     });
     setEditingId(null);
     setShowForm(false);
@@ -180,6 +184,14 @@ export default function AdminLabsPage() {
                 value={formData.timeToComplete}
                 onChange={(e) => setFormData({ ...formData, timeToComplete: parseInt(e.target.value) })}
                 required
+              />
+            </div>
+            <div>
+              <Label>Lab URL</Label>
+              <Input
+                value={formData.url}
+                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                placeholder="e.g., https://labs.example.com/lab-1"
               />
             </div>
             <div>

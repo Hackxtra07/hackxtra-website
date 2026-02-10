@@ -64,6 +64,9 @@ export async function POST(request: NextRequest) {
 
         await user.save();
 
+        // 6. Delete challenge after solve (requested feature)
+        await Challenge.findByIdAndDelete(challengeId);
+
         return createSuccessResponse({
             message: 'Correct flag!',
             pointsAwarded: challenge.points,

@@ -29,6 +29,7 @@ interface Lab {
   category?: string;
   points?: number;
   instructions?: string;
+  url?: string;
 }
 
 const iconMap: Record<string, any> = {
@@ -120,11 +121,18 @@ function LabCard({ lab, index }: { lab: Lab; index: number }) {
         variant="ghost"
         size="sm"
         className="mt-4 group/btn text-green-400 hover:bg-green-500/10 hover:text-green-300 w-full"
+        onClick={() => {
+          if (lab.url) {
+            window.open(lab.url, '_blank');
+          } else {
+            alert("No lab URL specified. Please contact admin.");
+          }
+        }}
       >
         <Play className="mr-2 h-3.5 w-3.5" />
         Start Lab
       </Button>
-    </motion.div>
+    </motion.div >
   );
 }
 
@@ -135,9 +143,9 @@ export default function LabsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const fetchLabs = async () => {
+    const fetchLabs = async (showLoading = true) => {
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
         setError(null);
         const response = await fetch("/api/labs");
         if (!response.ok) {
@@ -146,14 +154,21 @@ export default function LabsPage() {
         const data = await response.json();
         setLabs(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load labs");
-        setLabs([]);
+        if (showLoading) {
+          setError(err instanceof Error ? err.message : "Failed to load labs");
+          setLabs([]);
+        }
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     };
 
     fetchLabs();
+
+    // Set up polling interval (30 seconds)
+    const interval = setInterval(() => fetchLabs(false), 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const headerRef = useRef(null);

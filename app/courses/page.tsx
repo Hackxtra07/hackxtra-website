@@ -169,9 +169,9 @@ export default function CoursesPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCourses = async (showLoading = true) => {
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
         setError(null);
         const response = await fetch("/api/courses");
         if (!response.ok) {
@@ -180,14 +180,21 @@ export default function CoursesPage() {
         const data = await response.json();
         setCourses(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load courses");
-        setCourses([]);
+        if (showLoading) {
+          setError(err instanceof Error ? err.message : "Failed to load courses");
+          setCourses([]);
+        }
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     };
 
     fetchCourses();
+
+    // Set up polling interval (30 seconds)
+    const interval = setInterval(() => fetchCourses(false), 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const headerRef = useRef(null);

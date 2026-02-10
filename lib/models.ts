@@ -108,6 +108,7 @@ export interface ILab extends Document {
   objectives: string[];
   tools: string[];
   timeToComplete: number;
+  url?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -136,6 +137,10 @@ const labSchema = new Schema<ILab>(
     timeToComplete: {
       type: Number,
       required: true,
+    },
+    url: {
+      type: String,
+      required: false,
     },
   },
   { timestamps: true }

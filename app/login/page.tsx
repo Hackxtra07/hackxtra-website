@@ -38,6 +38,9 @@ export default function LoginPage() {
 
             localStorage.setItem('userToken', data.token);
             localStorage.setItem('userData', JSON.stringify(data.user));
+            // Ensure any admin tokens are cleared
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminEmail');
 
             toast({ title: "Welcome back!", description: "Logged in successfully." });
             router.push('/profile');
