@@ -70,6 +70,14 @@ export async function POST(request: NextRequest) {
                     <pre style="font-family: sans-serif; background: #f4f4f4; padding: 10px; border-radius: 5px;">${data.suggestion}</pre>
                 `;
                 break;
+            case 'newsletter':
+                subject = `New Newsletter Subscription`;
+                htmlContent = `
+                    <h2>New Newsletter Subscription</h2>
+                    <p><strong>Email:</strong> ${data.email}</p>
+                    <p>This user wants to stay updated with HackXtras news and tutorials.</p>
+                `;
+                break;
             default:
                 htmlContent = `<p>Unknown message type</p><pre>${JSON.stringify(data)}</pre>`;
         }
