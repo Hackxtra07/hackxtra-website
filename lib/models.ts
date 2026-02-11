@@ -60,6 +60,7 @@ export interface ICourse extends Document {
   youtubeLink: string;
   duration: string;
   instructor: string;
+  coverImage?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -95,6 +96,10 @@ const courseSchema = new Schema<ICourse>(
       type: String,
       required: false,
     },
+    coverImage: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );
@@ -109,6 +114,7 @@ export interface ILab extends Document {
   tools: string[];
   timeToComplete: number;
   url?: string;
+  coverImage?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -142,6 +148,10 @@ const labSchema = new Schema<ILab>(
       type: String,
       required: false,
     },
+    coverImage: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );
@@ -154,6 +164,7 @@ export interface IResource extends Document {
   url: string;
   category: string;
   tags: string[];
+  coverImage?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -182,6 +193,10 @@ const resourceSchema = new Schema<IResource>(
       required: true,
     },
     tags: [String],
+    coverImage: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );

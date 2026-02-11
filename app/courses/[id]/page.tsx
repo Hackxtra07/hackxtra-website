@@ -12,6 +12,7 @@ import {
     Share2,
     BookOpen,
 } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
@@ -28,6 +29,7 @@ interface Course {
     instructor?: string;
     youtubeLink?: string;
     category?: string;
+    coverImage?: string;
     createdAt?: string;
 }
 
@@ -150,8 +152,27 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                 </h1>
                             </div>
 
-                            {/* Video Player Section */}
-                            {course.youtubeLink && (
+                            {/* Cover Image / Video Section */}
+                            {course.coverImage ? (
+                                <div className="relative aspect-video rounded-xl overflow-hidden border border-border/50 bg-card/50 shadow-2xl">
+                                    <Image
+                                        src={course.coverImage}
+                                        alt={course.title}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                    {course.youtubeLink && (
+                                        <div className="absolute bottom-4 right-4 z-10">
+                                            <a href={course.youtubeLink} target="_blank" rel="noopener noreferrer">
+                                                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white gap-2">
+                                                    <Youtube className="h-4 w-4" />
+                                                    Watch on YouTube
+                                                </Button>
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : course.youtubeLink && (
                                 <div className="relative aspect-video rounded-xl overflow-hidden border border-border/50 bg-black/50 shadow-2xl shadow-primary/5">
                                     <iframe
                                         src={course.youtubeLink.replace('watch?v=', 'embed/')}

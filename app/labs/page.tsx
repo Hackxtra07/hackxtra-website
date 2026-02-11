@@ -18,7 +18,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
+import { Loader } from "@/components/hackxtras/loader";
 import { TerminalCard } from "@/components/hackxtras/terminal-card";
+import Image from "next/image";
 
 interface Lab {
   _id: string;
@@ -30,6 +32,7 @@ interface Lab {
   points?: number;
   instructions?: string;
   url?: string;
+  coverImage?: string;
 }
 
 const iconMap: Record<string, any> = {
@@ -73,65 +76,84 @@ function LabCard({ lab, index }: { lab: Lab; index: number }) {
         delay: index * 0.1,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="group relative flex flex-col rounded-xl border border-border/50 bg-card/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-green-500/60 hover:bg-card hover:shadow-[0_0_30px_rgba(34,197,94,0.2)]"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:border-green-500/60 hover:bg-card hover:shadow-[0_0_30px_rgba(34,197,94,0.2)]"
     >
-      <div className="flex items-start justify-between">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-green-500/20 bg-green-500/10 text-green-400 transition-colors duration-300 group-hover:bg-green-500/15">
-          <IconComponent className="h-6 w-6" />
+      {/* Image Header */}
+      <div className="relative aspect-video w-full overflow-hidden bg-muted/50 border-b border-border/30">
+        {lab.coverImage ? (
+          <Image
+            src={lab.coverImage}
+            alt={lab.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-background to-muted">
+            <IconComponent className="h-10 w-10 text-green-500/40" />
+          </div>
+        )}
+        <div className="absolute top-3 right-3">
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-medium backdrop-blur-md ${difficultyColors[lab.difficulty] || difficultyColors.Easy}`}
+          >
+            {lab.difficulty}
+          </span>
         </div>
-        <span
-          className={`rounded-full border px-3 py-1 text-xs font-medium ${difficultyColors[lab.difficulty] || difficultyColors.Easy
-            }`}
+      </div>
+
+      <div className="flex flex-1 flex-col p-6 pt-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-green-500/20 bg-green-500/10 text-green-400 group-hover:bg-green-500/15">
+            <IconComponent className="h-5 w-5" />
+          </div>
+        </div>
+
+        <h3 className="font-display mt-5 text-xl font-medium text-foreground">
+          {lab.title}
+        </h3>
+        <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
+          {lab.description}
+        </p>
+
+        {lab.category && (
+          <div className="mt-4 inline-block">
+            <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20">
+              {lab.category}
+            </span>
+          </div>
+        )}
+
+        <div className="mt-6 flex items-center gap-4 border-t border-border/30 pt-4 text-xs text-muted-foreground">
+          {lab.duration && (
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              {lab.duration}
+            </span>
+          )}
+          {lab.points && (
+            <span className="flex items-center gap-1.5">
+              <Trophy className="h-3.5 w-3.5" />
+              {lab.points} pts
+            </span>
+          )}
+        </div>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-4 group/btn text-green-400 hover:bg-green-500/10 hover:text-green-300 w-full"
+          onClick={() => {
+            if (lab.url) {
+              window.open(lab.url, '_blank');
+            } else {
+              alert("No lab URL specified. Please contact admin.");
+            }
+          }}
         >
-          {lab.difficulty}
-        </span>
+          <Play className="mr-2 h-3.5 w-3.5" />
+          Start Lab
+        </Button>
       </div>
-
-      <h3 className="font-display mt-5 text-xl font-medium text-foreground">
-        {lab.title}
-      </h3>
-      <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">
-        {lab.description}
-      </p>
-
-      {lab.category && (
-        <div className="mt-4 inline-block">
-          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full border border-primary/20">
-            {lab.category}
-          </span>
-        </div>
-      )}
-
-      <div className="mt-6 flex items-center gap-4 border-t border-border/30 pt-4 text-xs text-muted-foreground">
-        {lab.duration && (
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5" />
-            {lab.duration}
-          </span>
-        )}
-        {lab.points && (
-          <span className="flex items-center gap-1.5">
-            <Trophy className="h-3.5 w-3.5" />
-            {lab.points} pts
-          </span>
-        )}
-      </div>
-
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mt-4 group/btn text-green-400 hover:bg-green-500/10 hover:text-green-300 w-full"
-        onClick={() => {
-          if (lab.url) {
-            window.open(lab.url, '_blank');
-          } else {
-            alert("No lab URL specified. Please contact admin.");
-          }
-        }}
-      >
-        <Play className="mr-2 h-3.5 w-3.5" />
-        Start Lab
-      </Button>
     </motion.div >
   );
 }
@@ -283,10 +305,7 @@ export default function LabsPage() {
           {/* Loading State */}
           {loading && (
             <div className="flex justify-center py-12">
-              <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-                <p className="mt-4 text-muted-foreground">Loading labs...</p>
-              </div>
+              <Loader />
             </div>
           )}
 

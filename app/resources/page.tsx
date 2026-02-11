@@ -16,6 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
+import { Loader } from "@/components/hackxtras/loader";
+import Image from "next/image";
 
 interface Resource {
   _id: string;
@@ -26,6 +28,7 @@ interface Resource {
   format?: string;
   url?: string;
   author?: string;
+  coverImage?: string;
 }
 
 function ResourceCard({
@@ -48,44 +51,64 @@ function ResourceCard({
         delay: index * 0.1,
         ease: [0.22, 1, 0.36, 1],
       }}
-      className="group relative flex flex-col rounded-xl border border-border/50 bg-card/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-border hover:bg-card"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300 hover:border-border hover:bg-card"
     >
-      <div className="flex items-start justify-between">
-        <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary/15">
-          <FileText className="h-5 w-5" />
-        </div>
+      {/* Image Header */}
+      <div className="relative aspect-video w-full overflow-hidden bg-muted/50 border-b border-border/30">
+        {resource.coverImage ? (
+          <Image
+            src={resource.coverImage}
+            alt={resource.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-background to-muted">
+            <Bookmark className="h-10 w-10 text-primary/40" />
+          </div>
+        )}
         {resource.format && (
-          <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-            {resource.format}
-          </span>
+          <div className="absolute top-3 right-3">
+            <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary backdrop-blur-md">
+              {resource.format}
+            </span>
+          </div>
         )}
       </div>
 
-      {resource.category && (
-        <span className="mt-4 text-xs font-medium text-muted-foreground">
-          {resource.category}
-        </span>
-      )}
-      <h3 className="font-display mt-1 text-lg font-medium text-foreground">
-        {resource.title}
-      </h3>
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-        {resource.description}
-      </p>
+      <div className="flex flex-1 flex-col p-6 pt-4">
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary group-hover:bg-primary/15">
+            <FileText className="h-5 w-5" />
+          </div>
+        </div>
 
-      <div className="mt-5 border-t border-border/30 pt-4">
-        <Button
-          size="sm"
-          className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-          onClick={() => {
-            if (resource.url) {
-              window.open(resource.url, '_blank');
-            }
-          }}
-        >
-          <Download className="mr-1.5 h-3.5 w-3.5" />
-          Download
-        </Button>
+        {resource.category && (
+          <span className="mt-4 text-xs font-medium text-muted-foreground">
+            {resource.category}
+          </span>
+        )}
+        <h3 className="font-display mt-1 text-lg font-medium text-foreground">
+          {resource.title}
+        </h3>
+        <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+          {resource.description}
+        </p>
+
+        <div className="mt-5 border-t border-border/30 pt-4">
+          <Button
+            size="sm"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            onClick={() => {
+              if (resource.url) {
+                window.open(resource.url, '_blank');
+              }
+            }}
+          >
+            <Download className="mr-1.5 h-3.5 w-3.5" />
+            Download
+          </Button>
+        </div>
       </div>
     </motion.div>
   );
@@ -216,10 +239,7 @@ export default function ResourcesPage() {
           {/* Loading State */}
           {loading && (
             <div className="flex justify-center py-12">
-              <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-                <p className="mt-4 text-muted-foreground">Loading resources...</p>
-              </div>
+              <Loader />
             </div>
           )}
 

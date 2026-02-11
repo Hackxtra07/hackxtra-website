@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
+import { Loader } from "@/components/hackxtras/loader";
 
 interface Course {
   _id: string;
@@ -29,6 +30,7 @@ interface Course {
   instructor?: string;
   youtubeLink?: string;
   category?: string;
+  coverImage?: string;
 }
 
 const fadeUp = {
@@ -89,9 +91,9 @@ function CourseCard({
     >
       {/* Image Header */}
       <div className="relative aspect-video w-full overflow-hidden bg-muted/50">
-        {imageSrc ? (
+        {course.coverImage || imageSrc ? (
           <Image
-            src={imageSrc}
+            src={course.coverImage || imageSrc!}
             alt={course.title}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -334,10 +336,7 @@ export default function CoursesPage() {
           {/* Loading State */}
           {loading && (
             <div className="flex justify-center py-12">
-              <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-                <p className="mt-4 text-muted-foreground">Loading courses...</p>
-              </div>
+              <Loader />
             </div>
           )}
 
