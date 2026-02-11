@@ -1,24 +1,40 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 export function Loader() {
   return (
-    <div className="flex items-center justify-center p-4">
-      <div className="relative w-16 h-16">
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{
-            background: 'conic-gradient(from 0deg, #00f2ea 0deg, #a855f7 90deg, #00f2ea 360deg)',
-            animation: 'spin 1s linear infinite',
-          }}
+    <div className="flex flex-col items-center justify-center p-8 gap-4">
+      <div className="relative w-12 h-12">
+        {/* Rotating Outer Hexagon */}
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-0 border border-primary/40"
+          style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
         />
-        <div className="absolute inset-1 rounded-full bg-background" />
-        <style jsx>{`
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
+
+        {/* Pulsing Inner Core */}
+        <motion.div
+          animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 1, 0.3] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          className="absolute inset-2 bg-primary/20 backdrop-blur-sm"
+          style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
+        >
+          <div className="absolute inset-0 bg-primary/30 blur-sm" />
+        </motion.div>
+
+        {/* Scanning Line Effect */}
+        <motion.div
+          animate={{ top: ["0%", "100%", "0%"] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute w-full h-0.5 bg-primary/60 shadow-[0_0_8px_rgba(35,220,175,0.8)] z-10"
+        />
       </div>
+
+      <span className="font-mono text-[10px] text-primary/60 tracking-[0.2em] uppercase animate-pulse">
+        Processing_Data...
+      </span>
     </div>
   );
 }

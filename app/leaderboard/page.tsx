@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
+import { Loader } from "@/components/hackxtras/loader";
 
 interface Ranking {
     _id: string;
@@ -253,10 +254,7 @@ export default function LeaderboardPage() {
                         <div className="overflow-x-auto">
                             {loading ? (
                                 <div className="flex justify-center py-20">
-                                    <div className="flex flex-col items-center">
-                                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                        <p className="mt-4 text-sm text-muted-foreground">Loading rankings...</p>
-                                    </div>
+                                    <Loader />
                                 </div>
                             ) : (
                                 <table className="w-full text-left text-sm">

@@ -17,6 +17,7 @@ import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Loader } from "@/components/hackxtras/loader";
 
 interface Course {
     _id: string;
@@ -69,10 +70,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
     if (loading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    <p className="text-muted-foreground animate-pulse">Loading course data...</p>
-                </div>
+                <Loader />
             </div>
         );
     }
