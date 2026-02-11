@@ -1,4 +1,5 @@
 import { connectDB } from './mongodb';
+import { Tool, Message } from './models';
 import mongoose from 'mongoose';
 
 export interface OptimizationStats {
@@ -6,10 +7,12 @@ export interface OptimizationStats {
     before: {
         storageSize: number;
         indexSize: number;
+        count: number;
     };
     after: {
         storageSize: number;
         indexSize: number;
+        count: number;
     };
 }
 
@@ -23,6 +26,31 @@ export async function optimizeDatabase() {
 
     const collections = await db.listCollections().toArray();
     const stats: OptimizationStats[] = [];
+
+    // 4. Perform Logical Trimming
+    console.log("Performing logical data trimming...");
+
+    // Trim Tool Descriptions and Usage
+    const tools = await Tool.find({});
+    for (const tool of tools) {
+        let changed = false;
+        if (tool.description && tool.description.length > 500) {
+            tool.description = tool.description.substring(0, 500) + "...";
+            changed = true;
+        }
+        if (tool.usage && tool.usage.length > 2000) {
+            tool.usage = tool.usage.substring(0, 2000) + "...";
+            changed = true;
+        }
+        if (changed) await tool.save();
+    }
+
+    // Delete Messages older than 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    await Message.deleteMany({ createdAt: { $lt: thirtyDaysAgo } });
+
+    console.log("Logical trimming completed.");
 
     for (const colInfo of collections) {
         const colName = colInfo.name;
@@ -51,11 +79,13 @@ export async function optimizeDatabase() {
                 collection: colName,
                 before: {
                     storageSize: beforeStats.storageSize,
-                    indexSize: beforeStats.totalIndexSize
+                    indexSize: beforeStats.totalIndexSize,
+                    count: beforeStats.count
                 },
                 after: {
                     storageSize: afterStats.storageSize,
-                    indexSize: afterStats.totalIndexSize
+                    indexSize: afterStats.totalIndexSize,
+                    count: afterStats.count
                 }
             });
         } catch (error: any) {
@@ -66,8 +96,8 @@ export async function optimizeDatabase() {
                 // Still return the current stats so the API doesn't fail
                 stats.push({
                     collection: colName,
-                    before: { storageSize: beforeStats.storageSize, indexSize: beforeStats.totalIndexSize },
-                    after: { storageSize: beforeStats.storageSize, indexSize: beforeStats.totalIndexSize }
+                    before: { storageSize: beforeStats.storageSize, indexSize: beforeStats.totalIndexSize, count: beforeStats.count },
+                    after: { storageSize: beforeStats.storageSize, indexSize: beforeStats.totalIndexSize, count: beforeStats.count }
                 });
             } else {
                 console.error(`Failed to optimize collection ${colName}:`, error);

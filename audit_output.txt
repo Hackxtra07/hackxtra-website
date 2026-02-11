@@ -1,0 +1,52 @@
+MongoDB connected successfully
+--- Cluster Wide Database Audit ---
+Total Size on Disk: 1.56 MB
+
+Database: admin
+ - Data Size: 0.00 MB
+ - Storage Size: 0.03 MB
+ - Collections: 1
+ - Indexes: 1
+   Collection system.version: Data=0.00MB, Storage=0.03MB
+
+Database: config
+ - Data Size: 0.00 MB
+ - Storage Size: 0.02 MB
+ - Collections: 1
+ - Indexes: 2
+   Collection system.sessions: Data=0.00MB, Storage=0.02MB
+
+Database: hackxtra
+ - Data Size: 0.00 MB
+ - Storage Size: 0.00 MB
+ - Collections: 1
+ - Indexes: 1
+
+Database: hackxtras
+ - Data Size: 0.34 MB
+ - Storage Size: 0.75 MB
+ - Collections: 18
+ - Indexes: 21
+   Collection transactions: Data=0.00MB, Storage=0.03MB
+   Collection documentaries: Data=0.00MB, Storage=0.03MB
+   Collection challenges: Data=0.01MB, Storage=0.04MB
+   Collection settings: Data=0.00MB, Storage=0.03MB
+   Collection courses: Data=0.00MB, Storage=0.03MB
+   Collection storeitems: Data=0.00MB, Storage=0.03MB
+   Collection tools: Data=0.30MB, Storage=0.26MB
+   Collection messages: Data=0.00MB, Storage=0.03MB
+   Collection vulnerabilities: Data=0.01MB, Storage=0.04MB
+   Collection teammembers: Data=0.00MB, Storage=0.03MB
+   Collection news: Data=0.00MB, Storage=0.03MB
+   Collection users: Data=0.00MB, Storage=0.03MB
+   Collection resources: Data=0.00MB, Storage=0.03MB
+   Collection admins: Data=0.00MB, Storage=0.03MB
+   Collection labs: Data=0.00MB, Storage=0.03MB
+   Collection channels: Data=0.00MB, Storage=0.03MB
+
+Database: local
+ - Data Size: 0.08 MB
+ - Storage Size: 0.04 MB
+ - Collections: 1
+ - Indexes: 1
+   Collection startup_log: Data=0.08MB, Storage=0.04MB
