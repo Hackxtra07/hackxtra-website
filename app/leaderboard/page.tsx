@@ -85,17 +85,53 @@ function RankRow({ user, index }: { user: Ranking; index: number }) {
 export default function LeaderboardPage() {
     const [loading, setLoading] = useState(true);
     const [rankings, setRankings] = useState<Ranking[]>([]);
+    const [stats, setStats] = useState({
+        activeHackers: "...",
+        challengesSolved: "...",
+        totalPointsAwarded: "..."
+    });
+    const [userStats, setUserStats] = useState({
+        rank: "--",
+        points: 0
+    });
     const [searchQuery, setSearchQuery] = useState("");
     const headerRef = useRef(null);
     const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
 
     useEffect(() => {
-        const fetchRankings = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/users');
-                if (res.ok) {
-                    const data = await res.json();
+                // Fetch Rankings
+                const rankingsRes = await fetch('/api/users');
+                if (rankingsRes.ok) {
+                    const data = await rankingsRes.json();
                     setRankings(data);
+                }
+
+                // Fetch Global Stats
+                const statsRes = await fetch('/api/leaderboard/stats');
+                if (statsRes.ok) {
+                    const data = await statsRes.json();
+                    setStats({
+                        activeHackers: data.activeHackers.toLocaleString(),
+                        challengesSolved: data.challengesSolved > 1000 ? `${(data.challengesSolved / 1000).toFixed(1)}K` : data.challengesSolved.toString(),
+                        totalPointsAwarded: data.totalPointsAwarded > 1000000 ? `${(data.totalPointsAwarded / 1000000).toFixed(1)}M` : data.totalPointsAwarded.toLocaleString()
+                    });
+                }
+
+                // Fetch User Stats if logged in
+                const userToken = localStorage.getItem('userToken');
+                if (userToken) {
+                    const profileRes = await fetch('/api/users/profile', {
+                        headers: { 'Authorization': `Bearer ${userToken}` }
+                    });
+                    if (profileRes.ok) {
+                        const data = await profileRes.json();
+                        setUserStats({
+                            rank: data.rank ? `#${data.rank}` : "--",
+                            points: data.points || 0
+                        });
+                    }
                 }
             } catch (e) {
                 console.error(e);
@@ -103,7 +139,7 @@ export default function LeaderboardPage() {
                 setLoading(false);
             }
         };
-        fetchRankings();
+        fetchData();
     }, []);
 
     const filteredRankings = rankings.filter(user =>
@@ -147,11 +183,11 @@ export default function LeaderboardPage() {
                             <div className="flex gap-3">
                                 <div className="hidden flex-col items-center gap-1 rounded-lg border border-border/50 bg-card/50 p-3 text-center sm:flex">
                                     <span className="text-xs text-muted-foreground uppercase">Your Rank</span>
-                                    <span className="font-mono text-xl font-bold text-foreground">#42</span>
+                                    <span className="font-mono text-xl font-bold text-foreground">{userStats.rank}</span>
                                 </div>
                                 <div className="hidden flex-col items-center gap-1 rounded-lg border border-border/50 bg-card/50 p-3 text-center sm:flex">
                                     <span className="text-xs text-muted-foreground uppercase">Points</span>
-                                    <span className="font-mono text-xl font-bold text-primary">8,450</span>
+                                    <span className="font-mono text-xl font-bold text-primary">{userStats.points.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -160,9 +196,9 @@ export default function LeaderboardPage() {
                     {/* ... Stats Cards ... */}
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-12">
                         {[
-                            { label: "Active Hackers", value: "12,405", icon: Users, color: "text-blue-400" },
-                            { label: "Challenges Solved", value: "854K", icon: Target, color: "text-green-400" },
-                            { label: "Points Awarded", value: "125M", icon: Zap, color: "text-yellow-400" },
+                            { label: "Active Hackers", value: stats.activeHackers, icon: Users, color: "text-blue-400" },
+                            { label: "Challenges Solved", value: stats.challengesSolved, icon: Target, color: "text-green-400" },
+                            { label: "Points Awarded", value: stats.totalPointsAwarded, icon: Zap, color: "text-yellow-400" },
                         ].map((stat, i) => (
                             <motion.div
                                 key={stat.label}

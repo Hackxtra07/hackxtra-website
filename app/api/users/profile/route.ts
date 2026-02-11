@@ -17,7 +17,13 @@ export async function GET(request: NextRequest) {
             return createErrorResponse('User not found', 404);
         }
 
-        return createSuccessResponse(user);
+        // Calculate Rank
+        const rank = await User.countDocuments({ points: { $gt: user.points } }) + 1;
+
+        return createSuccessResponse({
+            ...user.toObject(),
+            rank
+        });
     } catch (error) {
         console.error('Profile fetch error:', error);
         return createErrorResponse('Failed to fetch profile', 500);

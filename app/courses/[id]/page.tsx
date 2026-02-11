@@ -227,7 +227,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ id: str
                                 <div className="mt-8 space-y-3">
                                     <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium h-11">
                                         <Youtube className="mr-2 h-4 w-4" />
-                                        Watch on YouTube
+                                        Watch
                                     </Button>
                                     <Button
                                         variant="outline"
