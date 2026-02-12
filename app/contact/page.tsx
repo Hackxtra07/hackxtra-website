@@ -34,6 +34,7 @@ export default function ContactPage() {
         try {
             const res = await fetch('/api/send-email', {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type: 'contact', data }),
             });
 

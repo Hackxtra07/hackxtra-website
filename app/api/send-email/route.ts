@@ -28,10 +28,15 @@ export async function POST(request: NextRequest) {
             }
         };
 
+        console.log('--- Email Sending Debug ---');
+        console.log('Type:', type);
+        console.log('Destination:', destinationEmail);
+        console.log('SMTP Host:', smtpConfig.host);
+        console.log('SMTP Port:', smtpConfig.port);
+        console.log('SMTP Secure:', smtpConfig.secure);
+
         if (!smtpConfig.host || !smtpConfig.auth.user || !smtpConfig.auth.pass) {
-            console.warn('SMTP credentials not fully configured. Email would be sent to:', destinationEmail);
-            console.log('Email Body:', JSON.stringify(data, null, 2));
-            // For dev/demo without credentials, we simulate success
+            console.warn('SMTP credentials not fully configured.');
             return createSuccessResponse({ message: 'Email queued (Simulated: SMTP not configured)' });
         }
 
@@ -94,8 +99,8 @@ export async function POST(request: NextRequest) {
 
         return createSuccessResponse({ message: 'Email sent successfully' });
 
-    } catch (error) {
-        console.error('Send email error:', error);
-        return createErrorResponse('Failed to send email', 500);
+    } catch (error: any) {
+        console.error('CRITICAL: Send email error:', error);
+        return createErrorResponse(`Failed to send email: ${error.message || 'Unknown error'}`, 500);
     }
 }
