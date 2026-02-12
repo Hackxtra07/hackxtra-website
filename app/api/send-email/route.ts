@@ -47,6 +47,13 @@ export async function POST(request: NextRequest) {
 
         const transporter = nodemailer.createTransport(smtpConfig);
 
+        try {
+            await transporter.verify();
+        } catch (verifyError) {
+            console.error('SMTP Verification Failed:', verifyError);
+            // Don't fail here, just log it. Some SMTPs fail verify() but still work.
+        }
+
         let subject = 'New Message from HackXtras';
         let htmlContent = '';
 
@@ -98,6 +105,8 @@ export async function POST(request: NextRequest) {
         await transporter.sendMail({
             from: `"HackXtras Bot" <${process.env.SMTP_USER}>`,
             to: destinationEmail,
+            cc: process.env.SMTP_USER, // CC the sender for verification
+            replyTo: data.email, // Allow replying directly to the user
             subject,
             html: htmlContent,
         });

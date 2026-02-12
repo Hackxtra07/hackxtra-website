@@ -16,7 +16,7 @@ const Settings = mongoose.models.Settings || mongoose.model('Settings', Settings
 async function updateSettings() {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
-        const contactEmail = process.env.ADMIN_EMAIL || process.env.DEFAULT_CONTACT_EMAIL || 'hackxtras.official@gmail.com';
+        const contactEmail = process.env.DEFAULT_CONTACT_EMAIL || 'hackxtras.official@gmail.com';
 
         console.log('Updating contactEmail to:', contactEmail);
 
