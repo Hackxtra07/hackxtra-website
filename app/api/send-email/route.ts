@@ -46,6 +46,12 @@ export async function POST(request: NextRequest) {
         console.log('SMTP Host:', smtpConfig.host);
         console.log('SMTP Port:', smtpConfig.port);
         console.log('SMTP Secure:', smtpConfig.secure);
+        console.log('SMTP User:', smtpConfig.auth.user);
+        const pass = smtpConfig.auth.pass || '';
+        console.log('SMTP Pass Length:', pass.length);
+        if (pass.length > 2) {
+            console.log('SMTP Pass Hint:', `${pass[0]}...${pass[pass.length - 1]}`);
+        }
 
         if (!smtpConfig.host || !smtpConfig.auth.user || !smtpConfig.auth.pass) {
             console.warn('SMTP credentials not fully configured.');
