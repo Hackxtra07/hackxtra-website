@@ -64,9 +64,16 @@ export async function POST(request: NextRequest) {
             console.log('SMTP Pass Hint:', `${pass[0]}...${pass[pass.length - 1]}`);
         }
 
-        if (!smtpConfig.host || !smtpConfig.auth.user || !smtpConfig.auth.pass) {
-            console.warn('SMTP credentials not fully configured.');
-            return createSuccessResponse({ message: 'Email queued (Simulated: SMTP not configured)' });
+        // Validation: Must have (Host OR Service) AND User AND Pass
+        const isConfigured = (smtpConfig.host || smtpConfig.service) && smtpConfig.auth.user && smtpConfig.auth.pass;
+        const isPlaceholder = smtpConfig.auth.user === 'your-email@gmail.com';
+
+        if (!isConfigured || isPlaceholder) {
+            console.warn('SMTP credentials not fully configured or using placeholder.');
+            const errorMsg = isPlaceholder
+                ? 'Vercel Error: You are using the default "your-email@gmail.com". Please update Environment Variables in Vercel.'
+                : 'Server Error: SMTP configuration missing.';
+            return createErrorResponse(errorMsg, 500);
         }
 
         const transporter = nodemailer.createTransport(smtpConfig);
