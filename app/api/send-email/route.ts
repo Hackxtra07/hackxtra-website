@@ -54,9 +54,15 @@ export async function POST(request: NextRequest) {
         console.log('--- Email Sending Debug ---');
         console.log('Type:', type);
         console.log('Destination:', destinationEmail);
-        console.log('SMTP Host:', smtpConfig.host);
-        console.log('SMTP Port:', smtpConfig.port);
-        console.log('SMTP Secure:', smtpConfig.secure);
+        if (smtpConfig.service === 'gmail') {
+            console.log('SMTP Host: Gmail Service (smtp.gmail.com)');
+            console.log('SMTP Port: 465 (SSL/Implicit)');
+        } else {
+            console.log('SMTP Host:', smtpConfig.host);
+            console.log('SMTP Port:', smtpConfig.port);
+            console.log('SMTP Secure:', smtpConfig.secure);
+        }
+
         console.log('SMTP User:', smtpConfig.auth.user);
         const pass = smtpConfig.auth.pass || '';
         console.log('SMTP Pass Length:', pass.length);
