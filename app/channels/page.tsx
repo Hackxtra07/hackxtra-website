@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Bell,
   Heart,
+  Instagram,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
@@ -37,11 +38,29 @@ const socialChannels = [
   {
     icon: Youtube,
     name: "YouTube",
-    handle: "@HackXtras",
+    handle: "@hackxtras.official",
     followers: "125K",
     description: "Weekly tutorials, walkthroughs, and security news. Join our growing community of learners.",
     color: "bg-red-500/10 text-red-400 border-red-500/20",
-    link: "#",
+    link: "https://www.youtube.com/@hackxtras.official",
+  },
+  {
+    icon: Instagram,
+    name: "Instagram",
+    handle: "@hackxtras.official",
+    followers: "45K",
+    description: "Behind the scenes, quick tips, and security highlights in bite-sized format.",
+    color: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+    link: "https://www.instagram.com/hackxtras.official/",
+  },
+  {
+    icon: MessageCircle,
+    name: "Discord",
+    handle: "HackXtras Community",
+    followers: "50K",
+    description: "Our main community hub. Get help, share resources, and collaborate on challenges.",
+    color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    link: "https://discord.gg/bzuwkgVvWd",
   },
   {
     icon: Twitter,
@@ -54,16 +73,6 @@ const socialChannels = [
     link: "#",
   },
   {
-    icon: MessageCircle,
-    name: "Discord",
-    handle: "HackXtras Community",
-    followers: "50K",
-    description:
-      "Our main community hub. Get help, share resources, and collaborate on challenges.",
-    color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    link: "#",
-  },
-  {
     icon: Linkedin,
     name: "LinkedIn",
     handle: "HackXtras",
@@ -71,16 +80,6 @@ const socialChannels = [
     description:
       "Professional updates, career advice, and industry insights for security professionals.",
     color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    link: "#",
-  },
-  {
-    icon: Github,
-    name: "GitHub",
-    handle: "HackXtras",
-    followers: "35K",
-    description:
-      "Open-source tools, lab environments, and educational resources. Contributions welcome.",
-    color: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
     link: "#",
   },
 ];
@@ -170,19 +169,28 @@ function ChannelCard({
 }
 
 export default function ChannelsPage() {
-  const [channels, setChannels] = useState<typeof socialChannels>([]);
+  const [dbChannels, setDbChannels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate loading since we are using static data for now
-    const timer = setTimeout(() => {
-      setChannels(socialChannels);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    const fetchDbChannels = async () => {
+      try {
+        const response = await fetch('/api/channels');
+        if (response.ok) {
+          const data = await response.json();
+          setDbChannels(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch channels:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDbChannels();
   }, []);
 
   const headerRef = useRef(null);
@@ -325,7 +333,7 @@ export default function ChannelsPage() {
           )}
 
           {/* Channels Grid */}
-          {!loading && channels.length > 0 && (
+          {!loading && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -333,11 +341,68 @@ export default function ChannelsPage() {
               className="mb-16"
             >
               <h2 className="font-display mb-8 text-2xl font-semibold text-foreground">
-                Our Channels
+                Official Channels
               </h2>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {channels.map((channel, index) => (
+                {socialChannels.map((channel, index) => (
                   <ChannelCard key={channel.name} channel={channel} index={index} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Database Channels (from Admin Panel) */}
+          {!loading && dbChannels.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="mb-16"
+            >
+              <h2 className="font-display mb-8 text-2xl font-semibold text-foreground">
+                Community & Partner Channels
+              </h2>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {dbChannels.map((channel, index) => (
+                  <motion.div
+                    key={channel._id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.5,
+                      delay: index * 0.1,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className="group rounded-xl border border-border/50 bg-card/50 p-6 backdrop-blur-sm transition-all duration-300 hover:border-border hover:bg-card"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl border bg-primary/10 text-primary border-primary/20">
+                        <span className="text-2xl">{channel.icon || '🚀'}</span>
+                      </div>
+                      <span className="font-mono text-sm font-medium text-foreground">
+                        {channel.followers.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <h3 className="font-display mt-4 text-lg font-medium text-foreground">
+                      {channel.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{channel.category}</p>
+
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                      {channel.description}
+                    </p>
+
+                    <a
+                      href={channel.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-5 flex items-center justify-center gap-2 rounded-lg border border-border/50 bg-transparent py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                    >
+                      Visit channel
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
