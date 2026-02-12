@@ -3,11 +3,6 @@ import { Settings } from '@/lib/models';
 import { createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import nodemailer from 'nodemailer';
-import path from 'path';
-import dotenv from 'dotenv';
-
-// Force load .env.local because of mystery placeholders
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true });
 
 export async function POST(request: NextRequest) {
     try {
