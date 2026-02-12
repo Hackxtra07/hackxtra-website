@@ -84,29 +84,6 @@ const socialChannels = [
   },
 ];
 
-const recentVideos = [
-  {
-    title: "Breaking into Bug Bounty: Complete Beginner Guide",
-    views: "125K",
-    duration: "45:32",
-    thumbnail: "BB",
-    date: "3 days ago",
-  },
-  {
-    title: "HTB Walkthrough: Exploiting Active Directory",
-    views: "89K",
-    duration: "1:12:45",
-    thumbnail: "AD",
-    date: "1 week ago",
-  },
-  {
-    title: "Web Application Firewall Bypass Techniques",
-    views: "156K",
-    duration: "38:20",
-    thumbnail: "WF",
-    date: "2 weeks ago",
-  },
-];
 
 const communityStats = [
   { icon: Users, value: "500K+", label: "Total Followers" },
@@ -408,69 +385,6 @@ export default function ChannelsPage() {
             </motion.div>
           )}
 
-          {/* Featured Content - YouTube */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="rounded-xl border border-border/50 bg-card/50 p-6 sm:p-8"
-          >
-            <div className="mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10 text-red-400">
-                  <Youtube className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="font-display text-lg font-medium text-foreground">
-                    Latest from YouTube
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    New videos every week
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden border-border/50 bg-transparent hover:bg-muted sm:flex"
-              >
-                View Channel
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              {recentVideos.map((video, index) => (
-                <motion.div
-                  key={video.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                  className="group cursor-pointer"
-                >
-                  <div className="relative mb-3 flex aspect-video items-center justify-center overflow-hidden rounded-lg border border-border/50 bg-muted">
-                    <span className="text-2xl font-semibold text-muted-foreground">
-                      {video.thumbnail}
-                    </span>
-                    <div className="absolute inset-0 flex items-center justify-center bg-background/50 opacity-0 transition-opacity group-hover:opacity-100">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                        <Play className="h-5 w-5 ml-0.5" />
-                      </div>
-                    </div>
-                    <span className="absolute bottom-2 right-2 rounded bg-background/80 px-1.5 py-0.5 text-xs font-medium text-foreground">
-                      {video.duration}
-                    </span>
-                  </div>
-                  <h3 className="line-clamp-2 text-sm font-medium text-foreground group-hover:text-primary">
-                    {video.title}
-                  </h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {video.views} views - {video.date}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
 
           {/* Newsletter CTA */}
           <motion.div
