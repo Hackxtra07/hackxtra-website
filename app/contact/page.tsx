@@ -45,12 +45,13 @@ export default function ContactPage() {
                 });
                 form.reset();
             } else {
-                throw new Error('Failed to send');
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to send');
             }
-        } catch (error) {
+        } catch (error: any) {
             toast({
                 title: "Error",
-                description: "Something went wrong. Please try again later.",
+                description: error.message || "Something went wrong. Please try again later.",
                 variant: "destructive"
             });
         } finally {

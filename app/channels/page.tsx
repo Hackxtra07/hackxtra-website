@@ -195,12 +195,13 @@ export default function ChannelsPage() {
         });
         setEmail("");
       } else {
-        throw new Error("Failed to subscribe");
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to subscribe");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Subscription Failed",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     } finally {

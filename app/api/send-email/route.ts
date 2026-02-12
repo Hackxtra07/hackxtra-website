@@ -7,8 +7,15 @@ import nodemailer from 'nodemailer';
 export async function POST(request: NextRequest) {
     try {
         await connectDB();
-        const body = await request.json();
+        const body = await request.json().catch(() => ({}));
+        console.log('--- Email Request Received ---');
+        console.log('Body:', JSON.stringify(body, null, 2));
+
         const { type, data } = body;
+        if (!type || !data) {
+            console.error('Invalid request: missing type or data');
+            return createErrorResponse('Invalid request: missing type or data', 400);
+        }
 
         // Fetch destination email from settings
         const settings = await Settings.findOne();

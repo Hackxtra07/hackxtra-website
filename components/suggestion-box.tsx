@@ -31,10 +31,11 @@ export function SuggestionBox() {
                 toast({ title: "Suggestion Sent", description: "Thanks for your feedback!" });
                 setSuggestion("");
             } else {
-                throw new Error('Failed to send');
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to send');
             }
-        } catch (error) {
-            toast({ title: "Error", description: "Could not send suggestion", variant: "destructive" });
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message || "Could not send suggestion", variant: "destructive" });
         } finally {
             setIsSubmitting(false);
         }

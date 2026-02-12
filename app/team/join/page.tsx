@@ -88,10 +88,11 @@ export default function OpenPositionsPage() {
                 toast({ title: "Application Sent", description: "Good luck! We'll review your application soon." });
                 setSelectedPosition(null);
             } else {
-                throw new Error('Failed to send');
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to send');
             }
-        } catch (error) {
-            toast({ title: "Error", description: "Could not submit application", variant: "destructive" });
+        } catch (error: any) {
+            toast({ title: "Error", description: error.message || "Could not submit application", variant: "destructive" });
         } finally {
             setIsSubmitting(false);
         }
