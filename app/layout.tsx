@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { CommandMenu } from "@/components/hackxtras/command-menu";
+import { GlobalLoader } from "@/components/hackxtras/global-loader";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -60,8 +61,10 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        {children}
-        <CommandMenu />
+        <GlobalLoader>
+          {children}
+          <CommandMenu />
+        </GlobalLoader>
         <Analytics />
       </body>
     </html>

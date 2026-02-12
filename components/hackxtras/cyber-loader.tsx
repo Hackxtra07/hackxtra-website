@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export function CyberLoader() {
+export function CyberLoader({ isFinishing = false, onComplete }: { isFinishing?: boolean; onComplete?: () => void }) {
     const [terminalText, setTerminalText] = useState("");
     const [percent, setPercent] = useState(0);
 
@@ -20,17 +20,33 @@ export function CyberLoader() {
         const interval = setInterval(() => {
             setTerminalText(texts[i % texts.length]);
             i++;
-        }, 1500);
+        }, 800);
         return () => clearInterval(interval);
     }, []);
 
-    // Simulate progress
     useEffect(() => {
         const interval = setInterval(() => {
-            setPercent((prev) => (prev < 100 ? prev + 1 : 0));
-        }, 50);
+            setPercent((prev) => {
+                if (prev >= 100) {
+                    clearInterval(interval);
+                    onComplete?.();
+                    return 100;
+                }
+
+                // If isFinishing is true, we go much faster (e.g. 5-10% jumps)
+                if (isFinishing) {
+                    const next = prev + Math.floor(Math.random() * 5) + 5;
+                    return next > 100 ? 100 : next;
+                }
+
+                // Normal speed: Start fast, then moderate
+                const increment = prev < 30 ? 3 : (prev < 70 ? 2 : 1);
+                const next = prev + increment;
+                return next > 100 ? 100 : next;
+            });
+        }, isFinishing ? 10 : 20); // Faster interval when finishing
         return () => clearInterval(interval);
-    }, []);
+    }, [isFinishing, onComplete]);
 
     return (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0d0f14] overflow-hidden">

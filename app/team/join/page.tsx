@@ -217,7 +217,7 @@ export default function OpenPositionsPage() {
                             We're always looking for talented individuals. If you think you can contribute in other ways, drop us a line and tell us how you can help!
                         </p>
                         <Button size="lg" variant="outline" asChild>
-                            <a href="mailto:careers@hackxtras.com?subject=General Application">
+                            <a href="/contact">
                                 Get in Touch
                             </a>
                         </Button>
