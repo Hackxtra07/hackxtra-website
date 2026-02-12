@@ -39,6 +39,7 @@ export default function ContactPage() {
             });
 
             if (res.ok) {
+                window.alert("Message Sent Successfully!");
                 toast({
                     title: "Message Sent",
                     description: "Thanks for reaching out! We'll get back to you soon.",
@@ -46,9 +47,13 @@ export default function ContactPage() {
                 form.reset();
             } else {
                 const errorData = await res.json();
-                throw new Error(errorData.error || 'Failed to send');
+                const errorMsg = errorData.error || 'Failed to send';
+                window.alert("Server Error: " + errorMsg);
+                throw new Error(errorMsg);
             }
         } catch (error: any) {
+            console.error("Submission Error:", error);
+            window.alert("Client Error: " + error.message);
             toast({
                 title: "Error",
                 description: error.message || "Something went wrong. Please try again later.",

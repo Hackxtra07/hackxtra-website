@@ -2,7 +2,7 @@ import React from "react"
 import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { CommandMenu } from "@/components/hackxtras/command-menu";
 import { GlobalLoader } from "@/components/hackxtras/global-loader";
@@ -65,6 +65,7 @@ export default function RootLayout({
           {children}
           <CommandMenu />
         </GlobalLoader>
+        <Toaster />
         <Analytics />
       </body>
     </html>
