@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useProStatus } from "@/hooks/use-pro-status";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Shield, User, ChevronDown, LogOut, Settings, Mail, Search, Globe, Crown } from "lucide-react";
+import { Menu, X, Shield, User, ChevronDown, LogOut, Settings, Mail, Search, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,7 +21,6 @@ const navGroups = {
   Learn: [
     { name: "Courses", href: "/courses" },
     { name: "Labs", href: "/labs" },
-    { name: "Threat Map", href: "/threat-map", icon: Globe }, // 3D Map
     { name: "Resources", href: "/resources" },
     { name: "Kali Tools", href: "/tools" }, // New
   ],
@@ -63,7 +62,6 @@ export function Header() {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminEmail');
     setIsAuthenticated(false);
-    setIsPro(false);
     router.push('/login');
     router.refresh();
   };
