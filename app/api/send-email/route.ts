@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Check for SMTP config
-        const smtpConfig = {
+        let smtpConfig: any = {
             host: process.env.SMTP_HOST,
             port: Number(process.env.SMTP_PORT) || 587,
             secure: process.env.SMTP_SECURE === 'true',
@@ -39,6 +39,17 @@ export async function POST(request: NextRequest) {
                 rejectUnauthorized: false
             }
         };
+
+        // Gmail specific optimized config
+        if (smtpConfig.host?.includes('gmail.com') || smtpConfig.auth.user?.includes('gmail.com')) {
+            smtpConfig = {
+                service: 'gmail',
+                auth: {
+                    user: process.env.SMTP_USER,
+                    pass: process.env.SMTP_PASS,
+                }
+            };
+        }
 
         console.log('--- Email Sending Debug ---');
         console.log('Type:', type);
