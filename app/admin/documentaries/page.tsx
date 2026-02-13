@@ -51,6 +51,28 @@ export default function AdminDocumentariesPage() {
     }
   };
 
+  const importFromUrl = async (url: string) => {
+    try {
+      toast({ title: 'Importing...', description: 'Fetching metadata...' });
+      const data = await request('/api/admin/scrape', {
+        method: 'POST',
+        body: { url }
+      });
+
+      setFormData({
+        ...formData,
+        title: data.title || '',
+        description: data.description || '',
+        videoLink: data.url || url,
+        thumbnail: data.image || '',
+      });
+      setShowForm(true);
+      toast({ title: 'Success', description: 'Metadata imported!' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to import', variant: 'destructive' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -125,12 +147,25 @@ export default function AdminDocumentariesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Documentaries Management</h1>
-        <Button
-          onClick={() => (showForm ? resetForm() : setShowForm(true))}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {showForm ? 'Cancel' : 'Add New Documentary'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              const url = prompt("Enter Documentary URL (YouTube):");
+              if (url) importFromUrl(url);
+            }}
+            variant="outline"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50"
+            disabled={loading}
+          >
+            {loading ? 'Importing...' : 'Import from URL'}
+          </Button>
+          <Button
+            onClick={() => (showForm ? resetForm() : setShowForm(true))}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {showForm ? 'Cancel' : 'Add New Documentary'}
+          </Button>
+        </div>
       </div>
 
       {showForm && (
