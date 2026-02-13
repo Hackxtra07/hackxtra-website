@@ -20,6 +20,8 @@ export async function POST(request: NextRequest) {
             headers: {
                 'User-Agent':
                     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5',
             },
         });
 
@@ -39,10 +41,12 @@ export async function POST(request: NextRequest) {
 
         let image = $('meta[property="og:image"]').attr('content') || '';
 
-        // Clean up Google Drive title
-        if (url.includes('drive.google.com')) {
-            // Google Drive titles often look like "Filename.ext - Google Drive"
-            title = title.replace(' - Google Drive', '');
+        // Clean up Google Drive/Docs titles
+        if (url.includes('google.com')) {
+            title = title.replace(' - Google Drive', '')
+                .replace(' - Google Sheets', '')
+                .replace(' - Google Docs', '')
+                .replace(' - Google Slides', '');
         }
 
         // Attempt to guess type from title extension or content-type
