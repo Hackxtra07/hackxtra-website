@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Terminal, Crown } from "lucide-react";
 import { useProStatus } from "@/hooks/use-pro-status";
+import Link from "next/link";
 
 const fadeUp = {
   initial: { opacity: 0, y: 15 },
@@ -74,17 +75,21 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mt-10 flex flex-col items-center gap-4 sm:flex-row"
           >
-            <Button size="lg" className="group bg-primary text-primary-foreground hover:bg-primary/90">
-              Start Learning
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-border/50 bg-transparent text-foreground hover:bg-muted"
-            >
-              Explore Courses
-            </Button>
+            <Link href="/signup">
+              <Button size="lg" className="group bg-primary text-primary-foreground hover:bg-primary/90">
+                Start Learning
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </Button>
+            </Link>
+            <Link href="/courses">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-border/50 bg-transparent text-foreground hover:bg-muted"
+              >
+                Explore Courses
+              </Button>
+            </Link>
           </motion.div>
 
           {/* Stats */}
