@@ -378,32 +378,15 @@ const settingsSchema = new Schema<ISettings>(
 );
 
 // Create models with proper typing
-// Force delete models to ensure schema changes are picked up in dev
-if (mongoose.models.Admin) delete mongoose.models.Admin;
-if (mongoose.models.Course) delete mongoose.models.Course;
-if (mongoose.models.Lab) delete mongoose.models.Lab;
-if (mongoose.models.Resource) delete mongoose.models.Resource;
-if (mongoose.models.TeamMember) delete mongoose.models.TeamMember;
-if (mongoose.models.Channel) delete mongoose.models.Channel;
-if (mongoose.models.Documentary) delete mongoose.models.Documentary;
-if (mongoose.models.Position) delete mongoose.models.Position;
-if (mongoose.models.Settings) delete mongoose.models.Settings;
-if (mongoose.models.News) delete mongoose.models.News;
-if (mongoose.models.Tool) delete mongoose.models.Tool;
-if (mongoose.models.Challenge) delete mongoose.models.Challenge;
-if (mongoose.models.Message) delete mongoose.models.Message;
-if (mongoose.models.StoreItem) delete mongoose.models.StoreItem;
-if (mongoose.models.Transaction) delete mongoose.models.Transaction;
-
-export const Admin = mongoose.model<IAdmin>('Admin', adminSchema);
-export const Course = mongoose.model<ICourse>('Course', courseSchema);
-export const Lab = mongoose.model<ILab>('Lab', labSchema);
-export const Resource = mongoose.model<IResource>('Resource', resourceSchema);
-export const TeamMember = mongoose.model<ITeamMember>('TeamMember', teamMemberSchema);
-export const Channel = mongoose.model<IChannel>('Channel', channelSchema);
-export const Documentary = mongoose.model<IDocumentary>('Documentary', documentarySchema);
-export const Position = mongoose.model<IPosition>('Position', positionSchema);
-export const Settings = mongoose.model<ISettings>('Settings', settingsSchema);
+export const Admin = mongoose.models.Admin || mongoose.model<IAdmin>('Admin', adminSchema);
+export const Course = mongoose.models.Course || mongoose.model<ICourse>('Course', courseSchema);
+export const Lab = mongoose.models.Lab || mongoose.model<ILab>('Lab', labSchema);
+export const Resource = mongoose.models.Resource || mongoose.model<IResource>('Resource', resourceSchema);
+export const TeamMember = mongoose.models.TeamMember || mongoose.model<ITeamMember>('TeamMember', teamMemberSchema);
+export const Channel = mongoose.models.Channel || mongoose.model<IChannel>('Channel', channelSchema);
+export const Documentary = mongoose.models.Documentary || mongoose.model<IDocumentary>('Documentary', documentarySchema);
+export const Position = mongoose.models.Position || mongoose.model<IPosition>('Position', positionSchema);
+export const Settings = mongoose.models.Settings || mongoose.model<ISettings>('Settings', settingsSchema);
 
 // Challenge Model (CTF & Quiz)
 export interface IChallenge extends Document {
@@ -441,7 +424,7 @@ const challengeSchema = new Schema<IChallenge>(
   { timestamps: true }
 );
 
-export const Challenge = mongoose.model<IChallenge>('Challenge', challengeSchema);
+export const Challenge = mongoose.models.Challenge || mongoose.model<IChallenge>('Challenge', challengeSchema);
 
 // User Model (Leaderboard & Auth)
 export interface IUser extends Document {
@@ -548,7 +531,7 @@ userSchema.methods.comparePassword = async function (this: IUser, candidatePassw
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-export const User = mongoose.model<IUser>('User', userSchema);
+export const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 
 // Message Model for Chat System
 export interface IMessage extends Document {
@@ -601,7 +584,7 @@ const messageSchema = new Schema<IMessage>(
   { timestamps: true }
 );
 
-export const Message = mongoose.model<IMessage>('Message', messageSchema);
+export const Message = mongoose.models.Message || mongoose.model<IMessage>('Message', messageSchema);
 
 // Store Item Model
 export interface IStoreItem extends Document {
@@ -631,7 +614,7 @@ const storeItemSchema = new Schema<IStoreItem>(
   { timestamps: true }
 );
 
-export const StoreItem = mongoose.model<IStoreItem>('StoreItem', storeItemSchema);
+export const StoreItem = mongoose.models.StoreItem || mongoose.model<IStoreItem>('StoreItem', storeItemSchema);
 
 // Transaction Model
 export interface ITransaction extends Document {
@@ -656,7 +639,7 @@ const transactionSchema = new Schema<ITransaction>(
   { timestamps: true }
 );
 
-export const Transaction = mongoose.model<ITransaction>('Transaction', transactionSchema);
+export const Transaction = mongoose.models.Transaction || mongoose.model<ITransaction>('Transaction', transactionSchema);
 
 // News Model
 export interface INews extends Document {
@@ -684,7 +667,7 @@ const newsSchema = new Schema<INews>(
   { timestamps: true }
 );
 
-export const News = mongoose.model<INews>('News', newsSchema);
+export const News = mongoose.models.News || mongoose.model<INews>('News', newsSchema);
 
 
 // Tool Model (Kali Linux Tools)
@@ -711,7 +694,7 @@ const toolSchema = new Schema<ITool>(
   { timestamps: true }
 );
 
-export const Tool = mongoose.model<ITool>('Tool', toolSchema);
+export const Tool = mongoose.models.Tool || mongoose.model<ITool>('Tool', toolSchema);
 
 
 
@@ -783,4 +766,4 @@ const communityConfigsSchema = new Schema<ICommunityConfigs>(
   { timestamps: true }
 );
 
-export const CommunityConfigs = mongoose.model<ICommunityConfigs>('CommunityConfigs', communityConfigsSchema);
+export const CommunityConfigs = mongoose.models.CommunityConfigs || mongoose.model<ICommunityConfigs>('CommunityConfigs', communityConfigsSchema);
