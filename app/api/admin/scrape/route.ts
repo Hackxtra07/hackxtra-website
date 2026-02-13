@@ -10,6 +10,26 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'URL is required' }, { status: 400 });
         }
 
+        // specific handling for YouTube to use oEmbed for better accuracy
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            try {
+                const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+                const oembedResponse = await axios.get(oembedUrl);
+                const data = oembedResponse.data;
+
+                return NextResponse.json({
+                    title: data.title,
+                    description: `Author: ${data.author_name}`, // oEmbed doesn't give full description, but author is useful
+                    image: data.thumbnail_url,
+                    type: 'Video',
+                    url: url
+                });
+            } catch (e) {
+                console.error('YouTube oEmbed failed, falling back to manual scrape', e);
+                // Fallthrough to normal scraping if oEmbed fails
+            }
+        }
+
         // specific handling for Google Drive to ensure we get the public view
         let targetUrl = url;
         if (url.includes('drive.google.com') && url.includes('/view')) {
