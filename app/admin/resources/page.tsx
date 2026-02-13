@@ -236,6 +236,16 @@ export default function AdminResourcesPage() {
                 placeholder="https://example.com/image.jpg"
               />
             </div>
+            {formData.coverImage && (
+              <div className="relative aspect-video w-40 overflow-hidden rounded-md border border-border">
+                <img
+                  src={formData.coverImage}
+                  alt="Preview"
+                  className="h-full w-full object-cover"
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                />
+              </div>
+            )}
             <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
               {loading ? 'Saving...' : editingId ? 'Update Resource' : 'Create Resource'}
             </Button>

@@ -187,6 +187,16 @@ export default function AdminDocumentariesPage() {
                 placeholder="/images/poster.png or https://..."
               />
             </div>
+            {formData.thumbnail && (
+              <div className="relative aspect-video w-40 overflow-hidden rounded-md border border-border">
+                <img
+                  src={formData.thumbnail}
+                  alt="Preview"
+                  className="h-full w-full object-cover"
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                />
+              </div>
+            )}
             <div>
               <Label>Description</Label>
               <Textarea

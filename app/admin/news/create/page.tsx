@@ -160,6 +160,16 @@ export default function CreateNewsPage() {
                             onChange={handleChange}
                         />
                     </div>
+                    {formData.image && (
+                        <div className="relative aspect-video w-40 overflow-hidden rounded-md border border-border">
+                            <img
+                                src={formData.image}
+                                alt="Preview"
+                                className="h-full w-full object-cover"
+                                onError={(e) => (e.currentTarget.style.display = 'none')}
+                            />
+                        </div>
+                    )}
 
                     <div className="grid gap-2">
                         <Label htmlFor="tags">Tags (comma separated)</Label>

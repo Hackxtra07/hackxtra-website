@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
     const body = await request.json();
+    console.log('[DEBUG] POST /api/labs body:', body);
 
     const lab = new Lab(body);
     await lab.save();

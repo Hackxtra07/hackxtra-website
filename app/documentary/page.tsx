@@ -91,11 +91,16 @@ function DocumentaryCard({
     >
       {/* Thumbnail */}
       <div className="relative aspect-video bg-muted">
-        {documentary.thumbnail && documentary.thumbnail.startsWith('/') ? (
-          <Image src={documentary.thumbnail} alt={documentary.title} fill className="object-cover" />
+        {documentary.thumbnail ? (
+          <Image
+            src={documentary.thumbnail}
+            alt={documentary.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-6xl font-bold text-muted-foreground/50">
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-background to-muted">
+            <span className="text-6xl font-bold text-muted-foreground/30">
               {documentary.title.substring(0, 2).toUpperCase()}
             </span>
           </div>

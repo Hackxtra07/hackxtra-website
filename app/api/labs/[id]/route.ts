@@ -30,6 +30,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     await connectDB();
     const body = await request.json();
+    console.log('[DEBUG] PUT /api/labs/[id] body:', body);
 
     const lab = await Lab.findByIdAndUpdate(id, body, {
       new: true,

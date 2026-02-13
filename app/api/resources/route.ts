@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
     const body = await request.json();
+    console.log('[DEBUG] POST /api/resources body:', body);
 
     const resource = new Resource(body);
     await resource.save();

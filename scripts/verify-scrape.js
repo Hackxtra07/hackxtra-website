@@ -19,6 +19,7 @@ async function verifyLogic(url) {
         const $ = cheerio.load(response.data);
         let title = $('meta[property="og:title"]').attr('content') || $('title').text() || '';
         let description = $('meta[property="og:description"]').attr('content') || $('meta[name="description"]').attr('content') || '';
+        let image = $('meta[property="og:image"]').attr('content') || '';
 
         // Emulate the logic we added to route.ts
         if (url.includes('portswigger.net')) {
@@ -32,6 +33,8 @@ async function verifyLogic(url) {
         console.log('--- Extracted Data ---');
         console.log('Title:', title);
         console.log('Description:', description);
+        console.log('Image:', image);
+
 
     } catch (error) {
         console.error('Error:', error.message);
