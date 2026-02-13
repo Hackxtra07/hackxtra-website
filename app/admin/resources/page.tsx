@@ -48,6 +48,30 @@ export default function AdminResourcesPage() {
     }
   };
 
+  const importFromUrl = async (url: string) => {
+    try {
+      toast({ title: 'Importing...', description: 'Fetching metadata from URL' });
+      const data = await request('/api/admin/scrape', {
+        method: 'POST',
+        body: { url }
+      });
+
+      setFormData({
+        ...formData,
+        title: data.title || '',
+        description: data.description || '',
+        url: data.url || url,
+        type: data.type || 'Link',
+        category: '',
+        tags: '',
+      });
+      setShowForm(true);
+      toast({ title: 'Success', description: 'Metadata imported! Please review and save.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to import from URL', variant: 'destructive' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -117,12 +141,25 @@ export default function AdminResourcesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Resources Management</h1>
-        <Button
-          onClick={() => (showForm ? resetForm() : setShowForm(true))}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {showForm ? 'Cancel' : 'Add New Resource'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              const url = prompt("Enter Resource URL (PDF, Drive Link, Blog, etc.):");
+              if (url) importFromUrl(url);
+            }}
+            variant="outline"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50"
+            disabled={loading}
+          >
+            {loading ? 'Importing...' : 'Import from URL'}
+          </Button>
+          <Button
+            onClick={() => (showForm ? resetForm() : setShowForm(true))}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {showForm ? 'Cancel' : 'Add New Resource'}
+          </Button>
+        </div>
       </div>
 
       {showForm && (

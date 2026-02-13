@@ -50,6 +50,29 @@ export default function AdminCoursesPage() {
     }
   };
 
+  const importFromUrl = async (url: string) => {
+    try {
+      toast({ title: 'Importing...', description: 'Fetching metadata from URL' });
+      const data = await request('/api/admin/scrape', {
+        method: 'POST',
+        body: { url }
+      });
+
+      setFormData({
+        ...formData,
+        title: data.title || '',
+        description: data.description || '',
+        youtubeLink: data.url || url, // If it's a video link, put it here
+        duration: '', // Scraper might not catch this
+        instructor: '',
+      });
+      setShowForm(true);
+      toast({ title: 'Success', description: 'Metadata imported! Please review and save.' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to import from URL', variant: 'destructive' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -116,12 +139,25 @@ export default function AdminCoursesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Courses Management</h1>
-        <Button
-          onClick={() => (showForm ? resetForm() : setShowForm(true))}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {showForm ? 'Cancel' : 'Add New Course'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              const url = prompt("Enter Course URL (YouTube, Udemy, etc.):");
+              if (url) importFromUrl(url);
+            }}
+            variant="outline"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50"
+            disabled={loading}
+          >
+            {loading ? 'Importing...' : 'Import from URL'}
+          </Button>
+          <Button
+            onClick={() => (showForm ? resetForm() : setShowForm(true))}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {showForm ? 'Cancel' : 'Add New Course'}
+          </Button>
+        </div>
       </div>
 
       {showForm && (
