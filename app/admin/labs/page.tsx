@@ -20,6 +20,7 @@ interface Lab {
   tools: string[];
   timeToComplete: number;
   url?: string;
+  coverImage?: string;
 }
 
 export default function AdminLabsPage() {
@@ -37,6 +38,7 @@ export default function AdminLabsPage() {
     tools: '',
     timeToComplete: 60,
     url: '',
+    coverImage: '',
   });
 
   useEffect(() => {
@@ -65,6 +67,7 @@ export default function AdminLabsPage() {
         title: data.title || '',
         description: data.description || '',
         url: data.url || url,
+        coverImage: data.image || '',
       });
       setShowForm(true);
       toast({ title: 'Success', description: 'Metadata imported!' });
@@ -123,6 +126,7 @@ export default function AdminLabsPage() {
       tools: lab.tools.join('\n'),
       timeToComplete: lab.timeToComplete,
       url: lab.url || '',
+      coverImage: lab.coverImage || '',
     });
     setEditingId(lab._id);
     setShowForm(true);
@@ -138,6 +142,7 @@ export default function AdminLabsPage() {
       tools: '',
       timeToComplete: 60,
       url: '',
+      coverImage: '',
     });
     setEditingId(null);
     setShowForm(false);
@@ -242,6 +247,14 @@ export default function AdminLabsPage() {
                 value={formData.tools}
                 onChange={(e) => setFormData({ ...formData, tools: e.target.value })}
                 placeholder="Wireshark&#10;Nmap&#10;tcpdump"
+              />
+            </div>
+            <div>
+              <Label>Cover Image URL</Label>
+              <Input
+                value={formData.coverImage}
+                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                placeholder="https://example.com/image.jpg"
               />
             </div>
             <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>

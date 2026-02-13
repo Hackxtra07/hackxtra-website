@@ -18,6 +18,7 @@ interface Resource {
   url: string;
   category: string;
   tags: string[];
+  coverImage?: string;
 }
 
 export default function AdminResourcesPage() {
@@ -33,6 +34,7 @@ export default function AdminResourcesPage() {
     url: '',
     category: '',
     tags: '',
+    coverImage: '',
   });
 
   useEffect(() => {
@@ -64,6 +66,7 @@ export default function AdminResourcesPage() {
         type: data.type || 'Link',
         category: '',
         tags: '',
+        coverImage: data.image || '',
       });
       setShowForm(true);
       toast({ title: 'Success', description: 'Metadata imported! Please review and save.' });
@@ -119,6 +122,7 @@ export default function AdminResourcesPage() {
       url: resource.url,
       category: resource.category,
       tags: resource.tags.join(', '),
+      coverImage: resource.coverImage || '',
     });
     setEditingId(resource._id);
     setShowForm(true);
@@ -132,6 +136,7 @@ export default function AdminResourcesPage() {
       url: '',
       category: '',
       tags: '',
+      coverImage: '',
     });
     setEditingId(null);
     setShowForm(false);
@@ -221,6 +226,14 @@ export default function AdminResourcesPage() {
                 value={formData.tags}
                 onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                 placeholder="security, hacking, tools"
+              />
+            </div>
+            <div>
+              <Label>Cover Image URL</Label>
+              <Input
+                value={formData.coverImage}
+                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                placeholder="https://example.com/image.jpg"
               />
             </div>
             <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>

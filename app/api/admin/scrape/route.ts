@@ -61,6 +61,15 @@ export async function POST(request: NextRequest) {
 
         let image = $('meta[property="og:image"]').attr('content') || '';
 
+        // Specific handling for PortSwigger
+        if (url.includes('portswigger.net')) {
+            const potentialTitle = $('h1').first().text().trim();
+            if (potentialTitle) title = potentialTitle;
+
+            const potentialDesc = $('meta[name="description"]').attr('content');
+            if (potentialDesc) description = potentialDesc;
+        }
+
         // Clean up Google Drive/Docs titles
         if (url.includes('google.com')) {
             title = title.replace(' - Google Drive', '')

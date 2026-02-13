@@ -19,6 +19,7 @@ interface Course {
   youtubeLink?: string;
   duration?: string;
   instructor?: string;
+  coverImage?: string;
 }
 
 export default function AdminCoursesPage() {
@@ -35,6 +36,7 @@ export default function AdminCoursesPage() {
     youtubeLink: '',
     duration: '',
     instructor: '',
+    coverImage: '',
   });
 
   useEffect(() => {
@@ -65,6 +67,7 @@ export default function AdminCoursesPage() {
         youtubeLink: data.url || url, // If it's a video link, put it here
         duration: '', // Scraper might not catch this
         instructor: '',
+        coverImage: data.image || '',
       });
       setShowForm(true);
       toast({ title: 'Success', description: 'Metadata imported! Please review and save.' });
@@ -116,6 +119,7 @@ export default function AdminCoursesPage() {
       youtubeLink: course.youtubeLink || '',
       duration: course.duration || '',
       instructor: course.instructor || '',
+      coverImage: course.coverImage || '',
     });
     setEditingId(course._id);
     setShowForm(true);
@@ -130,6 +134,7 @@ export default function AdminCoursesPage() {
       youtubeLink: '',
       duration: '',
       instructor: '',
+      coverImage: '',
     });
     setEditingId(null);
     setShowForm(false);
@@ -220,6 +225,14 @@ export default function AdminCoursesPage() {
                   placeholder="e.g., 2 hours"
                 />
               </div>
+            </div>
+            <div>
+              <Label>Cover Image URL</Label>
+              <Input
+                value={formData.coverImage}
+                onChange={(e) => setFormData({ ...formData, coverImage: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+              />
             </div>
             <div>
               <Label>Instructor</Label>
