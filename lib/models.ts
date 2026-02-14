@@ -378,6 +378,17 @@ const settingsSchema = new Schema<ISettings>(
 );
 
 // Create models with proper typing
+// Special check to force re-registration if coverImage field is missing (fixes stale models in Next.js dev)
+if (mongoose.models.Course && !mongoose.models.Course.schema.paths.coverImage) {
+  delete mongoose.models.Course;
+}
+if (mongoose.models.Lab && !mongoose.models.Lab.schema.paths.coverImage) {
+  delete mongoose.models.Lab;
+}
+if (mongoose.models.Resource && !mongoose.models.Resource.schema.paths.coverImage) {
+  delete mongoose.models.Resource;
+}
+
 export const Admin = mongoose.models.Admin || mongoose.model<IAdmin>('Admin', adminSchema);
 export const Course = mongoose.models.Course || mongoose.model<ICourse>('Course', courseSchema);
 export const Lab = mongoose.models.Lab || mongoose.model<ILab>('Lab', labSchema);
