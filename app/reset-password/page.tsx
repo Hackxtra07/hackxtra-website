@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,9 @@ import Link from 'next/link';
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
 import { useToast } from '@/hooks/use-toast';
-import { Shield, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Shield, CheckCircle2 } from 'lucide-react';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { toast } = useToast();
@@ -88,6 +88,62 @@ export default function ResetPasswordPage() {
     if (!token) return null;
 
     return (
+        <div className="bg-card border border-border/50 p-8 rounded-xl shadow-sm">
+            {!success ? (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                        <Label htmlFor="password">New Password</Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            required
+                            placeholder="Min. 8 characters"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="mt-2"
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="confirmPassword">Confirm Password</Label>
+                        <Input
+                            id="confirmPassword"
+                            type="password"
+                            required
+                            placeholder="Repeat your password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="mt-2"
+                        />
+                    </div>
+
+                    <Button type="submit" className="w-full" disabled={loading}>
+                        {loading ? 'Updating...' : 'Update Password'}
+                    </Button>
+                </form>
+            ) : (
+                <div className="text-center space-y-6">
+                    <div className="flex justify-center">
+                        <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                            <CheckCircle2 className="h-6 w-6 text-green-500" />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <h2 className="text-xl font-semibold">Success!</h2>
+                        <p className="text-muted-foreground">
+                            Your password has been reset. Redirecting you to login...
+                        </p>
+                    </div>
+                    <Link href="/login">
+                        <Button className="w-full">Sign In Now</Button>
+                    </Link>
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
         <div className="min-h-screen bg-background flex flex-col">
             <Header />
             <main className="flex-1 flex items-center justify-center p-6">
@@ -107,57 +163,13 @@ export default function ResetPasswordPage() {
                         </p>
                     </div>
 
-                    <div className="bg-card border border-border/50 p-8 rounded-xl shadow-sm">
-                        {!success ? (
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div>
-                                    <Label htmlFor="password">New Password</Label>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        required
-                                        placeholder="Min. 8 characters"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="mt-2"
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                                    <Input
-                                        id="confirmPassword"
-                                        type="password"
-                                        required
-                                        placeholder="Repeat your password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="mt-2"
-                                    />
-                                </div>
-
-                                <Button type="submit" className="w-full" disabled={loading}>
-                                    {loading ? 'Updating...' : 'Update Password'}
-                                </Button>
-                            </form>
-                        ) : (
-                            <div className="text-center space-y-6">
-                                <div className="flex justify-center">
-                                    <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                                        <CheckCircle2 className="h-6 w-6 text-green-500" />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <h2 className="text-xl font-semibold">Success!</h2>
-                                    <p className="text-muted-foreground">
-                                        Your password has been reset. Redirecting you to login...
-                                    </p>
-                                </div>
-                                <Link href="/login">
-                                    <Button className="w-full">Sign In Now</Button>
-                                </Link>
-                            </div>
-                        )}
-                    </div>
+                    <Suspense fallback={
+                        <div className="bg-card border border-border/50 p-8 rounded-xl shadow-sm flex items-center justify-center">
+                            <div className="animate-pulse text-muted-foreground">Loading...</div>
+                        </div>
+                    }>
+                        <ResetPasswordForm />
+                    </Suspense>
                 </div>
             </main>
             <Footer />
