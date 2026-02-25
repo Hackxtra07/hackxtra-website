@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
 import { Loader } from "@/components/hackxtras/loader";
+import { RequireAuth } from "@/components/hackxtras/require-auth";
 import Image from "next/image";
 
 interface Resource {
@@ -236,46 +237,48 @@ export default function ResourcesPage() {
             </div>
           </motion.div>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="flex justify-center py-12">
-              <Loader />
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
-              <p>Error: {error}</p>
-            </div>
-          )}
-
-          {/* Resources Grid */}
-          {!loading && filteredResources.length > 0 && (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredResources.map((resource, index) => (
-                <ResourceCard key={resource._id} resource={resource} index={index} />
-              ))}
-            </div>
-          )}
-
-          {/* Empty Search State */}
-          {!loading && filteredResources.length === 0 && resources.length > 0 && (
-            <div className="flex justify-center py-12">
-              <div className="text-center">
-                <p className="text-muted-foreground">No resources found matching "{searchQuery}"</p>
+          <RequireAuth title="Resources">
+            {/* Loading State */}
+            {loading && (
+              <div className="flex justify-center py-12">
+                <Loader />
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Empty State */}
-          {!loading && resources.length === 0 && !error && (
-            <div className="flex justify-center py-12">
-              <div className="text-center">
-                <p className="text-muted-foreground">No resources available yet.</p>
+            {/* Error State */}
+            {error && (
+              <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+                <p>Error: {error}</p>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Resources Grid */}
+            {!loading && filteredResources.length > 0 && (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredResources.map((resource, index) => (
+                  <ResourceCard key={resource._id} resource={resource} index={index} />
+                ))}
+              </div>
+            )}
+
+            {/* Empty Search State */}
+            {!loading && filteredResources.length === 0 && resources.length > 0 && (
+              <div className="flex justify-center py-12">
+                <div className="text-center">
+                  <p className="text-muted-foreground">No resources found matching "{searchQuery}"</p>
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && resources.length === 0 && !error && (
+              <div className="flex justify-center py-12">
+                <div className="text-center">
+                  <p className="text-muted-foreground">No resources available yet.</p>
+                </div>
+              </div>
+            )}
+          </RequireAuth>
         </div>
       </main>
       <Footer />

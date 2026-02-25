@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
 import { Loader } from "@/components/hackxtras/loader";
+import { RequireAuth } from "@/components/hackxtras/require-auth";
 
 interface Course {
   _id: string;
@@ -333,46 +334,48 @@ export default function CoursesPage() {
             </div>
           </motion.div>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="flex justify-center py-12">
-              <Loader />
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
-              <p>Error: {error}</p>
-            </div>
-          )}
-
-          {/* Courses Grid */}
-          {!loading && filteredCourses.length > 0 && (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredCourses.map((course, index) => (
-                <CourseCard key={course._id} course={course} index={index} />
-              ))}
-            </div>
-          )}
-
-          {/* Empty Search State */}
-          {!loading && filteredCourses.length === 0 && courses.length > 0 && (
-            <div className="flex justify-center py-12">
-              <div className="text-center">
-                <p className="text-muted-foreground">No courses found matching "{searchQuery}"</p>
+          <RequireAuth title="Courses">
+            {/* Loading State */}
+            {loading && (
+              <div className="flex justify-center py-12">
+                <Loader />
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Empty State */}
-          {!loading && courses.length === 0 && !error && (
-            <div className="flex justify-center py-12">
-              <div className="text-center">
-                <p className="text-muted-foreground">No courses available yet.</p>
+            {/* Error State */}
+            {error && (
+              <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+                <p>Error: {error}</p>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Courses Grid */}
+            {!loading && filteredCourses.length > 0 && (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredCourses.map((course, index) => (
+                  <CourseCard key={course._id} course={course} index={index} />
+                ))}
+              </div>
+            )}
+
+            {/* Empty Search State */}
+            {!loading && filteredCourses.length === 0 && courses.length > 0 && (
+              <div className="flex justify-center py-12">
+                <div className="text-center">
+                  <p className="text-muted-foreground">No courses found matching "{searchQuery}"</p>
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && courses.length === 0 && !error && (
+              <div className="flex justify-center py-12">
+                <div className="text-center">
+                  <p className="text-muted-foreground">No courses available yet.</p>
+                </div>
+              </div>
+            )}
+          </RequireAuth>
         </div>
       </main>
       <Footer />

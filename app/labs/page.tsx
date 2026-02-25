@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
 import { Loader } from "@/components/hackxtras/loader";
+import { RequireAuth } from "@/components/hackxtras/require-auth";
 import { TerminalCard } from "@/components/hackxtras/terminal-card";
 import Image from "next/image";
 
@@ -302,46 +303,48 @@ export default function LabsPage() {
             </div>
           </motion.div>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="flex justify-center py-12">
-              <Loader />
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
-              <p>Error: {error}</p>
-            </div>
-          )}
-
-          {/* Labs Grid */}
-          {!loading && filteredLabs.length > 0 && (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredLabs.map((lab, index) => (
-                <LabCard key={lab._id} lab={lab} index={index} />
-              ))}
-            </div>
-          )}
-
-          {/* Empty Search State */}
-          {!loading && filteredLabs.length === 0 && labs.length > 0 && (
-            <div className="flex justify-center py-12">
-              <div className="text-center">
-                <p className="text-muted-foreground">No labs found matching "{searchQuery}"</p>
+          <RequireAuth title="Labs">
+            {/* Loading State */}
+            {loading && (
+              <div className="flex justify-center py-12">
+                <Loader />
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Empty State */}
-          {!loading && labs.length === 0 && !error && (
-            <div className="flex justify-center py-12">
-              <div className="text-center">
-                <p className="text-muted-foreground">No labs available yet.</p>
+            {/* Error State */}
+            {error && (
+              <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-red-400">
+                <p>Error: {error}</p>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Labs Grid */}
+            {!loading && filteredLabs.length > 0 && (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredLabs.map((lab, index) => (
+                  <LabCard key={lab._id} lab={lab} index={index} />
+                ))}
+              </div>
+            )}
+
+            {/* Empty Search State */}
+            {!loading && filteredLabs.length === 0 && labs.length > 0 && (
+              <div className="flex justify-center py-12">
+                <div className="text-center">
+                  <p className="text-muted-foreground">No labs found matching "{searchQuery}"</p>
+                </div>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && labs.length === 0 && !error && (
+              <div className="flex justify-center py-12">
+                <div className="text-center">
+                  <p className="text-muted-foreground">No labs available yet.</p>
+                </div>
+              </div>
+            )}
+          </RequireAuth>
         </div>
       </main>
       <Footer />
