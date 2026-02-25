@@ -15,11 +15,13 @@ import {
   ArrowRight,
   Youtube,
   Search,
+  Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
 import { Loader } from "@/components/hackxtras/loader";
+import { useProStatus } from "@/hooks/use-pro-status";
 
 interface Course {
   _id: string;
@@ -169,8 +171,28 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const isPro = useProStatus();
 
   useEffect(() => {
+    const checkAuth = () => {
+      const userToken = localStorage.getItem('userToken');
+      const adminToken = localStorage.getItem('adminToken');
+      setIsAuthenticated(!!userToken || !!adminToken);
+    };
+    checkAuth();
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated === null) return;
+
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
     const fetchCourses = async (showLoading = true) => {
       try {
         if (showLoading) setLoading(true);
@@ -197,7 +219,7 @@ export default function CoursesPage() {
     const interval = setInterval(() => fetchCourses(false), 30000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated]);
 
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
@@ -347,31 +369,72 @@ export default function CoursesPage() {
             </div>
           )}
 
-          {/* Courses Grid */}
-          {!loading && filteredCourses.length > 0 && (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredCourses.map((course, index) => (
-                <CourseCard key={course._id} course={course} index={index} />
-              ))}
-            </div>
-          )}
-
-          {/* Empty Search State */}
-          {!loading && filteredCourses.length === 0 && courses.length > 0 && (
-            <div className="flex justify-center py-12">
-              <div className="text-center">
-                <p className="text-muted-foreground">No courses found matching "{searchQuery}"</p>
+          {/* Courses Grid or Auth/Premium Prompt */}
+          {!loading && isAuthenticated === false ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
+                <Lock className="h-10 w-10 text-primary" />
+              </div>
+              <h2 className="font-display text-2xl font-semibold text-foreground mb-3">Sign in to Access Courses</h2>
+              <p className="text-muted-foreground max-w-md mb-8">
+                Join our community to unlock comprehensive cybersecurity training programs and start learning from experts today.
+              </p>
+              <div className="flex gap-4">
+                <Link href="/login">
+                  <Button variant="outline" className="min-w-[120px]">Sign In</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button className="min-w-[120px] bg-primary text-primary-foreground hover:bg-primary/90">Get Started</Button>
+                </Link>
               </div>
             </div>
-          )}
-
-          {/* Empty State */}
-          {!loading && courses.length === 0 && !error && (
-            <div className="flex justify-center py-12">
-              <div className="text-center">
-                <p className="text-muted-foreground">No courses available yet.</p>
+          ) : !loading && isAuthenticated && !isPro ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-500/10 border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                <Crown className="h-10 w-10 text-yellow-500" />
+              </div>
+              <h2 className="font-display text-2xl font-semibold text-foreground mb-3">Premium Access Required</h2>
+              <p className="text-muted-foreground max-w-md mb-8">
+                These advanced security courses are exclusive to Premium members. Upgrade your account to access our complete library of expert-led training.
+              </p>
+              <div className="flex gap-4">
+                <Link href="/pricing">
+                  <Button className="min-w-[160px] bg-gradient-to-r from-yellow-500 to-amber-600 text-white hover:from-yellow-400 hover:to-amber-500 border-0 shadow-lg shadow-yellow-500/20">
+                    <Crown className="mr-2 h-4 w-4" />
+                    Upgrade to Premium
+                  </Button>
+                </Link>
               </div>
             </div>
+          ) : (
+            <>
+              {/* Courses Grid */}
+              {!loading && filteredCourses.length > 0 && (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredCourses.map((course, index) => (
+                    <CourseCard key={course._id} course={course} index={index} />
+                  ))}
+                </div>
+              )}
+
+              {/* Empty Search State */}
+              {!loading && filteredCourses.length === 0 && courses.length > 0 && (
+                <div className="flex justify-center py-12">
+                  <div className="text-center">
+                    <p className="text-muted-foreground">No courses found matching "{searchQuery}"</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!loading && courses.length === 0 && !error && isAuthenticated && (
+                <div className="flex justify-center py-12">
+                  <div className="text-center">
+                    <p className="text-muted-foreground">No courses available yet.</p>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>
