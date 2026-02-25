@@ -8,15 +8,9 @@ import Link from "next/link";
 const footerLinks = {
   company: [
     { label: "About", href: "/about" },
-    { label: "Blog", href: "/blog" },
-    { label: "Careers", href: "/careers" },
-    { label: "Press", href: "/press" },
   ],
   resources: [
-    { label: "Documentation", href: "/docs" },
-    { label: "API Reference", href: "/api-docs" },
     { label: "Community", href: "/community" },
-    { label: "Support", href: "/support" },
   ],
   learning: [
     { label: "Courses", href: "/courses" },

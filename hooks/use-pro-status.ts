@@ -11,29 +11,39 @@ export function useProStatus() {
             const adminToken = localStorage.getItem('adminToken');
             const userDataStr = localStorage.getItem('userData');
 
-            // 1. Admins are always treated as Pro for UI preview
-            if (adminToken) {
-                setIsPro(true);
-                return;
+            // 1. Silent Sync & Validation
+            if (userToken || adminToken) {
+                const token = adminToken || userToken;
+                fetch('/api/users/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }).then(res => {
+                    if (res.status === 401) {
+                        // Token is invalid - clear everything
+                        localStorage.removeItem('userToken');
+                        localStorage.removeItem('userData');
+                        localStorage.removeItem('adminToken');
+                        setIsPro(false);
+                        return null;
+                    }
+                    if (res.ok) return res.json();
+                    return null;
+                }).then(data => {
+                    if (data) {
+                        const proStatus = !!data.isPro || !!adminToken;
+                        setIsPro(proStatus);
+                        localStorage.setItem('userData', JSON.stringify(data));
+                    }
+                }).catch(() => {
+                    // On network error or other issues, fallback to false if no cached data
+                    if (!userDataStr) setIsPro(false);
+                });
             }
 
-            // 2. Check local user data - ONLY if userToken exists
-            if (userToken && userDataStr) {
+            // 2. Initial check from local user data (optimistic UI)
+            if (userDataStr) {
                 try {
                     const parsed = JSON.parse(userDataStr);
-                    setIsPro(!!parsed.isPro);
-
-                    // 3. Silent Sync
-                    fetch('/api/users/profile', {
-                        headers: { 'Authorization': `Bearer ${userToken}` }
-                    }).then(res => {
-                        if (res.ok) return res.json();
-                    }).then(data => {
-                        if (data && data.isPro !== parsed.isPro) {
-                            setIsPro(data.isPro);
-                            localStorage.setItem('userData', JSON.stringify(data));
-                        }
-                    }).catch(() => { });
+                    setIsPro(!!parsed.isPro || !!adminToken);
                 } catch (e) {
                     setIsPro(false);
                 }

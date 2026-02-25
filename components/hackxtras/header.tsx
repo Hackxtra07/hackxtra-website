@@ -33,7 +33,6 @@ const navGroups = {
   ],
   Media: [
     { name: "Channels", href: "/channels" },
-    { name: "Documentaries", href: "/documentary" },
     { name: "News", href: "/news" },
   ]
 };

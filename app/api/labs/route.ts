@@ -3,10 +3,20 @@ import { Lab } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
     await connectDB();
-    const labs = await Lab.find().sort({ createdAt: -1 });
+
+    let query = {};
+    const isPro = auth && (auth.role === 'admin' || auth.isPro);
+
+    if (!isPro) {
+      // If not logged in or not Pro, only show non-premium labs
+      query = { isPremium: { $ne: true } };
+    }
+
+    const labs = await Lab.find(query).sort({ createdAt: -1 });
     return createSuccessResponse(labs);
   } catch (error) {
     console.error('Fetch labs error:', error);

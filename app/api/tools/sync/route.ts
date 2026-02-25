@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Tool } from '@/lib/models';
+import { authenticateRequest } from '@/lib/auth';
 import * as cheerio from 'cheerio';
 import axios from 'axios';
 
 // Sync external tools from Kali Tools directory
-// Scrapes https://www.kali.org/tools/ incrementally to avoid timeouts
+// Scrapes https://www.kali.org/tools/all-tools/ incrementally to avoid timeouts
 export async function GET(req: NextRequest) {
     return handleSync(req);
 }
@@ -34,8 +35,10 @@ async function handleSync(req: NextRequest) {
 
     await connectDB();
     try {
-        // 1. Fetch Main Index
-        const indexResponse = await axios.get('https://www.kali.org/tools/');
+        // 1. Fetch Main Index (All Tools)
+        const indexResponse = await axios.get('https://www.kali.org/tools/all-tools/', {
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
         const $ = cheerio.load(indexResponse.data);
 
         // 2. Parse all tools from the index list
@@ -57,7 +60,13 @@ async function handleSync(req: NextRequest) {
             // Must NOT contain # (anchors)
             // Must NOT be the index page itself or known non-tool pages
             // Must NOT be a documentation page
-            if (href.includes('/tools/') && !href.includes('#') && !href.endsWith('/tools/') && !href.endsWith('/all-tools/') && !href.includes('/docs/')) {
+            if (href.includes('/tools/') &&
+                !href.includes('#') &&
+                !href.endsWith('/tools/') &&
+                !href.endsWith('/all-tools/') &&
+                !href.includes('/docs/') &&
+                !href.includes('category=')) {
+
                 // Deduplicate
                 if (seenUrls.has(href)) return;
                 seenUrls.add(href);
@@ -65,12 +74,15 @@ async function handleSync(req: NextRequest) {
                 // Extract Name
                 // Try from text or URL slug
                 let name = $(el).text().trim();
-                if (!name || name === 'Read More') {
+                if (!name || name === 'Read More' || name.startsWith('$')) {
                     const parts = href.split('/').filter(p => p);
                     name = parts[parts.length - 1]; // Last part of URL
                     // Capitalize
                     name = name.charAt(0).toUpperCase() + name.slice(1);
                 }
+
+                // If name is still weird (like from a sub-tool/binary link), skip it if we want only top-level tools
+                // Actually the current filter already handles most of this.
 
                 allTools.push({
                     name: name,
@@ -82,7 +94,6 @@ async function handleSync(req: NextRequest) {
         console.log(`Found ${allTools.length} potential tools.`);
 
         // 3. Filter out tools we already have
-        const existingCount = await Tool.countDocuments();
         const existingTools = await Tool.find({}, 'sourceUrl'); // Check by URL to be safer
         const existingUrls = new Set(existingTools.map(t => t.sourceUrl));
 
@@ -103,7 +114,7 @@ async function handleSync(req: NextRequest) {
         for (const toolRef of toolsToSync) {
             try {
                 const detailRes = await axios.get(toolRef.url, {
-                    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+                    headers: { 'User-Agent': 'Mozilla/5.0' }
                 });
                 const $d = cheerio.load(detailRes.data);
 
@@ -128,12 +139,15 @@ async function handleSync(req: NextRequest) {
                         "No description available.";
                 }
 
+                // Clean up description (remove "Read More" etc if present)
+                description = description.replace(/Read More$/i, '').trim();
+
                 // 2. Category
                 // Kali often puts category in a sidebar link or breadcrumb
                 let category = "General";
 
                 // Prioritize explicit category links
-                const catLink = $d('a[href^="/tools/?category="]');
+                const catLink = $d('a[href*="category="]');
                 if (catLink.length > 0) {
                     category = catLink.first().text().trim();
                 } else {
@@ -196,7 +210,7 @@ async function handleSync(req: NextRequest) {
             message: `Synced ${successCount} new tools. Click Sync again to fetch more.`,
             count: successCount,
             added: addedNames,
-            remaining: newTools.length - BATCH_SIZE
+            remaining: Math.max(0, newTools.length - BATCH_SIZE)
         });
     } catch (error) {
         console.error("Sync Error:", error);

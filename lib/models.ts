@@ -478,6 +478,8 @@ export interface IUser extends Document {
   change: 'up' | 'down' | 'same';
   isPro?: boolean;
   subscriptionExpiresAt?: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -539,6 +541,8 @@ const userSchema = new Schema<IUser>(
     subscriptionExpiresAt: {
       type: Date,
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );

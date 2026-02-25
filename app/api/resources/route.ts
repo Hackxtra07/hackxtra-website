@@ -3,10 +3,20 @@ import { Resource } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const auth = await authenticateRequest(request);
     await connectDB();
-    const resources = await Resource.find().sort({ createdAt: -1 });
+
+    let query = {};
+    const isPro = auth && (auth.role === 'admin' || auth.isPro);
+
+    if (!isPro) {
+      // If not logged in or not Pro, only show non-premium resources
+      query = { isPremium: { $ne: true } };
+    }
+
+    const resources = await Resource.find(query).sort({ createdAt: -1 });
     return createSuccessResponse(resources);
   } catch (error) {
     console.error('Fetch resources error:', error);
