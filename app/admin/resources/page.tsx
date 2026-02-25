@@ -19,6 +19,7 @@ interface Resource {
   category: string;
   tags: string[];
   coverImage?: string;
+  isPremium: boolean;
 }
 
 export default function AdminResourcesPage() {
@@ -35,6 +36,7 @@ export default function AdminResourcesPage() {
     category: '',
     tags: '',
     coverImage: '',
+    isPremium: false,
   });
 
   useEffect(() => {
@@ -67,6 +69,7 @@ export default function AdminResourcesPage() {
         category: '',
         tags: '',
         coverImage: data.image || '',
+        isPremium: false,
       });
       setShowForm(true);
       toast({ title: 'Success', description: 'Metadata imported! Please review and save.' });
@@ -123,6 +126,7 @@ export default function AdminResourcesPage() {
       category: resource.category,
       tags: resource.tags.join(', '),
       coverImage: resource.coverImage || '',
+      isPremium: resource.isPremium || false,
     });
     setEditingId(resource._id);
     setShowForm(true);
@@ -137,6 +141,7 @@ export default function AdminResourcesPage() {
       category: '',
       tags: '',
       coverImage: '',
+      isPremium: false,
     });
     setEditingId(null);
     setShowForm(false);
@@ -246,6 +251,16 @@ export default function AdminResourcesPage() {
                 />
               </div>
             )}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isPremium"
+                checked={formData.isPremium}
+                onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <Label htmlFor="isPremium" className="cursor-pointer font-bold text-blue-700">Premium Only Resource</Label>
+            </div>
             <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
               {loading ? 'Saving...' : editingId ? 'Update Resource' : 'Create Resource'}
             </Button>
@@ -261,6 +276,7 @@ export default function AdminResourcesPage() {
             <div className="space-y-1 text-sm mb-4">
               <p><strong>Type:</strong> <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">{resource.type}</span></p>
               <p><strong>Category:</strong> {resource.category}</p>
+              {resource.isPremium && <p><span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold border border-yellow-200">PREMIUM</span></p>}
               {resource.tags.length > 0 && <p><strong>Tags:</strong> {resource.tags.join(', ')}</p>}
             </div>
             <div className="flex gap-2">

@@ -21,6 +21,7 @@ interface Lab {
   timeToComplete: number;
   url?: string;
   coverImage?: string;
+  isPremium: boolean;
 }
 
 export default function AdminLabsPage() {
@@ -39,6 +40,7 @@ export default function AdminLabsPage() {
     timeToComplete: 60,
     url: '',
     coverImage: '',
+    isPremium: false,
   });
 
   useEffect(() => {
@@ -68,6 +70,7 @@ export default function AdminLabsPage() {
         description: data.description || '',
         url: data.url || url,
         coverImage: data.image || '',
+        isPremium: false,
       });
       setShowForm(true);
       toast({ title: 'Success', description: 'Metadata imported!' });
@@ -127,6 +130,7 @@ export default function AdminLabsPage() {
       timeToComplete: lab.timeToComplete,
       url: lab.url || '',
       coverImage: lab.coverImage || '',
+      isPremium: lab.isPremium || false,
     });
     setEditingId(lab._id);
     setShowForm(true);
@@ -143,6 +147,7 @@ export default function AdminLabsPage() {
       timeToComplete: 60,
       url: '',
       coverImage: '',
+      isPremium: false,
     });
     setEditingId(null);
     setShowForm(false);
@@ -267,6 +272,16 @@ export default function AdminLabsPage() {
                 />
               </div>
             )}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isPremium"
+                checked={formData.isPremium}
+                onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <Label htmlFor="isPremium" className="cursor-pointer font-bold text-green-700">Premium Only Lab</Label>
+            </div>
             <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
               {loading ? 'Saving...' : editingId ? 'Update Lab' : 'Create Lab'}
             </Button>
@@ -282,6 +297,7 @@ export default function AdminLabsPage() {
             <div className="space-y-1 text-sm mb-4">
               <p><strong>Category:</strong> {lab.category}</p>
               <p><strong>Difficulty:</strong> <span className={`px-2 py-1 rounded text-white ${lab.difficulty === 'Easy' ? 'bg-green-500' : lab.difficulty === 'Medium' ? 'bg-yellow-500' : 'bg-red-500'}`}>{lab.difficulty}</span></p>
+              {lab.isPremium && <p><span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold border border-yellow-200">PREMIUM</span></p>}
               <p><strong>Time:</strong> {lab.timeToComplete} minutes</p>
             </div>
             <div className="flex gap-2">

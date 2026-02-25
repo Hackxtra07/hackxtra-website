@@ -33,6 +33,7 @@ interface Course {
   youtubeLink?: string;
   category?: string;
   coverImage?: string;
+  isPremium?: boolean;
 }
 
 const fadeUp = {
@@ -113,6 +114,14 @@ function CourseCard({
             {course.level}
           </span>
         </div>
+        {course.isPremium && (
+          <div className="absolute top-3 left-3">
+            <div className="flex items-center gap-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-bold text-yellow-500 backdrop-blur-md shadow-[0_0_10px_rgba(234,179,8,0.2)]">
+              <Crown className="h-3 w-3" />
+              PREMIUM
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col p-6 pt-4">
@@ -224,10 +233,17 @@ export default function CoursesPage() {
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
 
-  const filteredCourses = courses.filter(course =>
-    course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    course.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    // Hide premium content from non-pro users
+    if (course.isPremium && !isPro) return false;
+
+    return true;
+  });
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -388,14 +404,14 @@ export default function CoursesPage() {
                 </Link>
               </div>
             </div>
-          ) : !loading && isAuthenticated && !isPro ? (
+          ) : !loading && isAuthenticated && filteredCourses.length === 0 && courses.some(c => c.isPremium) && !isPro ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-500/10 border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                 <Crown className="h-10 w-10 text-yellow-500" />
               </div>
-              <h2 className="font-display text-2xl font-semibold text-foreground mb-3">Premium Access Required</h2>
+              <h2 className="font-display text-2xl font-semibold text-foreground mb-3">Premium Content Available</h2>
               <p className="text-muted-foreground max-w-md mb-8">
-                These advanced security courses are exclusive to Premium members. Upgrade your account to access our complete library of expert-led training.
+                Upgrade to Premium to access our complete library of expert-led security courses and advanced training.
               </p>
               <div className="flex gap-4">
                 <Link href="/pricing">

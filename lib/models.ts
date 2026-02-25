@@ -61,6 +61,7 @@ export interface ICourse extends Document {
   duration: string;
   instructor: string;
   coverImage?: string;
+  isPremium: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -100,6 +101,10 @@ const courseSchema = new Schema<ICourse>(
       type: String,
       required: false,
     },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
@@ -115,6 +120,7 @@ export interface ILab extends Document {
   timeToComplete: number;
   url?: string;
   coverImage?: string;
+  isPremium: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -152,6 +158,10 @@ const labSchema = new Schema<ILab>(
       type: String,
       required: false,
     },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
@@ -165,6 +175,7 @@ export interface IResource extends Document {
   category: string;
   tags: string[];
   coverImage?: string;
+  isPremium: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -196,6 +207,10 @@ const resourceSchema = new Schema<IResource>(
     coverImage: {
       type: String,
       required: false,
+    },
+    isPremium: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
@@ -385,8 +400,14 @@ if (mongoose.models.Course && !mongoose.models.Course.schema.paths.coverImage) {
 if (mongoose.models.Lab && !mongoose.models.Lab.schema.paths.coverImage) {
   delete mongoose.models.Lab;
 }
-if (mongoose.models.Resource && !mongoose.models.Resource.schema.paths.coverImage) {
+if (mongoose.models.Resource && (!mongoose.models.Resource.schema.paths.coverImage || !mongoose.models.Resource.schema.paths.isPremium)) {
   delete mongoose.models.Resource;
+}
+if (mongoose.models.Course && !mongoose.models.Course.schema.paths.isPremium) {
+  delete mongoose.models.Course;
+}
+if (mongoose.models.Lab && !mongoose.models.Lab.schema.paths.isPremium) {
+  delete mongoose.models.Lab;
 }
 
 export const Admin = mongoose.models.Admin || mongoose.model<IAdmin>('Admin', adminSchema);

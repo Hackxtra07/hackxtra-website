@@ -33,6 +33,7 @@ interface Resource {
   url?: string;
   author?: string;
   coverImage?: string;
+  isPremium?: boolean;
 }
 
 function ResourceCard({
@@ -76,6 +77,14 @@ function ResourceCard({
             <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary backdrop-blur-md">
               {resource.format}
             </span>
+          </div>
+        )}
+        {resource.isPremium && (
+          <div className="absolute top-3 left-3">
+            <div className="flex items-center gap-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-xs font-bold text-yellow-500 backdrop-blur-md shadow-[0_0_10px_rgba(234,179,8,0.2)]">
+              <Crown className="h-3 w-3" />
+              PREMIUM
+            </div>
           </div>
         )}
       </div>
@@ -176,10 +185,17 @@ export default function ResourcesPage() {
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
 
-  const filteredResources = resources.filter(resource =>
-    resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    resource.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredResources = resources.filter(resource => {
+    const matchesSearch = resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      resource.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    // Hide premium content from non-pro users
+    if (resource.isPremium && !isPro) return false;
+
+    return true;
+  });
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -293,12 +309,12 @@ export default function ResourcesPage() {
                 </Link>
               </div>
             </div>
-          ) : !loading && isAuthenticated && !isPro ? (
+          ) : !loading && isAuthenticated && filteredResources.length === 0 && resources.some(r => r.isPremium) && !isPro ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-500/10 border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                 <Crown className="h-10 w-10 text-yellow-500" />
               </div>
-              <h2 className="font-display text-2xl font-semibold text-foreground mb-3">Premium Access Required</h2>
+              <h2 className="font-display text-2xl font-semibold text-foreground mb-3">Premium Resources Available</h2>
               <p className="text-muted-foreground max-w-md mb-8">
                 Our extensive collection of premium tools, cheat sheets, and exclusive study materials is reserved for Premium members. Upgrade to unlock all resources.
               </p>

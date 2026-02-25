@@ -20,6 +20,7 @@ interface Course {
   duration?: string;
   instructor?: string;
   coverImage?: string;
+  isPremium: boolean;
 }
 
 export default function AdminCoursesPage() {
@@ -37,6 +38,7 @@ export default function AdminCoursesPage() {
     duration: '',
     instructor: '',
     coverImage: '',
+    isPremium: false,
   });
 
   useEffect(() => {
@@ -68,6 +70,7 @@ export default function AdminCoursesPage() {
         duration: '', // Scraper might not catch this
         instructor: '',
         coverImage: data.image || '',
+        isPremium: false,
       });
       setShowForm(true);
       toast({ title: 'Success', description: 'Metadata imported! Please review and save.' });
@@ -120,6 +123,7 @@ export default function AdminCoursesPage() {
       duration: course.duration || '',
       instructor: course.instructor || '',
       coverImage: course.coverImage || '',
+      isPremium: course.isPremium || false,
     });
     setEditingId(course._id);
     setShowForm(true);
@@ -135,6 +139,7 @@ export default function AdminCoursesPage() {
       duration: '',
       instructor: '',
       coverImage: '',
+      isPremium: false,
     });
     setEditingId(null);
     setShowForm(false);
@@ -242,6 +247,16 @@ export default function AdminCoursesPage() {
                 placeholder="Instructor name"
               />
             </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isPremium"
+                checked={formData.isPremium}
+                onChange={(e) => setFormData({ ...formData, isPremium: e.target.checked })}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <Label htmlFor="isPremium" className="cursor-pointer font-bold text-blue-700">Premium Only Content</Label>
+            </div>
             <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
               {loading ? 'Saving...' : editingId ? 'Update Course' : 'Create Course'}
             </Button>
@@ -257,6 +272,7 @@ export default function AdminCoursesPage() {
             <div className="space-y-1 text-sm mb-4">
               <p><strong>Category:</strong> {course.category}</p>
               <p><strong>Level:</strong> <span className={`px-2 py-1 rounded text-white ${course.level === 'Beginner' ? 'bg-green-500' : course.level === 'Intermediate' ? 'bg-yellow-500' : 'bg-red-500'}`}>{course.level}</span></p>
+              {course.isPremium && <p><span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold border border-yellow-200">PREMIUM</span></p>}
               {course.instructor && <p><strong>Instructor:</strong> {course.instructor}</p>}
             </div>
             <div className="flex gap-2">
