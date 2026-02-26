@@ -21,20 +21,32 @@ function ResetPasswordForm() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [success, setSuccess] = useState(false);
+    const [tokenError, setTokenError] = useState(false);
 
     useEffect(() => {
         if (!token) {
+            setTokenError(true);
             toast({
                 title: "Invalid Link",
                 description: "Password reset token is missing.",
                 variant: "destructive"
             });
-            router.push('/login');
+            setTimeout(() => {
+                router.push('/login');
+            }, 3000);
         }
     }, [token, router, toast]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!token) {
+            return toast({
+                title: "Error",
+                description: "Password reset token is missing. Please request a new link.",
+                variant: "destructive"
+            });
+        }
 
         if (password !== confirmPassword) {
             return toast({

@@ -16,10 +16,8 @@ export async function POST(request: NextRequest) {
         }
 
         const user = await User.findOne({ email });
-
         if (!user) {
-            // For security reasons, don't reveal if user exists or not
-            return createSuccessResponse({ message: 'If an account exists with that email, a reset link has been sent.' });
+            return createErrorResponse('No account found with this email address.', 404);
         }
 
         // Generate token
