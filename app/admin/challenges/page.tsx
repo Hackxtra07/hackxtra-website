@@ -136,16 +136,36 @@ export default function AdminChallengesPage() {
         setShowForm(false);
     };
 
+    const handleAutoAdd = async () => {
+        try {
+            await request('/api/admin/challenges/auto-add', { method: 'POST' });
+            toast({ title: 'Success', description: 'Added 10 challenges from the pool!' });
+            fetchChallenges();
+        } catch (error) {
+            toast({ title: 'Error', description: 'Failed to auto-add challenges', variant: 'destructive' });
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Challenge Management</h1>
-                <Button
-                    onClick={() => (showForm ? resetForm() : setShowForm(true))}
-                    className="bg-blue-600 hover:bg-blue-700"
-                >
-                    {showForm ? 'Cancel' : 'Create Challenge'}
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        onClick={handleAutoAdd}
+                        variant="outline"
+                        className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                        disabled={loading}
+                    >
+                        Auto Add Challenges
+                    </Button>
+                    <Button
+                        onClick={() => (showForm ? resetForm() : setShowForm(true))}
+                        className="bg-blue-600 hover:bg-blue-700"
+                    >
+                        {showForm ? 'Cancel' : 'Create Challenge'}
+                    </Button>
+                </div>
             </div>
 
             {showForm && (
