@@ -51,7 +51,11 @@ export async function POST(request: NextRequest) {
 
         const transporter = nodemailer.createTransport(smtpConfig);
         const origin = getBaseUrl();
-        const resetUrl = `${origin}/reset-password?token=${token}`;
+
+        // Use URL constructor for more robust URL generation
+        const urlObj = new URL('/reset-password', origin);
+        urlObj.searchParams.set('token', token);
+        const resetUrl = urlObj.toString();
 
         const htmlContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">

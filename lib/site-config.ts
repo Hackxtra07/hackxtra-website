@@ -3,11 +3,11 @@ export function getBaseUrl() {
 
     // If we have a manually configured app URL, use it (highest priority)
     if (process.env.NEXT_PUBLIC_APP_URL) {
-        url = process.env.NEXT_PUBLIC_APP_URL;
+        url = process.env.NEXT_PUBLIC_APP_URL.trim();
     }
     // If we're on Vercel, use the VERCEL_URL environment variable
     else if (process.env.VERCEL_URL) {
-        url = `https://${process.env.VERCEL_URL}`;
+        url = `https://${process.env.VERCEL_URL.trim()}`;
     }
     // Fallback for local development or if other variables aren't set
     // This will be used if window is available (client-side)
