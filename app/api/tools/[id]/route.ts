@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Tool } from '@/lib/models';
+import { authenticateRequest } from '@/lib/auth';
 
 export async function GET(
     req: NextRequest,
@@ -22,6 +23,11 @@ export async function PUT(
     req: NextRequest,
     { params }: { params: { id: string } }
 ) {
+    const user = await authenticateRequest(req);
+    if (!user || user.role !== 'admin') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     await connectDB();
     try {
         const body = await req.json();
@@ -39,6 +45,11 @@ export async function DELETE(
     req: NextRequest,
     { params }: { params: { id: string } }
 ) {
+    const user = await authenticateRequest(req);
+    if (!user || user.role !== 'admin') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     await connectDB();
     try {
         const tool = await Tool.findByIdAndDelete(params.id);

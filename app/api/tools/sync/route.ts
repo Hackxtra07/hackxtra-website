@@ -65,6 +65,8 @@ async function handleSync(req: NextRequest) {
                 !href.endsWith('/tools/') &&
                 !href.endsWith('/all-tools/') &&
                 !href.includes('/docs/') &&
+                !href.includes('/blog/') &&
+                !href.includes('/news/') &&
                 !href.includes('category=')) {
 
                 // Deduplicate
@@ -132,15 +134,22 @@ async function handleSync(req: NextRequest) {
                 }
 
                 // Fallback Description strategies
-                if (!description || description.length < 10) {
-                    description = $d('meta[name="description"]').attr('content') ||
-                        $d('.card-body p').first().text().trim() ||
+                if (!description || description.length < 20) {
+                    // Try to find the summary in the card if it's there
+                    description = $d('.card-body p').first().text().trim() ||
+                        $d('meta[property="og:description"]').attr('content') ||
+                        $d('meta[name="description"]').attr('content') ||
                         $d('main p').first().text().trim() ||
                         "No description available.";
                 }
 
                 // Clean up description (remove "Read More" etc if present)
-                description = description.replace(/Read More$/i, '').trim();
+                description = description.replace(/Read More$/i, '').replace(/\[...\]/g, '').trim();
+
+                // If the description is just a "FALLBACK" indicator, try harder
+                if (description.startsWith("In order for a tool to be added")) {
+                    description = $d('main p').filter((i, el) => $(el).text().length > 50).first().text().trim() || description;
+                }
 
                 // 2. Category
                 // Kali often puts category in a sidebar link or breadcrumb

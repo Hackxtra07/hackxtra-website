@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, RefreshCw, Plus, Trash2, Hammer } from "lucide-react";
-import axios from "axios";
+import { useApi } from "@/hooks/use-api";
 import { toast } from "sonner";
 
 interface Tool {
@@ -15,6 +15,7 @@ interface Tool {
 }
 
 export default function AdminToolsPage() {
+    const { request, loading: apiLoading } = useApi('admin');
     const [tools, setTools] = useState<Tool[]>([]);
     const [loading, setLoading] = useState(true);
     const [syncing, setSyncing] = useState(false);
@@ -25,8 +26,8 @@ export default function AdminToolsPage() {
 
     const fetchTools = async () => {
         try {
-            const res = await axios.get("/api/tools");
-            setTools(res.data.tools);
+            const data = await request("/api/tools");
+            setTools(data.tools || []);
         } catch (e) {
             toast.error("Failed to fetch tools");
         } finally {
@@ -37,12 +38,12 @@ export default function AdminToolsPage() {
     const syncTools = async () => {
         setSyncing(true);
         try {
-            const res = await axios.post("/api/tools/sync");
+            const data = await request("/api/tools/sync", { method: 'POST' });
 
-            if (res.data.remaining > 0) {
-                toast.success(`${res.data.message} (${res.data.remaining} remaining)`);
+            if (data.remaining > 0) {
+                toast.success(`${data.message} (${data.remaining} remaining)`);
             } else {
-                toast.success(res.data.message);
+                toast.success(data.message);
             }
 
             fetchTools();
@@ -57,7 +58,7 @@ export default function AdminToolsPage() {
         if (!window.confirm("Are you sure you want to delete this tool?")) return;
 
         try {
-            await axios.delete(`/api/tools/${id}`);
+            await request(`/api/tools/${id}`, { method: 'DELETE' });
             toast.success("Tool deleted successfully");
             setTools(tools.filter(t => t._id !== id));
         } catch (e) {
