@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
@@ -22,9 +24,26 @@ function ResetPasswordForm() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [success, setSuccess] = useState(false);
     const [tokenError, setTokenError] = useState(false);
+    const [isHydrated, setIsHydrated] = useState(false);
 
     useEffect(() => {
-        if (!token) {
+        setIsHydrated(true);
+
+        // Debug logging
+        console.log('[DEBUG] ResetPasswordPage Info:', {
+            useSearchParamsToken: token,
+            windowLocationSearch: typeof window !== 'undefined' ? window.location.search : 'N/A',
+            fullUrl: typeof window !== 'undefined' ? window.location.href : 'N/A'
+        });
+
+        if (isHydrated && !token) {
+            // Check if token is in window.location.search as a last resort
+            const urlToken = new URLSearchParams(window.location.search).get('token');
+            if (urlToken) {
+                console.log('[DEBUG] Found token in window.location.search:', urlToken);
+                return; // Don't show error if we found it manually
+            }
+
             setTokenError(true);
             toast({
                 title: "Invalid Link",
@@ -33,14 +52,17 @@ function ResetPasswordForm() {
             });
             setTimeout(() => {
                 router.push('/login');
-            }, 3000);
+            }, 5000); // 5 seconds to let user read
         }
-    }, [token, router, toast]);
+    }, [token, router, toast, isHydrated]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!token) {
+        // Get token from current params or window if searchParams is empty
+        const effectiveToken = token || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') : null);
+
+        if (!effectiveToken) {
             return toast({
                 title: "Error",
                 description: "Password reset token is missing. Please request a new link.",
@@ -70,7 +92,7 @@ function ResetPasswordForm() {
             const res = await fetch('/api/auth/reset-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, password }),
+                body: JSON.stringify({ token: effectiveToken, password }),
             });
 
             const data = await res.json();
@@ -97,7 +119,16 @@ function ResetPasswordForm() {
         }
     };
 
-    if (!token) return null;
+    const effectiveToken = token || (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') : null);
+
+    if (!isHydrated) return null;
+
+    if (!effectiveToken && isHydrated) return (
+        <div className="bg-card border border-border/50 p-8 rounded-xl shadow-sm text-center">
+            <p className="text-destructive font-medium">Reset token is missing from the link.</p>
+            <p className="text-sm text-muted-foreground mt-2">Redirecting to login...</p>
+        </div>
+    );
 
     return (
         <div className="bg-card border border-border/50 p-8 rounded-xl shadow-sm">
