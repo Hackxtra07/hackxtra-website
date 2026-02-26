@@ -88,6 +88,8 @@ export default function ChallengesPage() {
             if (res.ok) {
                 toast({ title: 'Correct!', description: `+${data.pointsAwarded} points awarded.` });
                 setSolvedIds([...solvedIds, id]);
+                // Refresh data to remove the solved challenge and show any new ones added by replenishment
+                fetchData();
             } else {
                 toast({ title: 'Incorrect', description: data.error, variant: 'destructive' });
             }
@@ -125,8 +127,8 @@ export default function ChallengesPage() {
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="flex gap-2">
                                                     <span className={`px-2 py-1 rounded text-xs font-medium border ${challenge.difficulty === 'Easy' ? 'border-green-500/50 text-green-500' :
-                                                            challenge.difficulty === 'Medium' ? 'border-yellow-500/50 text-yellow-500' :
-                                                                'border-red-500/50 text-red-500'
+                                                        challenge.difficulty === 'Medium' ? 'border-yellow-500/50 text-yellow-500' :
+                                                            'border-red-500/50 text-red-500'
                                                         }`}>
                                                         {challenge.difficulty}
                                                     </span>
@@ -156,8 +158,8 @@ export default function ChallengesPage() {
                                                                     key={optIdx}
                                                                     onClick={() => setInputs({ ...inputs, [challenge._id]: option })}
                                                                     className={`p-3 rounded border cursor-pointer transition-colors text-sm ${inputs[challenge._id] === option
-                                                                            ? 'border-primary bg-primary/10'
-                                                                            : 'border-border/50 hover:bg-muted'
+                                                                        ? 'border-primary bg-primary/10'
+                                                                        : 'border-border/50 hover:bg-muted'
                                                                         }`}
                                                                 >
                                                                     <div className="flex items-center gap-3">

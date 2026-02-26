@@ -67,6 +67,10 @@ export async function POST(request: NextRequest) {
         // 6. Delete challenge after solve (requested feature)
         await Challenge.findByIdAndDelete(challengeId);
 
+        // 7. Replenish challenges if count is low
+        const { replenishChallenges } = await import('@/lib/challenge-utils');
+        await replenishChallenges();
+
         return createSuccessResponse({
             message: 'Correct flag!',
             pointsAwarded: challenge.points,
