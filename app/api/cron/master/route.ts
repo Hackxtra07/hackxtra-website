@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getBaseUrl } from '@/lib/site-config';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
-    const baseUrl = req.nextUrl.origin;
+    const baseUrl = getBaseUrl();
     const key = process.env.CRON_SECRET;
 
     if (!key) {

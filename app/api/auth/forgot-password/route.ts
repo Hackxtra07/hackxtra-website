@@ -4,6 +4,7 @@ import { createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
+import { getBaseUrl } from '@/lib/site-config';
 
 export async function POST(request: NextRequest) {
     try {
@@ -51,7 +52,8 @@ export async function POST(request: NextRequest) {
         }
 
         const transporter = nodemailer.createTransport(smtpConfig);
-        const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+        const origin = getBaseUrl();
+        const resetUrl = `${origin}/reset-password?token=${token}`;
 
         const htmlContent = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
