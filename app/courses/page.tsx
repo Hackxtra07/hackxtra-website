@@ -195,6 +195,13 @@ export default function CoursesPage() {
   }, []);
 
   useEffect(() => {
+    if (isAuthenticated === null) return;
+
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
     const fetchCourses = async (showLoading = true) => {
       try {
         if (showLoading) setLoading(true);
@@ -221,8 +228,7 @@ export default function CoursesPage() {
     const interval = setInterval(() => fetchCourses(false), 30000);
 
     return () => clearInterval(interval);
-  }, []); // Remove isAuthenticated dependency to fetch for guests too
-
+  }, [isAuthenticated]);
 
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
@@ -380,7 +386,25 @@ export default function CoursesPage() {
           )}
 
           {/* Courses Grid or Auth/Premium Prompt */}
-          {!loading && filteredCourses.length === 0 && courses.some(c => c.isPremium) && !isPro ? (
+          {!loading && isAuthenticated === false ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 border border-primary/20">
+                <Lock className="h-10 w-10 text-primary" />
+              </div>
+              <h2 className="font-display text-2xl font-semibold text-foreground mb-3">Sign in to Access Courses</h2>
+              <p className="text-muted-foreground max-w-md mb-8">
+                Join our community to unlock comprehensive cybersecurity training programs and start learning from experts today.
+              </p>
+              <div className="flex gap-4">
+                <Link href="/login">
+                  <Button variant="outline" className="min-w-[120px]">Sign In</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button className="min-w-[120px] bg-primary text-primary-foreground hover:bg-primary/90">Get Started</Button>
+                </Link>
+              </div>
+            </div>
+          ) : !loading && isAuthenticated && filteredCourses.length === 0 && courses.some(c => c.isPremium) && !isPro ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-yellow-500/10 border border-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                 <Crown className="h-10 w-10 text-yellow-500" />
