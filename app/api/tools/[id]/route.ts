@@ -5,11 +5,12 @@ import { authenticateRequest } from '@/lib/auth';
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     await connectDB();
     try {
-        const tool = await Tool.findById(params.id);
+        const { id } = await params;
+        const tool = await Tool.findById(id);
         if (!tool) {
             return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
         }
@@ -21,7 +22,7 @@ export async function GET(
 
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const user = await authenticateRequest(req);
     if (!user || user.role !== 'admin') {
@@ -30,8 +31,9 @@ export async function PUT(
 
     await connectDB();
     try {
+        const { id } = await params;
         const body = await req.json();
-        const tool = await Tool.findByIdAndUpdate(params.id, body, { new: true });
+        const tool = await Tool.findByIdAndUpdate(id, body, { new: true });
         if (!tool) {
             return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
         }
@@ -43,7 +45,7 @@ export async function PUT(
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const user = await authenticateRequest(req);
     if (!user || user.role !== 'admin') {
@@ -52,7 +54,8 @@ export async function DELETE(
 
     await connectDB();
     try {
-        const tool = await Tool.findByIdAndDelete(params.id);
+        const { id } = await params;
+        const tool = await Tool.findByIdAndDelete(id);
         if (!tool) {
             return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
         }
