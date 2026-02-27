@@ -9,7 +9,8 @@ import {
     StoreItem,
     Documentary,
     Channel,
-    User
+    User,
+    Tool
 } from '@/lib/models'; // Assuming User is also searchable for admins or community
 // Removed User from search for general public to avoid privacy issues unless requested.
 
@@ -61,6 +62,10 @@ export async function GET(req: Request) {
             Channel.find({
                 $or: [{ name: regex }, { description: regex }],
             }).select('name description _id link').limit(5).lean(),
+
+            Tool.find({
+                $or: [{ name: regex }, { description: regex }, { category: regex }],
+            }).select('name description category _id').limit(5).lean(),
         ];
 
         const [
@@ -71,7 +76,8 @@ export async function GET(req: Request) {
             challenges,
             storeItems,
             documentaries,
-            channels
+            channels,
+            tools
         ] = await Promise.all(tasks);
 
         // Format results
@@ -129,6 +135,13 @@ export async function GET(req: Request) {
                 type: 'Channel',
                 url: item.link,
                 isExternal: true
+            })),
+            ...tools.map((item: any) => ({
+                id: item._id,
+                title: item.name,
+                description: item.description?.substring(0, 100),
+                type: 'Tool',
+                url: `/tools/${item._id}`,
             })),
         ];
 

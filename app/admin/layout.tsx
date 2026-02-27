@@ -8,7 +8,7 @@ import {
   LayoutDashboard, BookOpen, Briefcase, Microscope,
   Library, Users, Tv, Film, Flag, Settings,
   MessageSquare, Radio, ShoppingCart, Newspaper,
-  Hammer, LogOut, Menu, X, ShieldAlert
+  Hammer, LogOut, Menu, X, ShieldAlert, Workflow
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -47,8 +47,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Broadcast', href: '/admin/broadcast', icon: Radio },
     { name: 'Store', href: '/admin/store', icon: ShoppingCart },
     { name: 'News', href: '/admin/news', icon: Newspaper },
-    { name: 'Tools', href: '/admin/tools', icon: Hammer },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
+    { name: "DevOps", href: "/admin/devops", icon: Workflow },
+    { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
   if (pathname.includes('/login')) {
@@ -94,8 +94,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link key={item.href} href={item.href}>
                 <div
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
-                      ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-white hover:border-white/10 border border-transparent'
+                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-white hover:border-white/10 border border-transparent'
                     }`}
                 >
                   <Icon size={20} className={isActive ? 'animate-pulse' : ''} />

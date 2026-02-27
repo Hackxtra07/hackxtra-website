@@ -22,7 +22,8 @@ const navGroups = {
     { name: "Courses", href: "/courses" },
     { name: "Labs", href: "/labs" },
     { name: "Resources", href: "/resources" },
-    { name: "Kali Tools", href: "/tools" }, // New
+    { name: "Kali Tools", href: "/tools" },
+    { name: "DevOps", href: "/devops" },
   ],
   Community: [
     { name: "Community", href: "/community" },

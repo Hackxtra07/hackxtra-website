@@ -803,3 +803,33 @@ const communityConfigsSchema = new Schema<ICommunityConfigs>(
 );
 
 export const CommunityConfigs = mongoose.models.CommunityConfigs || mongoose.model<ICommunityConfigs>('CommunityConfigs', communityConfigsSchema);
+
+// DevOps Project Model
+export interface IDevOpsProject extends Document {
+  title: string;
+  description: string;
+  githubUrl: string;
+  techStack: string[];
+  stars: number;
+  forks: number;
+  language?: string;
+  isPublished: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const devOpsProjectSchema = new Schema<IDevOpsProject>(
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    githubUrl: { type: String, required: true, unique: true },
+    techStack: [String],
+    stars: { type: Number, default: 0 },
+    forks: { type: Number, default: 0 },
+    language: String,
+    isPublished: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+
+export const DevOpsProject = mongoose.models.DevOpsProject || mongoose.model<IDevOpsProject>('DevOpsProject', devOpsProjectSchema);

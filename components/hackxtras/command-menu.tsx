@@ -20,6 +20,7 @@ import {
     ShoppingBag,
     Tv,
     Hash,
+    Terminal,
     Loader2
 } from "lucide-react";
 import axios from "axios";
@@ -99,6 +100,7 @@ export function CommandMenu() {
             case "Store": return <ShoppingBag className="mr-2 h-4 w-4" />;
             case "Documentary": return <Tv className="mr-2 h-4 w-4" />;
             case "Channel": return <Hash className="mr-2 h-4 w-4" />;
+            case "Tool": return <Terminal className="mr-2 h-4 w-4" />;
             default: return <BookOpen className="mr-2 h-4 w-4" />;
         }
     };
