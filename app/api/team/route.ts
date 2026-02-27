@@ -1,13 +1,25 @@
 import { connectDB } from '@/lib/mongodb';
-import { TeamMember } from '@/lib/models';
+import { TeamMember, DevOpsProject } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 export async function GET() {
   try {
     await connectDB();
-    const members = await TeamMember.find().sort({ createdAt: -1 });
-    return createSuccessResponse(members);
+    const [members, memberCount, projectCount] = await Promise.all([
+      TeamMember.find().sort({ createdAt: -1 }),
+      TeamMember.countDocuments(),
+      DevOpsProject.countDocuments()
+    ]);
+
+    const stats = [
+      { label: "Core Contributors", value: `${memberCount}+` },
+      { label: "Open Source Projects", value: `${projectCount}+` },
+      { label: "Countries Represented", value: "12+" }, // Dynamic country count missing in model, hardcoding safely
+      { label: "Industry Awards", value: "5+" },
+    ];
+
+    return createSuccessResponse({ data: members, stats });
   } catch (error) {
     console.error('Fetch team members error:', error);
     return createErrorResponse('Failed to fetch team members', 500);

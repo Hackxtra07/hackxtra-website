@@ -147,6 +147,7 @@ function ChannelCard({
 
 export default function ChannelsPage() {
   const [dbChannels, setDbChannels] = useState<any[]>([]);
+  const [stats, setStats] = useState<any[]>(communityStats);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -157,8 +158,18 @@ export default function ChannelsPage() {
       try {
         const response = await fetch('/api/channels');
         if (response.ok) {
-          const data = await response.json();
-          setDbChannels(data);
+          const resData = await response.json();
+          const channelsData = resData.data || (Array.isArray(resData) ? resData : []);
+          setDbChannels(channelsData);
+
+          if (resData.stats) {
+            // Map icons back to stats from API
+            const mappedStats = resData.stats.map((s: any) => {
+              const original = communityStats.find(os => os.label === s.label);
+              return { ...s, icon: original?.icon || Users };
+            });
+            setStats(mappedStats);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch channels:', error);
@@ -281,7 +292,7 @@ export default function ChannelsPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-16 grid grid-cols-2 gap-4 sm:grid-cols-4"
           >
-            {communityStats.map((stat) => (
+            {stats.map((stat) => (
               <div
                 key={stat.label}
                 className="flex flex-col items-center rounded-xl border border-border/50 bg-card/30 p-6 text-center"

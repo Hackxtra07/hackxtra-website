@@ -1,13 +1,29 @@
 import { connectDB } from '@/lib/mongodb';
-import { Channel } from '@/lib/models';
+import { Channel, Course, Documentary } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 export async function GET() {
   try {
     await connectDB();
-    const channels = await Channel.find().sort({ createdAt: -1 });
-    return createSuccessResponse(channels);
+    const [channels, followerData, courseCount, docCount] = await Promise.all([
+      Channel.find().sort({ createdAt: -1 }),
+      Channel.aggregate([{ $group: { _id: null, total: { $sum: "$followers" } } }]),
+      Course.countDocuments(),
+      Documentary.countDocuments()
+    ]);
+
+    const totalFollowers = followerData[0]?.total || 0;
+    const totalVideos = courseCount + docCount;
+
+    const stats = [
+      { label: "Total Followers", value: `${(totalFollowers / 1000).toFixed(1)}K+` },
+      { label: "Video Tutorials", value: `${totalVideos}+` },
+      { label: "Engagement Monthly", value: "1.2M+" }, // Proxy or hardcoded
+      { label: "Content Updates", value: "Daily" },
+    ];
+
+    return createSuccessResponse({ data: channels, stats });
   } catch (error) {
     console.error('Fetch channels error:', error);
     return createErrorResponse('Failed to fetch channels', 500);

@@ -1,24 +1,33 @@
 import { connectDB } from '@/lib/mongodb';
-import { CommunityConfigs } from '@/lib/models';
+import { CommunityConfigs, User, Message, Challenge } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
     try {
         await connectDB();
-        let config = await CommunityConfigs.findOne().sort({ updatedAt: -1 });
+        // Fetch real-time counts
+        const [config, memberCount, messageCount, challengeCount, countries] = await Promise.all([
+            CommunityConfigs.findOne().sort({ updatedAt: -1 }),
+            User.countDocuments(),
+            Message.countDocuments(),
+            Challenge.countDocuments(),
+            User.distinct('country')
+        ]);
+
+        const liveStats = [
+            { icon: 'Users', value: `${(memberCount / 1000).toFixed(memberCount >= 1000 ? 1 : 0)}${memberCount >= 1000 ? 'K' : ''}+`, label: 'Active Members' },
+            { icon: 'MessageSquare', value: `${(messageCount / 1000).toFixed(messageCount >= 1000 ? 1 : 0)}${messageCount >= 1000 ? 'K' : ''}+`, label: 'Messages Sent' },
+            { icon: 'Trophy', value: `${challengeCount}+`, label: 'Challenges' },
+            { icon: 'Globe', value: `${countries.length}+`, label: 'Countries' },
+        ];
 
         if (!config) {
-            // Return standard defaults if none exists yet
+            // Return standard defaults with live stats if none exists yet
             return createSuccessResponse({
                 success: true,
                 data: {
-                    stats: [
-                        { icon: 'Users', value: '50K+', label: 'Active Members' },
-                        { icon: 'MessageSquare', value: '1M+', label: 'Messages Sent' },
-                        { icon: 'Trophy', value: '500+', label: 'Challenges' },
-                        { icon: 'Globe', value: '120+', label: 'Countries' },
-                    ],
+                    stats: liveStats,
                     topContributors: [
                         { name: "Alex Chen", role: "Security Researcher", points: 24500, avatar: "AC" },
                         { name: "Sarah Kim", role: "Pentester", points: 22100, avatar: "SK" },
@@ -40,7 +49,20 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        return createSuccessResponse({ success: true, data: config });
+        // If config exists, we still want to inject the live stats for the main labels
+        const mergedStats = config.stats.map((stat: any) => {
+            if (stat.label === 'Active Members') return { ...stat, value: liveStats[0].value };
+            if (stat.label === 'Messages Sent') return { ...stat, value: liveStats[1].value };
+            if (stat.label === 'Challenges') return { ...stat, value: liveStats[2].value };
+            if (stat.label === 'Countries') return { ...stat, value: liveStats[3].value };
+            return stat;
+        });
+
+        // Convert the mongoose document to a plain object to modify it
+        const configObj = config.toObject();
+        configObj.stats = mergedStats;
+
+        return createSuccessResponse({ success: true, data: configObj });
     } catch (error) {
         console.error('Fetch community configs error:', error);
         return createErrorResponse('Failed to fetch community configs', 500);

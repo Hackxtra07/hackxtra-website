@@ -397,12 +397,6 @@ export default function CommunityPage() {
                     </p>
                   </div>
                 </div>
-                <Button asChild variant="outline" className="border-primary/20 bg-primary/10 text-primary hover:bg-primary/20">
-                  <Link href="/admin/badges">
-                    <LucideIcons.Settings className="mr-2 h-4 w-4" />
-                    Manage Badges
-                  </Link>
-                </Button>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

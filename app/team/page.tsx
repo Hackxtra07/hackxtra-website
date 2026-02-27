@@ -99,6 +99,7 @@ export default function TeamPage() {
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
   const [members, setMembers] = useState<TeamMember[]>([]);
+  const [stats, setStats] = useState<any[]>(teamStats);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -106,8 +107,18 @@ export default function TeamPage() {
       try {
         const response = await fetch('/api/team');
         if (response.ok) {
-          const data = await response.json();
-          setMembers(data);
+          const resData = await response.json();
+          const membersData = resData.data || (Array.isArray(resData) ? resData : []);
+          setMembers(membersData);
+
+          if (resData.stats) {
+            // Map icons back to stats from API
+            const mappedStats = resData.stats.map((s: any) => {
+              const original = teamStats.find(os => os.label === s.label);
+              return { ...s, icon: original?.icon || Users };
+            });
+            setStats(mappedStats);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch team", error);
@@ -155,7 +166,7 @@ export default function TeamPage() {
 
           {/* Stats Bar */}
           <div className="mb-24 grid grid-cols-2 gap-8 border-y border-border/50 py-12 md:grid-cols-4">
-            {teamStats.map((stat, i) => (
+            {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, scale: 0.9 }}
