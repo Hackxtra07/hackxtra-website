@@ -47,7 +47,7 @@ export default function AdminDevOpsPage() {
         try {
             const data = await request("/api/admin/devops/import", {
                 method: 'POST',
-                body: JSON.stringify({ url: githubUrl })
+                body: { url: githubUrl }
             });
             toast.success(data.message);
             setGithubUrl("");
@@ -91,7 +91,6 @@ export default function AdminDevOpsPage() {
                         <Button
                             onClick={handleImport}
                             disabled={importing || !githubUrl}
-                            variant="indigo"
                             className="bg-indigo-600 hover:bg-indigo-700 text-white"
                         >
                             {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Github className="mr-2 h-4 w-4" />}

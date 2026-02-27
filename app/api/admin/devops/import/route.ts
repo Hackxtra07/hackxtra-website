@@ -11,8 +11,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid GitHub URL' }, { status: 400 });
         }
 
-        // Parse URL: https://github.com/owner/repo
-        const parts = url.split('/');
+        // Parse URL: https://github.com/owner/repo (handle trailing slash)
+        const cleanUrl = url.replace(/\/$/, '');
+        const parts = cleanUrl.split('/');
         const owner = parts[parts.length - 2];
         const repo = parts[parts.length - 1];
 
@@ -20,8 +21,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Could not parse owner or repo from URL' }, { status: 400 });
         }
 
-        // Fetch from GitHub API
-        const githubRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}`);
+        // Fetch from GitHub API (headers required by GitHub)
+        const githubRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, {
+            headers: {
+                'User-Agent': 'HackXtras-App'
+            }
+        });
         const data = githubRes.data;
 
         const projectData = {
@@ -31,7 +36,7 @@ export async function POST(req: Request) {
             stars: data.stargazers_count,
             forks: data.forks_count,
             language: data.language,
-            techStack: data.topics || [data.language].filter(Boolean),
+            techStack: (data.topics && data.topics.length > 0) ? data.topics : [data.language].filter(Boolean),
             isPublished: true
         };
 
@@ -41,7 +46,7 @@ export async function POST(req: Request) {
         const project = await DevOpsProject.findOneAndUpdate(
             { githubUrl: projectData.githubUrl },
             projectData,
-            { upsrert: true, new: true, upsert: true } // Typo fix in next step if needed, adding upsert twice by mistake
+            { new: true, upsert: true }
         );
 
         return NextResponse.json({ project, message: 'Project imported successfully' });
