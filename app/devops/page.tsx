@@ -22,6 +22,7 @@ export default function DevOpsPage() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [activeCategory, setActiveCategory] = useState("All Projects");
 
     useEffect(() => {
         const fetchProjects = async () => {
@@ -37,11 +38,17 @@ export default function DevOpsPage() {
         fetchProjects();
     }, []);
 
-    const filtered = projects.filter(p =>
-        p.title.toLowerCase().includes(search.toLowerCase()) ||
-        p.description.toLowerCase().includes(search.toLowerCase()) ||
-        p.techStack.some(t => t.toLowerCase().includes(search.toLowerCase()))
-    );
+    const categories = ["All Projects", ...Array.from(new Set(projects.flatMap(p => p.techStack).filter(Boolean)))].slice(0, 10);
+
+    const filtered = projects.filter(p => {
+        const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase()) ||
+            p.description.toLowerCase().includes(search.toLowerCase()) ||
+            p.techStack.some(t => t.toLowerCase().includes(search.toLowerCase()));
+
+        const matchesCategory = activeCategory === "All Projects" || p.techStack.includes(activeCategory);
+
+        return matchesSearch && matchesCategory;
+    });
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-indigo-500/30">
@@ -71,7 +78,7 @@ export default function DevOpsPage() {
                 </div>
 
                 {/* Search & Actions */}
-                <div className="flex flex-col md:flex-row gap-4 mb-12 items-center justify-between">
+                <div className="flex flex-col md:flex-row gap-4 mb-4 items-center justify-between">
                     <div className="relative w-full md:w-96">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                         <input
@@ -87,6 +94,21 @@ export default function DevOpsPage() {
                             <Rocket className="h-4 w-4" /> Submit Repo
                         </Button>
                     </div>
+                </div>
+
+                {/* Filter Pills */}
+                <div className="flex flex-wrap gap-2 mb-12">
+                    {categories.map(cat => (
+                        <Button
+                            key={cat}
+                            variant={activeCategory === cat ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setActiveCategory(cat)}
+                            className={activeCategory === cat ? "bg-indigo-600" : "border-white/10 bg-white/5 text-gray-400"}
+                        >
+                            {cat}
+                        </Button>
+                    ))}
                 </div>
 
                 {/* Grid */}

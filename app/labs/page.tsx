@@ -176,8 +176,13 @@ export default function LabsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All Labs");
+  const [activeDifficulty, setActiveDifficulty] = useState("All Difficulties");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const isPro = useProStatus();
+
+  const categories = ["All Labs", ...Array.from(new Set(labs.map(lab => lab.category).filter(Boolean)))];
+  const difficulties = ["All Difficulties", "Easy", "Medium", "Hard"];
 
   useEffect(() => {
     const checkAuth = () => {
@@ -233,7 +238,10 @@ export default function LabsPage() {
     const matchesSearch = lab.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lab.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (!matchesSearch) return false;
+    const matchesCategory = activeCategory === "All Labs" || lab.category === activeCategory;
+    const matchesDifficulty = activeDifficulty === "All Difficulties" || lab.difficulty === activeDifficulty;
+
+    if (!matchesSearch || !matchesCategory || !matchesDifficulty) return false;
 
     // Hide premium content from non-pro users
     if (lab.isPremium && !isPro) return false;
@@ -338,6 +346,36 @@ export default function LabsPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full rounded-lg border border-border/50 bg-background/50 py-2 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/50"
                 />
+              </div>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="mt-10 flex flex-col gap-6">
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <Button
+                    key={cat as string}
+                    variant={activeCategory === cat ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveCategory(cat as string)}
+                    className={activeCategory === cat ? "bg-primary" : "border-border/50 bg-background/50"}
+                  >
+                    {cat}
+                  </Button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {difficulties.map((diff) => (
+                  <Button
+                    key={diff}
+                    variant={activeDifficulty === diff ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveDifficulty(diff)}
+                    className={activeDifficulty === diff ? "bg-primary" : "border-border/50 bg-background/50"}
+                  >
+                    {diff}
+                  </Button>
+                ))}
               </div>
             </div>
           </motion.div>

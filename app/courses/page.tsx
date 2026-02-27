@@ -180,6 +180,7 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState("All Courses");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const isPro = useProStatus();
 
@@ -237,7 +238,9 @@ export default function CoursesPage() {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (!matchesSearch) return false;
+    const matchesFilter = activeFilter === "All Courses" || course.level === activeFilter;
+
+    if (!matchesSearch || !matchesFilter) return false;
 
     // Hide premium content from non-pro users
     if (course.isPremium && !isPro) return false;
@@ -342,13 +345,14 @@ export default function CoursesPage() {
           >
             <div className="flex flex-wrap gap-3">
               {["All Courses", "Beginner", "Intermediate", "Advanced"].map(
-                (filter, i) => (
+                (filter) => (
                   <Button
                     key={filter}
-                    variant={i === 0 ? "default" : "outline"}
+                    variant={activeFilter === filter ? "default" : "outline"}
                     size="sm"
+                    onClick={() => setActiveFilter(filter)}
                     className={
-                      i === 0
+                      activeFilter === filter
                         ? "bg-primary text-primary-foreground"
                         : "border-border/50 bg-transparent hover:bg-muted"
                     }

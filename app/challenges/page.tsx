@@ -27,6 +27,12 @@ export default function ChallengesPage() {
     const [solvedIds, setSolvedIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [inputs, setInputs] = useState<{ [key: string]: string }>({});
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeDifficulty, setActiveDifficulty] = useState("All Difficulties");
+    const [activeCategory, setActiveCategory] = useState("All Categories");
+
+    const categories = ["All Categories", ...Array.from(new Set(challenges.map(c => c.category).filter(Boolean)))];
+    const difficulties = ["All Difficulties", "Easy", "Medium", "Hard"];
 
     useEffect(() => {
         fetchData();
@@ -57,6 +63,16 @@ export default function ChallengesPage() {
             setLoading(false);
         }
     };
+
+    const filteredChallenges = challenges.filter(challenge => {
+        const matchesSearch = challenge.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            challenge.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesDifficulty = activeDifficulty === "All Difficulties" || challenge.difficulty === activeDifficulty;
+        const matchesCategory = activeCategory === "All Categories" || challenge.category === activeCategory;
+
+        return matchesSearch && matchesDifficulty && matchesCategory;
+    });
 
     const handleSubmit = async (id: string) => {
         const token = localStorage.getItem('userToken');
@@ -105,16 +121,60 @@ export default function ChallengesPage() {
                 <div className="max-w-7xl mx-auto space-y-8">
                     <div className="text-center max-w-2xl mx-auto">
                         <h1 className="text-4xl font-bold mb-4 font-display">Earn Points</h1>
-                        <p className="text-muted-foreground text-lg">
+                        <p className="text-muted-foreground text-lg mb-8">
                             Complete quizzes, solve challenges, and climb the leaderboard.
                         </p>
+                    </div>
+
+                    {/* Search and Filters */}
+                    <div className="space-y-6">
+                        <div className="flex flex-col md:flex-row gap-4 justify-between">
+                            <div className="flex flex-wrap gap-2">
+                                {difficulties.map(diff => (
+                                    <Button
+                                        key={diff}
+                                        variant={activeDifficulty === diff ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setActiveDifficulty(diff)}
+                                        className={activeDifficulty === diff ? "bg-primary" : "border-border/50 bg-card/30"}
+                                    >
+                                        {diff}
+                                    </Button>
+                                ))}
+                            </div>
+                            <div className="relative w-full md:w-72">
+                                <Input
+                                    placeholder="Search challenges..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="bg-card/30 pl-10"
+                                />
+                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                            {categories.map(cat => (
+                                <Button
+                                    key={cat as string}
+                                    variant={activeCategory === cat ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setActiveCategory(cat as string)}
+                                    className={activeCategory === cat ? "bg-primary" : "border-border/50 bg-card/30"}
+                                >
+                                    {cat}
+                                </Button>
+                            ))}
+                        </div>
                     </div>
 
                     {loading ? (
                         <div className="text-center py-20">Loading challenges...</div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {challenges.map((challenge, i) => {
+                            {filteredChallenges.map((challenge, i) => {
                                 const isSolved = solvedIds.includes(challenge._id);
                                 return (
                                     <motion.div

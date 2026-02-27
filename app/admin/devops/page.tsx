@@ -25,6 +25,7 @@ export default function AdminDevOpsPage() {
     const [loading, setLoading] = useState(true);
     const [importing, setImporting] = useState(false);
     const [githubUrl, setGithubUrl] = useState("");
+    const [syncing, setSyncing] = useState(false);
 
     useEffect(() => {
         fetchProjects();
@@ -56,6 +57,21 @@ export default function AdminDevOpsPage() {
             toast.error(e.message || "Import failed");
         } finally {
             setImporting(false);
+        }
+    };
+
+    const handleSync = async () => {
+        setSyncing(true);
+        try {
+            const data = await request("/api/admin/devops/sync", {
+                method: 'POST'
+            });
+            toast.success(data.message);
+            fetchProjects();
+        } catch (e: any) {
+            toast.error(e.message || "Sync failed");
+        } finally {
+            setSyncing(false);
         }
     };
 
@@ -95,6 +111,15 @@ export default function AdminDevOpsPage() {
                         >
                             {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Github className="mr-2 h-4 w-4" />}
                             Import
+                        </Button>
+                        <Button
+                            onClick={handleSync}
+                            disabled={syncing}
+                            variant="outline"
+                            className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                        >
+                            {syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                            Sync All
                         </Button>
                     </div>
                 </div>
