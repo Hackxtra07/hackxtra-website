@@ -45,8 +45,8 @@ export default function AdminResourcesPage() {
 
   const fetchResources = async () => {
     try {
-      const data = await request('/api/resources');
-      setResources(data);
+      const data = await request('/api/resources?admin=true');
+      setResources(data.resources || data || []);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch resources', variant: 'destructive' });
     }
@@ -269,7 +269,7 @@ export default function AdminResourcesPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {resources.map((resource) => (
+        {resources?.map((resource) => (
           <Card key={resource._id} className="p-4">
             <h3 className="font-bold text-lg mb-2">{resource.title}</h3>
             <p className="text-gray-600 text-sm mb-2">{resource.description.substring(0, 80)}...</p>

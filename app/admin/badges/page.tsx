@@ -240,7 +240,7 @@ export default function AdminBadgesPage() {
                                     No custom badges found.
                                 </td>
                             </tr>
-                        ) : badges.map((badge) => (
+                        ) : badges?.map((badge) => (
                             <tr key={badge._id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">

@@ -131,7 +131,7 @@ export default function AdminDevOpsPage() {
                 </div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {projects.map((project) => (
+                    {projects?.map((project) => (
                         <Card key={project._id} className="hover:shadow-md transition-all border-gray-200 overflow-hidden group">
                             <CardHeader className="pb-2">
                                 <CardTitle className="flex justify-between items-start text-gray-800">

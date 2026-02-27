@@ -49,8 +49,8 @@ export default function AdminLabsPage() {
 
   const fetchLabs = async () => {
     try {
-      const data = await request('/api/labs');
-      setLabs(data);
+      const data = await request('/api/labs?admin=true');
+      setLabs(data.labs || data || []);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch labs', variant: 'destructive' });
     }
@@ -290,7 +290,7 @@ export default function AdminLabsPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {labs.map((lab) => (
+        {labs?.map((lab) => (
           <Card key={lab._id} className="p-4">
             <h3 className="font-bold text-lg mb-2">{lab.title}</h3>
             <p className="text-gray-600 text-sm mb-2">{lab.description.substring(0, 100)}...</p>

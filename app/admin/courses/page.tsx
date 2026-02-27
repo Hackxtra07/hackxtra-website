@@ -47,8 +47,8 @@ export default function AdminCoursesPage() {
 
   const fetchCourses = async () => {
     try {
-      const data = await request('/api/courses');
-      setCourses(data);
+      const data = await request('/api/courses?admin=true');
+      setCourses(data.courses || data || []);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch courses', variant: 'destructive' });
     }
@@ -265,7 +265,7 @@ export default function AdminCoursesPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {courses.map((course) => (
+        {courses?.map((course) => (
           <Card key={course._id} className="p-4">
             <h3 className="font-bold text-lg mb-2">{course.title}</h3>
             <p className="text-gray-600 text-sm mb-2">{course.description.substring(0, 100)}...</p>

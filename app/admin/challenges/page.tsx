@@ -301,7 +301,7 @@ export default function AdminChallengesPage() {
             )}
 
             <div className="grid gap-4">
-                {challenges.map((challenge) => (
+                {challenges?.map((challenge) => (
                     <Card key={challenge._id} className="p-4 flex justify-between items-center group hover:border-blue-500/50 transition-all">
                         <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
