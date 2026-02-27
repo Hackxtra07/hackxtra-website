@@ -8,7 +8,7 @@ import {
   LayoutDashboard, BookOpen, Briefcase, Microscope,
   Library, Users, Tv, Film, Flag, Settings,
   MessageSquare, Radio, ShoppingCart, Newspaper,
-  Hammer, LogOut, Menu, X, ShieldAlert, Workflow
+  Hammer, LogOut, Menu, X, ShieldAlert, Workflow, Award
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -48,6 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Store', href: '/admin/store', icon: ShoppingCart },
     { name: 'News', href: '/admin/news', icon: Newspaper },
     { name: "DevOps", href: "/admin/devops", icon: Workflow },
+    { name: "Badges", href: "/admin/badges", icon: Award },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 

@@ -5,19 +5,52 @@ import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '9');
+    const search = searchParams.get('search') || '';
+    const level = searchParams.get('level') || 'All Courses';
+
     const auth = await authenticateRequest(request);
     await connectDB();
 
-    let query = {};
+    let query: any = {};
     const isPro = auth && (auth.role === 'admin' || auth.isPro);
 
     if (!isPro) {
       // If not logged in or not Pro, only show non-premium courses
-      query = { isPremium: { $ne: true } };
+      query.isPremium = { $ne: true };
     }
 
-    const courses = await Course.find(query).sort({ createdAt: -1 });
-    return createSuccessResponse(courses);
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    if (level !== 'All Courses') {
+      query.level = level;
+    }
+
+    const totalItems = await Course.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / limit);
+    const skip = (page - 1) * limit;
+
+    const courses = await Course.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    return createSuccessResponse({
+      courses,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        limit
+      }
+    });
   } catch (error) {
     console.error('Fetch courses error:', error);
     return createErrorResponse('Failed to fetch courses', 500);

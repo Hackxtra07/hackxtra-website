@@ -4,19 +4,47 @@ import { Tool } from '@/lib/models';
 import { authenticateRequest } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
-    await connectDB();
     try {
         const { searchParams } = new URL(req.url);
-        const category = searchParams.get('category');
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '12'); // Tools might need a larger grid
+        const search = searchParams.get('search') || '';
+        const category = searchParams.get('category') || 'All Tools';
 
-        let query = {};
-        if (category && category !== 'All') {
-            query = { category };
+        await connectDB();
+
+        let query: any = {};
+        if (category && category !== 'All' && category !== 'All Tools') {
+            query.category = category;
         }
 
-        const tools = await Tool.find(query).sort({ name: 1 });
-        return NextResponse.json({ tools });
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const totalItems = await Tool.countDocuments(query);
+        const totalPages = Math.ceil(totalItems / limit);
+        const skip = (page - 1) * limit;
+
+        const tools = await Tool.find(query)
+            .sort({ name: 1 })
+            .skip(skip)
+            .limit(limit);
+
+        return NextResponse.json({
+            tools,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalItems,
+                limit
+            }
+        });
     } catch (error) {
+        console.error('Fetch tools error:', error);
         return NextResponse.json({ error: 'Failed to fetch tools' }, { status: 500 });
     }
 }

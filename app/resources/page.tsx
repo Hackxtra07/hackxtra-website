@@ -127,12 +127,22 @@ function ResourceCard({
   );
 }
 
+import { Pagination } from "@/components/hackxtras/pagination";
+
+// ... existing interfaces ...
+
 export default function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    limit: 9
+  });
   const isPro = useProStatus();
 
   useEffect(() => {
@@ -146,56 +156,73 @@ export default function ResourcesPage() {
     return () => window.removeEventListener('storage', checkAuth);
   }, []);
 
+  const fetchResources = async (page = 1, search = searchQuery, showLoading = true) => {
+    try {
+      if (showLoading) setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        search: search,
+        limit: "9"
+      });
+
+      const response = await fetch(`/api/resources?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch resources: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      if (data && data.resources) {
+        setResources(data.resources);
+        setPagination(data.pagination);
+      } else {
+        setResources([]);
+      }
+    } catch (err) {
+      if (showLoading) {
+        setError(err instanceof Error ? err.message : "Failed to load resources");
+        setResources([]);
+      }
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated === null) return;
-
     if (!isAuthenticated) {
       setLoading(false);
       return;
     }
 
-    const fetchResources = async (showLoading = true) => {
-      try {
-        if (showLoading) setLoading(true);
-        setError(null);
-        const response = await fetch("/api/resources");
-        if (!response.ok) {
-          throw new Error(`Failed to fetch resources: ${response.statusText}`);
-        }
-        const data = await response.json();
-        setResources(Array.isArray(data) ? data : []);
-      } catch (err) {
-        if (showLoading) {
-          setError(err instanceof Error ? err.message : "Failed to load resources");
-          setResources([]);
-        }
-      } finally {
-        if (showLoading) setLoading(false);
-      }
-    };
-
-    fetchResources();
+    fetchResources(1, searchQuery);
 
     // Set up polling interval (30 seconds)
-    const interval = setInterval(() => fetchResources(false), 30000);
-
+    const interval = setInterval(() => fetchResources(pagination.currentPage, searchQuery, false), 30000);
     return () => clearInterval(interval);
   }, [isAuthenticated]);
+
+  // Debounce search
+  useEffect(() => {
+    if (isAuthenticated === null || !isAuthenticated) return;
+
+    const timer = setTimeout(() => {
+      fetchResources(1, searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handlePageChange = (page: number) => {
+    fetchResources(page, searchQuery);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
 
-  const filteredResources = resources.filter(resource => {
-    const matchesSearch = resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      resource.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (!matchesSearch) return false;
-
-    // Hide premium content from non-pro users
-    if (resource.isPremium && !isPro) return false;
-
-    return true;
-  });
+  const filteredResources = resources;
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -331,10 +358,19 @@ export default function ResourcesPage() {
             <>
               {/* Resources Grid */}
               {!loading && filteredResources.length > 0 && (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredResources.map((resource, index) => (
-                    <ResourceCard key={resource._id} resource={resource} index={index} />
-                  ))}
+                <div className="space-y-12">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredResources.map((resource, index) => (
+                      <ResourceCard key={resource._id} resource={resource} index={index} />
+                    ))}
+                  </div>
+
+                  <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={handlePageChange}
+                    className="mt-12"
+                  />
                 </div>
               )}
 

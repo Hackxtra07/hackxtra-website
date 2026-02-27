@@ -171,6 +171,10 @@ function LabCard({ lab, index }: { lab: Lab; index: number }) {
   );
 }
 
+import { Pagination } from "@/components/hackxtras/pagination";
+
+// ... existing interfaces ...
+
 export default function LabsPage() {
   const [labs, setLabs] = useState<Lab[]>([]);
   const [loading, setLoading] = useState(true);
@@ -179,9 +183,17 @@ export default function LabsPage() {
   const [activeCategory, setActiveCategory] = useState("All Labs");
   const [activeDifficulty, setActiveDifficulty] = useState("All Difficulties");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    limit: 9
+  });
   const isPro = useProStatus();
 
-  const categories = ["All Labs", ...Array.from(new Set(labs.map(lab => lab.category).filter(Boolean)))];
+  // We still need all categories for the filter pills, but filtering is server-side
+  // For simplicity, we'll keep the categories derived from the first fetch or use a predefined list
+  const [categories, setCategories] = useState(["All Labs"]);
   const difficulties = ["All Difficulties", "Easy", "Medium", "Hard"];
 
   useEffect(() => {
@@ -195,59 +207,83 @@ export default function LabsPage() {
     return () => window.removeEventListener('storage', checkAuth);
   }, []);
 
+  const fetchLabs = async (page = 1, search = searchQuery, cat = activeCategory, diff = activeDifficulty, showLoading = true) => {
+    try {
+      if (showLoading) setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        search: search,
+        category: cat,
+        difficulty: diff,
+        limit: "9"
+      });
+
+      const response = await fetch(`/api/labs?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch labs: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      if (data && data.labs) {
+        setLabs(data.labs);
+        setPagination(data.pagination);
+
+        // Update categories if we don't have them yet
+        if (categories.length === 1) {
+          const fetchedCategories = Array.from(new Set(data.labs.map((lab: Lab) => lab.category).filter(Boolean)));
+          if (fetchedCategories.length > 0) {
+            setCategories(["All Labs", ...fetchedCategories as string[]]);
+          }
+        }
+      } else {
+        setLabs([]);
+      }
+    } catch (err) {
+      if (showLoading) {
+        setError(err instanceof Error ? err.message : "Failed to load labs");
+        setLabs([]);
+      }
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated === null) return;
-
     if (!isAuthenticated) {
       setLoading(false);
       return;
     }
 
-    const fetchLabs = async (showLoading = true) => {
-      try {
-        if (showLoading) setLoading(true);
-        setError(null);
-        const response = await fetch("/api/labs");
-        if (!response.ok) {
-          throw new Error(`Failed to fetch labs: ${response.statusText}`);
-        }
-        const data = await response.json();
-        setLabs(Array.isArray(data) ? data : []);
-      } catch (err) {
-        if (showLoading) {
-          setError(err instanceof Error ? err.message : "Failed to load labs");
-          setLabs([]);
-        }
-      } finally {
-        if (showLoading) setLoading(false);
-      }
-    };
-
-    fetchLabs();
+    fetchLabs(1, searchQuery, activeCategory, activeDifficulty);
 
     // Set up polling interval (30 seconds)
-    const interval = setInterval(() => fetchLabs(false), 30000);
-
+    const interval = setInterval(() => fetchLabs(pagination.currentPage, searchQuery, activeCategory, activeDifficulty, false), 30000);
     return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, activeCategory, activeDifficulty]);
+
+  // Debounce search
+  useEffect(() => {
+    if (isAuthenticated === null || !isAuthenticated) return;
+
+    const timer = setTimeout(() => {
+      fetchLabs(1, searchQuery, activeCategory, activeDifficulty);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handlePageChange = (page: number) => {
+    fetchLabs(page, searchQuery, activeCategory, activeDifficulty);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
 
-  const filteredLabs = labs.filter(lab => {
-    const matchesSearch = lab.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lab.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesCategory = activeCategory === "All Labs" || lab.category === activeCategory;
-    const matchesDifficulty = activeDifficulty === "All Difficulties" || lab.difficulty === activeDifficulty;
-
-    if (!matchesSearch || !matchesCategory || !matchesDifficulty) return false;
-
-    // Hide premium content from non-pro users
-    if (lab.isPremium && !isPro) return false;
-
-    return true;
-  });
+  const filteredLabs = labs;
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -435,10 +471,19 @@ export default function LabsPage() {
             <>
               {/* Labs Grid */}
               {!loading && filteredLabs.length > 0 && (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredLabs.map((lab, index) => (
-                    <LabCard key={lab._id} lab={lab} index={index} />
-                  ))}
+                <div className="space-y-12">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredLabs.map((lab, index) => (
+                      <LabCard key={lab._id} lab={lab} index={index} />
+                    ))}
+                  </div>
+
+                  <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={handlePageChange}
+                    className="mt-12"
+                  />
                 </div>
               )}
 

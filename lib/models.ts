@@ -410,7 +410,26 @@ if (mongoose.models.Lab && !mongoose.models.Lab.schema.paths.isPremium) {
   delete mongoose.models.Lab;
 }
 
+// Badge Model
+export interface IBadge extends Document {
+  name: string;
+  description: string;
+  icon: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const badgeSchema = new Schema<IBadge>(
+  {
+    name: { type: String, required: true, unique: true },
+    description: { type: String, required: true },
+    icon: { type: String, default: 'Award' },
+  },
+  { timestamps: true }
+);
+
 export const Admin = mongoose.models.Admin || mongoose.model<IAdmin>('Admin', adminSchema);
+export const Badge = mongoose.models.Badge || mongoose.model<IBadge>('Badge', badgeSchema);
 export const Course = mongoose.models.Course || mongoose.model<ICourse>('Course', courseSchema);
 export const Lab = mongoose.models.Lab || mongoose.model<ILab>('Lab', labSchema);
 export const Resource = mongoose.models.Resource || mongoose.model<IResource>('Resource', resourceSchema);

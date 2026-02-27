@@ -5,19 +5,57 @@ import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '9');
+    const search = searchParams.get('search') || '';
+    const category = searchParams.get('category') || 'All Labs';
+    const difficulty = searchParams.get('difficulty') || 'All Difficulties';
+
     const auth = await authenticateRequest(request);
     await connectDB();
 
-    let query = {};
+    let query: any = {};
     const isPro = auth && (auth.role === 'admin' || auth.isPro);
 
     if (!isPro) {
       // If not logged in or not Pro, only show non-premium labs
-      query = { isPremium: { $ne: true } };
+      query.isPremium = { $ne: true };
     }
 
-    const labs = await Lab.find(query).sort({ createdAt: -1 });
-    return createSuccessResponse(labs);
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    if (category !== 'All Labs') {
+      query.category = category;
+    }
+
+    if (difficulty !== 'All Difficulties') {
+      query.difficulty = difficulty;
+    }
+
+    const totalItems = await Lab.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / limit);
+    const skip = (page - 1) * limit;
+
+    const labs = await Lab.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    return createSuccessResponse({
+      labs,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems,
+        limit
+      }
+    });
   } catch (error) {
     console.error('Fetch labs error:', error);
     return createErrorResponse('Failed to fetch labs', 500);

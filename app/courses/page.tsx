@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
 import { Loader } from "@/components/hackxtras/loader";
-import { useProStatus } from "@/hooks/use-pro-status";
+import { Pagination } from "@/components/hackxtras/pagination";
 
 interface Course {
   _id: string;
@@ -175,6 +175,8 @@ function CourseCard({
   );
 }
 
+import { useProStatus } from "@/hooks/use-pro-status";
+
 export default function CoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,6 +184,12 @@ export default function CoursesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All Courses");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    limit: 9
+  });
   const isPro = useProStatus();
 
   useEffect(() => {
@@ -195,58 +203,75 @@ export default function CoursesPage() {
     return () => window.removeEventListener('storage', checkAuth);
   }, []);
 
+  const fetchCourses = async (page = 1, search = searchQuery, filter = activeFilter, showLoading = true) => {
+    try {
+      if (showLoading) setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        search: search,
+        level: filter,
+        limit: "9"
+      });
+
+      const response = await fetch(`/api/courses?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch courses: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      if (data && data.courses) {
+        setCourses(data.courses);
+        setPagination(data.pagination);
+      } else {
+        setCourses([]);
+      }
+    } catch (err) {
+      if (showLoading) {
+        setError(err instanceof Error ? err.message : "Failed to load courses");
+        setCourses([]);
+      }
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated === null) return;
-
     if (!isAuthenticated) {
       setLoading(false);
       return;
     }
 
-    const fetchCourses = async (showLoading = true) => {
-      try {
-        if (showLoading) setLoading(true);
-        setError(null);
-        const response = await fetch("/api/courses");
-        if (!response.ok) {
-          throw new Error(`Failed to fetch courses: ${response.statusText}`);
-        }
-        const data = await response.json();
-        setCourses(Array.isArray(data) ? data : []);
-      } catch (err) {
-        if (showLoading) {
-          setError(err instanceof Error ? err.message : "Failed to load courses");
-          setCourses([]);
-        }
-      } finally {
-        if (showLoading) setLoading(false);
-      }
-    };
-
-    fetchCourses();
+    fetchCourses(1, searchQuery, activeFilter);
 
     // Set up polling interval (30 seconds)
-    const interval = setInterval(() => fetchCourses(false), 30000);
-
+    const interval = setInterval(() => fetchCourses(pagination.currentPage, searchQuery, activeFilter, false), 30000);
     return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, activeFilter]);
+
+  // Debounce search
+  useEffect(() => {
+    if (isAuthenticated === null || !isAuthenticated) return;
+
+    const timer = setTimeout(() => {
+      fetchCourses(1, searchQuery, activeFilter);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handlePageChange = (page: number) => {
+    fetchCourses(page, searchQuery, activeFilter);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
 
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesFilter = activeFilter === "All Courses" || course.level === activeFilter;
-
-    if (!matchesSearch || !matchesFilter) return false;
-
-    // Hide premium content from non-pro users
-    if (course.isPremium && !isPro) return false;
-
-    return true;
-  });
+  // Use the courses directly since filtering is now server-side
+  const filteredCourses = courses;
 
   return (
     <div className="relative min-h-screen bg-background">
@@ -430,10 +455,19 @@ export default function CoursesPage() {
             <>
               {/* Courses Grid */}
               {!loading && filteredCourses.length > 0 && (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredCourses.map((course, index) => (
-                    <CourseCard key={course._id} course={course} index={index} />
-                  ))}
+                <div className="space-y-12">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredCourses.map((course, index) => (
+                      <CourseCard key={course._id} course={course} index={index} />
+                    ))}
+                  </div>
+
+                  <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={handlePageChange}
+                    className="mt-12"
+                  />
                 </div>
               )}
 
