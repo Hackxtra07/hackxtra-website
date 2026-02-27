@@ -15,6 +15,11 @@ interface Badge {
     name: string;
     description: string;
     icon: string;
+    requirements?: {
+        minSolved?: number;
+        minPoints?: number;
+        requirePro?: boolean;
+    };
     createdAt: string;
 }
 
@@ -27,7 +32,12 @@ export default function AdminBadgesPage() {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        icon: 'Award'
+        icon: 'Award',
+        requirements: {
+            minSolved: 0,
+            minPoints: 0,
+            requirePro: false
+        }
     });
 
     useEffect(() => {
@@ -44,7 +54,7 @@ export default function AdminBadgesPage() {
     };
 
     const getIcon = (name: string) => {
-        const Icon = (LucideIcons as any)[name] || LucideIcons.HelpCircle;
+        const Icon = (LucideIcons as any)[name] || LucideIcons.HelpCircle || LucideIcons.Award;
         return <Icon className="h-5 w-5" />;
     };
 
@@ -87,6 +97,11 @@ export default function AdminBadgesPage() {
             name: badge.name,
             description: badge.description,
             icon: badge.icon || 'Award',
+            requirements: {
+                minSolved: badge.requirements?.minSolved || 0,
+                minPoints: badge.requirements?.minPoints || 0,
+                requirePro: badge.requirements?.requirePro || false
+            }
         });
         setEditingId(badge._id);
         setShowForm(true);
@@ -96,7 +111,12 @@ export default function AdminBadgesPage() {
         setFormData({
             name: '',
             description: '',
-            icon: 'Award'
+            icon: 'Award',
+            requirements: {
+                minSolved: 0,
+                minPoints: 0,
+                requirePro: false
+            }
         });
         setEditingId(null);
         setShowForm(false);
@@ -129,7 +149,7 @@ export default function AdminBadgesPage() {
                                 />
                             </div>
                             <div>
-                                <Label>Description / Requirements</Label>
+                                <Label>Description / Requirements Description</Label>
                                 <Textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -152,6 +172,47 @@ export default function AdminBadgesPage() {
                                     </div>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">Specify a valid name from Lucide React icons library.</p>
+                            </div>
+
+                            <h3 className="font-semibold text-lg border-b pb-2 pt-4">Automation Requirements</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <Label>Min. Solves</Label>
+                                    <Input
+                                        type="number"
+                                        value={formData.requirements?.minSolved || 0}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            requirements: { ...formData.requirements, minSolved: parseInt(e.target.value) }
+                                        })}
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Min. Points</Label>
+                                    <Input
+                                        type="number"
+                                        value={formData.requirements?.minPoints || 0}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            requirements: { ...formData.requirements, minPoints: parseInt(e.target.value) }
+                                        })}
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="flex items-center space-x-2 pt-8">
+                                    <input
+                                        type="checkbox"
+                                        id="requirePro"
+                                        checked={formData.requirements?.requirePro || false}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            requirements: { ...formData.requirements, requirePro: e.target.checked }
+                                        })}
+                                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <Label htmlFor="requirePro">Require PRO Status</Label>
+                                </div>
                             </div>
                         </div>
 
@@ -190,7 +251,26 @@ export default function AdminBadgesPage() {
                                     <div className="text-sm font-medium text-gray-900">{badge.name}</div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className="text-sm text-gray-500 line-clamp-2">{badge.description}</div>
+                                    <div className="text-sm text-gray-500 space-y-1">
+                                        <p className="line-clamp-1">{badge.description}</p>
+                                        <div className="flex flex-wrap gap-1">
+                                            {badge.requirements?.minSolved ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                    {badge.requirements.minSolved} Solves
+                                                </span>
+                                            ) : null}
+                                            {badge.requirements?.minPoints ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                                    {badge.requirements.minPoints} Points
+                                                </span>
+                                            ) : null}
+                                            {badge.requirements?.requirePro ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                                    PRO Only
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div className="flex justify-end gap-2">

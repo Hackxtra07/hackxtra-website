@@ -16,6 +16,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
+import { Loader } from "@/components/hackxtras/loader";
 
 const communityStats = [
   { icon: Users, value: "50K+", label: "Active Members" },
@@ -114,8 +115,16 @@ export default function CommunityPage() {
       .catch(err => console.error("Failed to fetch badges", err));
   }, []);
 
-  const getIcon = (name: string) => {
-    const Icon = (LucideIcons as any)[name] || LucideIcons.HelpCircle;
+  const getIcon = (iconInput: any) => {
+    if (!iconInput) return <LucideIcons.HelpCircle className="h-5 w-5" />;
+
+    if (typeof iconInput === 'string') {
+      const Icon = (LucideIcons as any)[iconInput] || LucideIcons.HelpCircle;
+      return <Icon className="h-5 w-5" />;
+    }
+
+    // If it's already a component
+    const Icon = iconInput;
     return <Icon className="h-5 w-5" />;
   };
 
@@ -124,7 +133,7 @@ export default function CommunityPage() {
   const events = config?.upcomingEvents || upcomingEvents;
   const popularChannels = config?.popularChannels || channels;
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center pt-32"><LucideIcons.Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center pt-32"><Loader /></div>;
 
   return (
     <div className="relative min-h-screen bg-background">

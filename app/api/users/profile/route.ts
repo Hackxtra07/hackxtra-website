@@ -17,6 +17,10 @@ export async function GET(request: NextRequest) {
             return createErrorResponse('User not found', 404);
         }
 
+        // Retroactive Badge Check
+        const { awardBadges } = await import('@/lib/badge-utils');
+        await awardBadges(user._id);
+
         // Calculate Rank
         const rank = await User.countDocuments({ points: { $gt: user.points } }) + 1;
 

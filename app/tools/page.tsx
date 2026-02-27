@@ -48,9 +48,9 @@ export default function ToolsPage() {
             const res = await fetch(`/api/tools?${params.toString()}`);
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.tools) {
-                    setTools(data.tools);
-                    setPagination(data.pagination);
+                if (data) {
+                    setTools(data.tools || []);
+                    setPagination(data.pagination || pagination);
 
                     // Update categories if we don't have them yet
                     if (categories.length === 1) {

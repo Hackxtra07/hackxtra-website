@@ -178,7 +178,7 @@ export default function DevOpsPage() {
                                         </p>
 
                                         <div className="flex flex-wrap gap-2 mb-6">
-                                            {project.techStack.slice(0, 4).map(tech => (
+                                            {project.techStack?.slice(0, 4).map(tech => (
                                                 <span key={tech} className="text-[10px] uppercase tracking-wider font-bold bg-white/5 text-gray-400 px-2 py-1 rounded border border-white/5">
                                                     {tech}
                                                 </span>

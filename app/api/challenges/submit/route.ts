@@ -34,33 +34,9 @@ export async function POST(request: NextRequest) {
         user.points += challenge.points;
         user.solvedChallenges.push(challengeId);
 
-        // 5. Badge Logic
-        const solvedCount = user.solvedChallenges.length;
-        const newBadges: string[] = [];
-
-        // Milestone Badges
-        if (solvedCount === 1 && !user.badges.includes('First Blood')) newBadges.push('First Blood');
-        if (solvedCount === 5 && !user.badges.includes('Script Kiddie')) newBadges.push('Script Kiddie');
-        if (solvedCount === 10 && !user.badges.includes('Hacker')) newBadges.push('Hacker');
-        if (solvedCount === 25 && !user.badges.includes('Elite')) newBadges.push('Elite');
-        if (solvedCount === 50 && !user.badges.includes('God Mode')) newBadges.push('God Mode');
-
-        // Category Badges (Requires fetching all solved challenges to count categories, efficient enough for this scale)
-        // Only run this check if we haven't already earned the badge for this category
-        // Optimization: Just load the categories of solved challenges if needed, but for now simple fetch is okay
-        // OR better: Just check the current challenge's category and count previous solves in that category
-
-        // Let's do a quick aggregate count for the current category
-        const solvedDocs = await Challenge.find({ _id: { $in: user.solvedChallenges } }).select('category');
-        const categoryCount = solvedDocs.filter(c => c.category === challenge.category).length;
-
-        if (challenge.category === 'Web' && categoryCount >= 5 && !user.badges.includes('Web Master')) newBadges.push('Web Master');
-        if (challenge.category === 'Crypto' && categoryCount >= 5 && !user.badges.includes('Crypto King')) newBadges.push('Crypto King');
-        if (challenge.category === 'Forensics' && categoryCount >= 5 && !user.badges.includes('Forensics Expert')) newBadges.push('Forensics Expert');
-
-        if (newBadges.length > 0) {
-            user.badges.push(...newBadges);
-        }
+        // 5. Badge Logic (Automated)
+        const { awardBadges } = await import('@/lib/badge-utils');
+        const newBadges = await awardBadges(user._id);
 
         await user.save();
 

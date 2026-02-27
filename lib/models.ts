@@ -415,6 +415,15 @@ export interface IBadge extends Document {
   name: string;
   description: string;
   icon: string;
+  requirements?: {
+    minSolved?: number;
+    minPoints?: number;
+    requirePro?: boolean;
+    categoryRequirements?: {
+      category: string;
+      minCount: number;
+    }[];
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -424,6 +433,17 @@ const badgeSchema = new Schema<IBadge>(
     name: { type: String, required: true, unique: true },
     description: { type: String, required: true },
     icon: { type: String, default: 'Award' },
+    requirements: {
+      minSolved: { type: Number, default: 0 },
+      minPoints: { type: Number, default: 0 },
+      requirePro: { type: Boolean, default: false },
+      categoryRequirements: [
+        {
+          category: String,
+          minCount: Number,
+        },
+      ],
+    },
   },
   { timestamps: true }
 );
