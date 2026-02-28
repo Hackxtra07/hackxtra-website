@@ -45,24 +45,32 @@ export async function DELETE(request: NextRequest) {
 
         const { searchParams } = new URL(request.url);
         const sessionId = searchParams.get('sessionId');
+        const userId = searchParams.get('userId');
 
-        if (!sessionId) {
-            return createErrorResponse('Session ID is required', 400);
+        if (!sessionId && !userId) {
+            return createErrorResponse('Session ID or User ID is required', 400);
         }
 
         await connectDB();
 
-        const session = await Session.findOneAndUpdate(
-            { sessionId },
-            { $set: { isValid: false } },
-            { new: true }
-        );
+        if (sessionId) {
+            const session = await Session.findOneAndUpdate(
+                { sessionId },
+                { $set: { isValid: false } },
+                { new: true }
+            );
 
-        if (!session) {
-            return createErrorResponse('Session not found', 404);
+            if (!session) {
+                return createErrorResponse('Session not found', 404);
+            }
+        } else if (userId) {
+            await Session.updateMany(
+                { userId, isValid: true },
+                { $set: { isValid: false } }
+            );
         }
 
-        return createSuccessResponse({ message: 'Session revoked successfully' });
+        return createSuccessResponse({ message: userId ? 'All user sessions revoked' : 'Session revoked successfully' });
     } catch (error) {
         console.error('Revoke session error:', error);
         return createErrorResponse('Failed to revoke session', 500);

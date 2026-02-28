@@ -615,6 +615,7 @@ export interface ISession extends Document {
   isValid: boolean;
   userAgent?: string;
   ipAddress?: string;
+  lastActive: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -646,6 +647,10 @@ const sessionSchema = new Schema<ISession>(
     },
     userAgent: String,
     ipAddress: String,
+    lastActive: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );

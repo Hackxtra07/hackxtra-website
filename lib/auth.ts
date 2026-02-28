@@ -42,7 +42,11 @@ export async function authenticateRequest(request: NextRequest): Promise<any | n
 
     // Verify session if sessionId is present
     if (payload.sessionId) {
-      const session = await Session.findOne({ sessionId: payload.sessionId, isValid: true });
+      const session = await Session.findOneAndUpdate(
+        { sessionId: payload.sessionId, isValid: true },
+        { $set: { lastActive: new Date() } },
+        { new: true }
+      );
       if (!session || session.expiresAt < new Date()) {
         return null;
       }
