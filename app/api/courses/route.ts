@@ -33,14 +33,19 @@ export async function GET(request: NextRequest) {
       query.level = level;
     }
 
-    const totalItems = await Course.countDocuments(query);
-    const totalPages = Math.ceil(totalItems / limit);
     const skip = (page - 1) * limit;
 
-    const courses = await Course.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    const [totalItems, courses] = await Promise.all([
+      Course.countDocuments(query),
+      Course.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select('title description category level youtubeLink duration instructor coverImage isPremium createdAt')
+        .lean()
+    ]);
+
+    const totalPages = Math.ceil(totalItems / limit);
 
     return createSuccessResponse({
       courses,

@@ -11,9 +11,10 @@ export async function GET(request: NextRequest) {
 
         // Exclude flag from public response unless specifically requested as admin
         // Note: In a production app, we would also verify the admin token here.
-        const challenges = isAdmin
-            ? await Challenge.find().select('+flag')
-            : await Challenge.find().select('-flag');
+        const challenges = await Challenge.find()
+            .select(isAdmin ? '+flag' : '-flag')
+            .select('title description points category difficulty type options createdAt updatedAt')
+            .lean();
 
         return createSuccessResponse(challenges);
     } catch (error) {

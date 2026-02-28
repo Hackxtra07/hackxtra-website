@@ -109,6 +109,11 @@ const courseSchema = new Schema<ICourse>(
   { timestamps: true }
 );
 
+courseSchema.index({ isPremium: 1 });
+courseSchema.index({ category: 1 });
+courseSchema.index({ level: 1 });
+courseSchema.index({ createdAt: -1 });
+
 // Lab Model
 export interface ILab extends Document {
   title: string;
@@ -166,6 +171,11 @@ const labSchema = new Schema<ILab>(
   { timestamps: true }
 );
 
+labSchema.index({ difficulty: 1 });
+labSchema.index({ category: 1 });
+labSchema.index({ isPremium: 1 });
+labSchema.index({ createdAt: -1 });
+
 // Resource Model
 export interface IResource extends Document {
   title: string;
@@ -215,6 +225,11 @@ const resourceSchema = new Schema<IResource>(
   },
   { timestamps: true }
 );
+
+resourceSchema.index({ type: 1 });
+resourceSchema.index({ category: 1 });
+resourceSchema.index({ isPremium: 1 });
+resourceSchema.index({ createdAt: -1 });
 
 // Team Member Model
 export interface ITeamMember extends Document {
@@ -495,6 +510,12 @@ const challengeSchema = new Schema<IChallenge>(
   { timestamps: true }
 );
 
+challengeSchema.index({ category: 1 });
+challengeSchema.index({ difficulty: 1 });
+challengeSchema.index({ type: 1 });
+challengeSchema.index({ points: 1 });
+challengeSchema.index({ createdAt: -1 });
+
 export const Challenge = mongoose.models.Challenge || mongoose.model<IChallenge>('Challenge', challengeSchema);
 
 // User Model (Leaderboard & Auth)
@@ -585,6 +606,10 @@ const userSchema = new Schema<IUser>(
   },
   { timestamps: true }
 );
+
+userSchema.index({ points: -1 });
+userSchema.index({ country: 1 });
+userSchema.index({ createdAt: -1 });
 
 // Hash password before saving
 // Hash password before saving
@@ -823,6 +848,10 @@ const toolSchema = new Schema<ITool>(
   { timestamps: true }
 );
 
+toolSchema.index({ category: 1 });
+toolSchema.index({ name: 1 });
+toolSchema.index({ createdAt: -1 });
+
 export const Tool = mongoose.models.Tool || mongoose.model<ITool>('Tool', toolSchema);
 
 
@@ -924,5 +953,11 @@ const devOpsProjectSchema = new Schema<IDevOpsProject>(
   },
   { timestamps: true }
 );
+
+devOpsProjectSchema.index({ isPublished: 1 });
+devOpsProjectSchema.index({ techStack: 1 });
+devOpsProjectSchema.index({ language: 1 });
+devOpsProjectSchema.index({ stars: -1 });
+devOpsProjectSchema.index({ createdAt: -1 });
 
 export const DevOpsProject = mongoose.models.DevOpsProject || mongoose.model<IDevOpsProject>('DevOpsProject', devOpsProjectSchema);

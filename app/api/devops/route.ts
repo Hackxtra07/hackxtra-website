@@ -26,14 +26,20 @@ export async function GET(request: NextRequest) {
             query.techStack = techStack;
         }
 
-        const totalItems = await DevOpsProject.countDocuments(query);
-        const totalPages = Math.ceil(totalItems / limit);
         const skip = (page - 1) * limit;
 
-        const projects = await DevOpsProject.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+        // Run count and find in parallel for performance
+        const [totalItems, projects] = await Promise.all([
+            DevOpsProject.countDocuments(query),
+            DevOpsProject.find(query)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit)
+                .select('title description githubUrl techStack stars forks language isPublished createdAt') // Only fetch needed fields
+                .lean() // Plain JavaScript objects are faster than full Mongoose documents
+        ]);
+
+        const totalPages = Math.ceil(totalItems / limit);
 
         return NextResponse.json({
             projects,

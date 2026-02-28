@@ -38,14 +38,19 @@ export async function GET(request: NextRequest) {
       query.difficulty = difficulty;
     }
 
-    const totalItems = await Lab.countDocuments(query);
-    const totalPages = Math.ceil(totalItems / limit);
     const skip = (page - 1) * limit;
 
-    const labs = await Lab.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    const [totalItems, labs] = await Promise.all([
+      Lab.countDocuments(query),
+      Lab.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select('title description difficulty category objectives tools timeToComplete url coverImage isPremium createdAt')
+        .lean()
+    ]);
+
+    const totalPages = Math.ceil(totalItems / limit);
 
     return createSuccessResponse({
       labs,

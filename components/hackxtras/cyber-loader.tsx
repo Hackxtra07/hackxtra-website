@@ -29,22 +29,28 @@ export function CyberLoader({ isFinishing = false, onComplete }: { isFinishing?:
             setPercent((prev) => {
                 if (prev >= 100) {
                     clearInterval(interval);
-                    onComplete?.();
+                    // Add a tiny delay before calling onComplete to let the 100% settle visually
+                    setTimeout(() => onComplete?.(), 100);
                     return 100;
                 }
 
-                // If isFinishing is true, we go much faster (e.g. 5-10% jumps)
                 if (isFinishing) {
-                    const next = prev + Math.floor(Math.random() * 5) + 5;
+                    // Warp speed: Jump 10-20% at a time if we're "finishing"
+                    // This makes it feel almost instant but still shows the bar hit the end
+                    const next = prev + Math.floor(Math.random() * 10) + 15;
                     return next > 100 ? 100 : next;
                 }
 
-                // Normal speed: Start fast, then moderate
-                const increment = prev < 30 ? 3 : (prev < 70 ? 2 : 1);
+                // Normal simulated progress: Faster than before
+                // Increments of 2-5% every 30ms initially, then slows slightly
+                const increment = prev < 40 ? Math.floor(Math.random() * 3) + 3 : (prev < 85 ? 2 : 1);
                 const next = prev + increment;
+
+                // Cap it at 99 until isFinishing is true to ensure we always show the final jump
+                if (next >= 100 && !isFinishing) return 99;
                 return next > 100 ? 100 : next;
             });
-        }, isFinishing ? 10 : 20); // Faster interval when finishing
+        }, isFinishing ? 15 : 30);
         return () => clearInterval(interval);
     }, [isFinishing, onComplete]);
 
