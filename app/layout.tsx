@@ -61,10 +61,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        <GlobalLoader>
-          {children}
-          <CommandMenu />
-        </GlobalLoader>
+        <React.Suspense fallback={null}>
+          <GlobalLoader>
+            {children}
+            <CommandMenu />
+          </GlobalLoader>
+        </React.Suspense>
         <Toaster />
         <Analytics />
       </body>
