@@ -1,5 +1,5 @@
 import { connectDB } from '@/lib/mongodb';
-import { Admin } from '@/lib/models';
+import { Admin, Session } from '@/lib/models';
 import { signToken, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
@@ -25,7 +25,19 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Invalid credentials', 401);
     }
 
-    const token = signToken(admin.email);
+    const sessionId = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    await Session.create({
+      userId: admin._id,
+      userModel: 'Admin',
+      sessionId,
+      expiresAt,
+      userAgent: request.headers.get('user-agent') || undefined,
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+    });
+
+    const token = signToken(admin.email, sessionId);
 
     return createSuccessResponse(
       {

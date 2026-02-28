@@ -606,6 +606,55 @@ userSchema.methods.comparePassword = async function (this: IUser, candidatePassw
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+// Session Model
+export interface ISession extends Document {
+  userId: mongoose.Types.ObjectId;
+  userModel: 'User' | 'Admin';
+  sessionId: string;
+  expiresAt: Date;
+  isValid: boolean;
+  userAgent?: string;
+  ipAddress?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const sessionSchema = new Schema<ISession>(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      refPath: 'userModel',
+    },
+    userModel: {
+      type: String,
+      required: true,
+      enum: ['User', 'Admin'],
+    },
+    sessionId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    expiresAt: {
+      type: Date,
+      required: true,
+    },
+    isValid: {
+      type: Boolean,
+      default: true,
+    },
+    userAgent: String,
+    ipAddress: String,
+  },
+  { timestamps: true }
+);
+
+// Index for automatic session cleanup after expiry
+sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+export const Session = mongoose.models.Session || mongoose.model<ISession>('Session', sessionSchema);
+
 export const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
 
 // Message Model for Chat System

@@ -1,20 +1,20 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
-import { Admin, User } from '@/lib/models';
+import { Admin, User, Session } from '@/lib/models';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET mismatch in env');
 }
 
-export function signToken(email: string): string {
-  return jwt.sign({ email }, JWT_SECRET, { expiresIn: '7d' });
+export function signToken(email: string, sessionId?: string): string {
+  return jwt.sign({ email, sessionId }, JWT_SECRET, { expiresIn: '7d' });
 }
 
-export function verifyToken(token: string): { email: string } | null {
+export function verifyToken(token: string): { email: string, sessionId?: string } | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as { email: string };
+    return jwt.verify(token, JWT_SECRET) as { email: string, sessionId?: string };
   } catch (error) {
     return null;
   }
@@ -40,16 +40,24 @@ export async function authenticateRequest(request: NextRequest): Promise<any | n
   try {
     await connectDB();
 
+    // Verify session if sessionId is present
+    if (payload.sessionId) {
+      const session = await Session.findOne({ sessionId: payload.sessionId, isValid: true });
+      if (!session || session.expiresAt < new Date()) {
+        return null;
+      }
+    }
+
     // Check Admin first
     const admin = await Admin.findOne({ email: payload.email });
     if (admin) {
-      return { ...admin.toObject(), role: 'admin', _id: admin._id };
+      return { ...admin.toObject(), role: 'admin', _id: admin._id, sessionId: payload.sessionId };
     }
 
     // Check User
     const user = await User.findOne({ email: payload.email });
     if (user) {
-      return { ...user.toObject(), role: 'user', _id: user._id };
+      return { ...user.toObject(), role: 'user', _id: user._id, sessionId: payload.sessionId };
     }
 
     return null;
