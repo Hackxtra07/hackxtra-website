@@ -12,24 +12,49 @@ export async function GET(request: NextRequest) {
 
         await connectDB();
 
-        // Fetch all sessions and populate user details
+        // Auto-expire: mark all sessions past their expiresAt as invalid
+        await Session.updateMany(
+            { expiresAt: { $lt: new Date() }, isValid: true },
+            { $set: { isValid: false } }
+        );
+
+        // Fetch all sessions sorted newest first
         const sessions = await Session.find().sort({ createdAt: -1 }).lean();
 
+        // Enrich each session with user details
         const enrichedSessions = await Promise.all(sessions.map(async (session: any) => {
             let userData = null;
             if (session.userModel === 'User') {
-                userData = await User.findById(session.userId).select('username email').lean();
+                userData = await User.findById(session.userId).select('username email avatarColor isPro badges country').lean();
             } else if (session.userModel === 'Admin') {
                 userData = await Admin.findById(session.userId).select('name email').lean();
             }
-
-            return {
-                ...session,
-                user: userData
-            };
+            return { ...session, user: userData };
         }));
 
-        return createSuccessResponse(enrichedSessions);
+        // Group sessions by userId
+        const userMap: Record<string, any> = {};
+        for (const session of enrichedSessions) {
+            const uid = String(session.userId);
+            if (!userMap[uid]) {
+                userMap[uid] = {
+                    userId: uid,
+                    userModel: session.userModel,
+                    user: session.user,
+                    sessions: [],
+                };
+            }
+            userMap[uid].sessions.push(session);
+        }
+
+        const grouped = Object.values(userMap).sort((a, b) => {
+            // Sort by most recent session activity
+            const aLatest = Math.max(...a.sessions.map((s: any) => new Date(s.lastActive || s.updatedAt).getTime()));
+            const bLatest = Math.max(...b.sessions.map((s: any) => new Date(s.lastActive || s.updatedAt).getTime()));
+            return bLatest - aLatest;
+        });
+
+        return createSuccessResponse(grouped);
     } catch (error) {
         console.error('Fetch sessions error:', error);
         return createErrorResponse('Failed to fetch sessions', 500);
