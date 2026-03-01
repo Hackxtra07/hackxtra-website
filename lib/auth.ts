@@ -42,11 +42,23 @@ export async function authenticateRequest(request: NextRequest): Promise<any | n
 
     // Verify session if sessionId is present
     if (payload.sessionId) {
+      const TWO_MINUTES_AGO = new Date(Date.now() - 2 * 60 * 1000);
+
+      // Only update lastActive if it hasn't been updated in the last 2 minutes
+      // This throttles DB writes while keeping presence tracking accurate
       const session = await Session.findOneAndUpdate(
-        { sessionId: payload.sessionId, isValid: true },
+        {
+          sessionId: payload.sessionId,
+          isValid: true,
+          $or: [
+            { lastActive: { $lt: TWO_MINUTES_AGO } },
+            { lastActive: { $exists: false } },
+          ],
+        },
         { $set: { lastActive: new Date() } },
         { new: true }
-      );
+      ) || await Session.findOne({ sessionId: payload.sessionId, isValid: true });
+
       if (!session || session.expiresAt < new Date()) {
         return null;
       }
