@@ -17,7 +17,12 @@ interface NewsItem {
     createdAt: string;
 }
 
+import { useApi } from '@/hooks/use-api';
+import { useToast } from '@/hooks/use-toast';
+
 export default function NewsAdminPage() {
+    const { request, loading: apiLoading } = useApi('admin');
+    const { toast: uiToast } = useToast();
     const [news, setNews] = useState<NewsItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -28,20 +33,14 @@ export default function NewsAdminPage() {
 
     const fetchNews = async () => {
         try {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch('/api/news?admin=true', {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            const data = await response.json();
+            const data = await request('/api/news?admin=true');
             if (data.success) {
                 setNews(data.data);
             } else {
                 toast.error(data.error || 'Failed to fetch intelligence feed');
             }
-        } catch (error) {
-            toast.error('Failed to connect to news grid');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to connect to news grid');
         } finally {
             setLoading(false);
         }
@@ -51,47 +50,34 @@ export default function NewsAdminPage() {
         if (!confirm('Are you sure? This deletion is permanent.')) return;
 
         try {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch(`/api/news/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            const data = await response.json();
+            const data = await request(`/api/news/${id}`, { method: 'DELETE' });
             if (data.success) {
                 toast.success('Article de-manifested successfully');
                 fetchNews();
             } else {
                 toast.error(data.error);
             }
-        } catch (error) {
-            toast.error('Failed to remove article');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to remove article');
         }
     };
 
     const togglePublish = async (item: NewsItem) => {
         try {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch(`/api/news/${item._id}`, {
+            const data = await request(`/api/news/${item._id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
+                body: {
                     isPublished: !item.isPublished,
                     publishedAt: !item.isPublished ? new Date() : item.publishedAt
-                }),
+                },
             });
-            const data = await response.json();
             if (data.success) {
                 toast.success(`Article ${!item.isPublished ? 'broadcasted' : 'withdrawn'}`);
                 fetchNews();
             } else {
                 toast.error(data.error);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
             toast.error('Failed to update broadcast status');
         }
@@ -100,21 +86,15 @@ export default function NewsAdminPage() {
     const handleRefresh = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('adminToken');
-            const response = await fetch('/api/cron/news', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            const data = await response.json();
+            const data = await request('/api/cron/news');
             if (data.success) {
-                toast.success(`Grid Refreshed: ${data.data.count} new signals detected`);
+                toast.success(data.data.message || `Grid Refreshed: ${data.data.count} new signals detected`);
                 fetchNews();
             } else {
                 toast.error(data.error);
             }
-        } catch (error) {
-            toast.error('Failed to synchronize news grid');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to synchronize news grid');
         } finally {
             setLoading(false);
         }
@@ -220,8 +200,8 @@ export default function NewsAdminPage() {
                                     </td>
                                     <td className="px-8 py-8 whitespace-nowrap">
                                         <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${item.isPublished
-                                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                                : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                            : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                                             }`}>
                                             <div className={`h-1.5 w-1.5 rounded-full ${item.isPublished ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
                                             {item.isPublished ? 'Live Broadcast' : 'Draft Protocol'}

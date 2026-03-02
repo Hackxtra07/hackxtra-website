@@ -48,40 +48,57 @@ export async function GET(request: NextRequest) {
         console.log('DB Connected for Cron Job');
 
         // 2. Fetch RSS Feeds
-        const feedUrl = 'https://feeds.feedburner.com/TheHackersNews'; // Reliable source
-        console.log('Fetching RSS Feed:', feedUrl);
+        const feedUrl = 'https://thehackernews.com/rss'; // More direct and reliable source
+        console.log('🔄 News Sync: Fetching RSS Feed:', feedUrl);
         const parser = new Parser();
-        const feed = await parser.parseURL(feedUrl);
-        console.log('RSS Feed Fetched. Items:', feed.items.length);
+
+        let feed;
+        try {
+            feed = await parser.parseURL(feedUrl);
+        } catch (parseError: any) {
+            console.error('❌ News Sync: Parser failure:', parseError);
+            throw new Error(`Technical failure in RSS parsing: ${parseError.message}`);
+        }
+
+        console.log(`✅ News Sync: Received ${feed.items?.length || 0} items from ${feedUrl}`);
+
+        if (!feed.items || feed.items.length === 0) {
+            return createSuccessResponse({ success: true, data: { message: 'No new signals detected in frequency.', count: 0 } });
+        }
 
         // 3. Process Items
-        // Get top 5 items
-        const topItems = feed.items.slice(0, 5);
+        // Get top 8 items for a slightly richer feed
+        const topItems = feed.items.slice(0, 8);
 
         const newArticles = topItems.map(item => ({
-            title: item.title || 'No Title',
-            content: item.contentSnippet || item.content || '', // Use snippet for brevity or full content
-            image: item.enclosure?.url || '', // Try to find image
-            author: item.creator || 'The Hacker News',
-            tags: ['Cybersecurity', 'Automated'],
+            title: item.title || 'RESTRICTED_SIGNAL',
+            content: item.contentSnippet || item.content || 'Transmission content encrypted or unavailable.',
+            image: item.enclosure?.url || '',
+            author: item.creator || 'THE_HACKER_NEWS',
+            tags: ['Intelligence', 'Cybersecurity', 'Automated'],
             isPublished: true,
             publishedAt: item.isoDate ? new Date(item.isoDate) : new Date(),
         }));
 
-        console.log('Processed Articles:', newArticles.length);
+        console.log(`📡 News Sync: Processed ${newArticles.length} articles for manifestation.`);
 
+        // 4. Update Database
         if (newArticles.length > 0) {
-            // 4. Delete Old News (as requested: "previous deleted")
-            // This wipes the table. 
+            // This wipes the table to keep only the freshest intelligence, as previously desired
             await News.deleteMany({});
-            console.log('Old news deleted');
+            console.log('🗑️ News Sync: Previous manifest cleared.');
 
-            // 5. Insert New News
             await News.insertMany(newArticles);
-            console.log('New news inserted');
+            console.log('✨ News Sync: Global news grid synchronized successfully.');
         }
 
-        return createSuccessResponse({ success: true, data: { message: 'News refreshed successfully', count: newArticles.length } });
+        return createSuccessResponse({
+            success: true,
+            data: {
+                message: 'Intelligence grid synchronized successfully.',
+                count: newArticles.length
+            }
+        });
 
     } catch (error: any) {
         console.error('Cron news update error:', error);
