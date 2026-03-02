@@ -232,56 +232,75 @@ export default function AdminPositionsPage() {
                 </Card>
             )}
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {positions.map((pos) => (
-                            <tr key={pos._id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
-                                        <div className="text-sm font-medium text-gray-900">{pos.title}</div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <Badge variant="secondary">{pos.type}</Badge>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {pos.isOpen ? (
-                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Open
-                                        </span>
-                                    ) : (
-                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                            Closed
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => handleEdit(pos)}>Edit</Button>
-                                        <Button variant="destructive" size="sm" onClick={() => handleDelete(pos._id)}>Delete</Button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                        {positions.length === 0 && (
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200">
+                    <table className="min-w-full lg:min-w-[800px] divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
                             <tr>
-                                <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
-                                    No positions found. Create one to get started.
-                                </td>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Title</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-100">
+                            {positions.map((pos) => (
+                                <tr key={pos._id} className="hover:bg-blue-50/30 transition-colors">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <div className="text-sm font-bold text-gray-900">{pos.title}</div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100 transition-colors text-[10px] font-bold uppercase tracking-tight">
+                                            {pos.type}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        {pos.isOpen ? (
+                                            <span className="px-2 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded border bg-green-50 text-green-700 border-green-100 uppercase tracking-tight">
+                                                Open
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 inline-flex text-[10px] leading-5 font-bold rounded border bg-gray-50 text-gray-700 border-gray-100 uppercase tracking-tight">
+                                                Closed
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <div className="flex justify-end gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleEdit(pos)}
+                                                className="h-8 border-gray-100"
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() => handleDelete(pos._id)}
+                                                className="h-8"
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                            {positions.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-10 text-center text-sm text-gray-500 italic uppercase tracking-widest">
+                                        No positions found. Create one to get started.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
         </div>
     );
 }

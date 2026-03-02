@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Plus, Trash2, Save, Users, MessageSquare, Trophy, Globe, Shield, Zap } from "lucide-react";
+import { Loader2, Plus, Trash2, Save, Users, MessageSquare, Trophy, Globe, Shield, Zap, Activity } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -87,174 +87,236 @@ export default function AdminCommunityPage() {
     if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
 
     return (
-        <div className="space-y-6 max-w-6xl mx-auto pb-20">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Community Management</h1>
-                <Button onClick={handleSave} disabled={saving} className="bg-primary hover:bg-primary/90">
+        <div className="space-y-8 max-w-6xl mx-auto pb-20">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">Community Management</h1>
+                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1">Platform Ecosystem Configuration</p>
+                </div>
+                <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 h-11 px-8 text-white shadow-lg shadow-blue-500/20 font-bold uppercase tracking-widest text-[10px]">
                     {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                     Save Changes
                 </Button>
             </div>
 
-            {/* Stats Section */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Community Stats</CardTitle>
-                    <Button variant="outline" size="sm" onClick={addStat}><Plus className="h-4 w-4 mr-2" /> Add Stat</Button>
-                </CardHeader>
-                <CardContent className="grid gap-4 md:grid-cols-2">
-                    {config.stats.map((stat: any, i: number) => (
-                        <div key={i} className="flex gap-2 items-end p-4 border rounded-lg bg-muted/20">
-                            <div className="grid gap-2 flex-1">
-                                <label className="text-xs font-medium">Label</label>
-                                <Input value={stat.label} onChange={(e) => {
-                                    const newStats = [...config.stats];
-                                    newStats[i].label = e.target.value;
-                                    setConfig({ ...config, stats: newStats });
-                                }} />
+            <div className="grid gap-8">
+                {/* Stats Section */}
+                <Card className="border-white/10 bg-white/5 backdrop-blur-md overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-white/10 pb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+                                <Activity className="h-5 w-5" />
                             </div>
-                            <div className="grid gap-2 flex-1">
-                                <label className="text-xs font-medium">Value</label>
-                                <Input value={stat.value} onChange={(e) => {
-                                    const newStats = [...config.stats];
-                                    newStats[i].value = e.target.value;
-                                    setConfig({ ...config, stats: newStats });
-                                }} />
-                            </div>
-                            <Button variant="ghost" size="icon" className="text-red-500" onClick={() => removeStat(i)}><Trash2 className="h-4 w-4" /></Button>
+                            <CardTitle className="text-lg text-white">Community Stats</CardTitle>
                         </div>
-                    ))}
-                </CardContent>
-            </Card>
-
-            {/* Top Contributors */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Top Contributors</CardTitle>
-                    <Button variant="outline" size="sm" onClick={addContributor}><Plus className="h-4 w-4 mr-2" /> Add Contributor</Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {config.topContributors.map((user: any, i: number) => (
-                        <div key={i} className="grid grid-cols-4 gap-2 items-end p-4 border rounded-lg bg-muted/20">
-                            <div className="grid gap-2">
-                                <label className="text-xs font-medium">Name</label>
-                                <Input value={user.name} onChange={(e) => {
-                                    const next = [...config.topContributors];
-                                    next[i].name = e.target.value;
-                                    setConfig({ ...config, topContributors: next });
-                                }} />
-                            </div>
-                            <div className="grid gap-2">
-                                <label className="text-xs font-medium">Role</label>
-                                <Input value={user.role} onChange={(e) => {
-                                    const next = [...config.topContributors];
-                                    next[i].role = e.target.value;
-                                    setConfig({ ...config, topContributors: next });
-                                }} />
-                            </div>
-                            <div className="grid gap-2">
-                                <label className="text-xs font-medium">Points</label>
-                                <Input type="number" value={user.points} onChange={(e) => {
-                                    const next = [...config.topContributors];
-                                    next[i].points = parseInt(e.target.value);
-                                    setConfig({ ...config, topContributors: next });
-                                }} />
-                            </div>
-                            <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={addStat} className="border-white/10 text-gray-400 hover:bg-white/5 h-8">
+                            <Plus className="h-3.5 w-3.5 mr-1" /> Add Stat
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="grid gap-4 md:grid-cols-2 p-6">
+                        {config.stats.map((stat: any, i: number) => (
+                            <div key={i} className="flex gap-4 items-end p-5 rounded-2xl bg-black/40 border border-white/5 group hover:border-blue-500/30 transition-all">
                                 <div className="grid gap-2 flex-1">
-                                    <label className="text-xs font-medium">Initials</label>
-                                    <Input value={user.avatar} onChange={(e) => {
+                                    <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Metric Label</label>
+                                    <Input
+                                        value={stat.label}
+                                        onChange={(e) => {
+                                            const newStats = [...config.stats];
+                                            newStats[i].label = e.target.value;
+                                            setConfig({ ...config, stats: newStats });
+                                        }}
+                                        className="bg-white/5 border-white/10 h-10 text-sm"
+                                    />
+                                </div>
+                                <div className="grid gap-2 flex-1">
+                                    <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Current Value</label>
+                                    <Input
+                                        value={stat.value}
+                                        onChange={(e) => {
+                                            const newStats = [...config.stats];
+                                            newStats[i].value = e.target.value;
+                                            setConfig({ ...config, stats: newStats });
+                                        }}
+                                        className="bg-white/5 border-white/10 h-10 text-sm font-mono text-blue-400"
+                                    />
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="text-gray-600 hover:text-red-500 hover:bg-red-500/10 h-10 w-10 transition-colors"
+                                    onClick={() => removeStat(i)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                {/* Top Contributors */}
+                <Card className="border-white/10 bg-white/5 backdrop-blur-md overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-white/10 pb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-yellow-500/10 text-yellow-400">
+                                <Trophy className="h-5 w-5" />
+                            </div>
+                            <CardTitle className="text-lg text-white">Elite Contributors</CardTitle>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={addContributor} className="border-white/10 text-gray-400 hover:bg-white/5 h-8">
+                            <Plus className="h-3.5 w-3.5 mr-1" /> Add Entry
+                        </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4 p-6">
+                        {config.topContributors.map((user: any, i: number) => (
+                            <div key={i} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end p-5 rounded-2xl bg-black/40 border border-white/5 group hover:border-yellow-500/30 transition-all">
+                                <div className="grid gap-2">
+                                    <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Username</label>
+                                    <Input value={user.name} onChange={(e) => {
                                         const next = [...config.topContributors];
-                                        next[i].avatar = e.target.value;
+                                        next[i].name = e.target.value;
                                         setConfig({ ...config, topContributors: next });
-                                    }} />
+                                    }} className="bg-white/5 border-white/10 h-10 text-sm" />
                                 </div>
-                                <Button variant="ghost" size="icon" className="text-red-500" onClick={() => removeContributor(i)}><Trash2 className="h-4 w-4" /></Button>
-                            </div>
-                        </div>
-                    ))}
-                </CardContent>
-            </Card>
-
-            {/* Events */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Upcoming Events</CardTitle>
-                    <Button variant="outline" size="sm" onClick={addEvent}><Plus className="h-4 w-4 mr-2" /> Add Event</Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {config.upcomingEvents.map((event: any, i: number) => (
-                        <div key={i} className="grid grid-cols-5 gap-2 items-end p-4 border rounded-lg bg-muted/20">
-                            <div className="grid gap-2 col-span-2">
-                                <label className="text-xs font-medium">Title</label>
-                                <Input value={event.title} onChange={(e) => {
-                                    const next = [...config.upcomingEvents];
-                                    next[i].title = e.target.value;
-                                    setConfig({ ...config, upcomingEvents: next });
-                                }} />
-                            </div>
-                            <div className="grid gap-2">
-                                <label className="text-xs font-medium">Date/Time</label>
-                                <Input value={event.date} onChange={(e) => {
-                                    const next = [...config.upcomingEvents];
-                                    next[i].date = e.target.value;
-                                    setConfig({ ...config, upcomingEvents: next });
-                                }} placeholder="Feb 15, 2026" />
-                            </div>
-                            <div className="grid gap-2">
-                                <label className="text-xs font-medium">Type</label>
-                                <Input value={event.type} onChange={(e) => {
-                                    const next = [...config.upcomingEvents];
-                                    next[i].type = e.target.value;
-                                    setConfig({ ...config, upcomingEvents: next });
-                                }} />
-                            </div>
-                            <Button variant="ghost" size="icon" className="text-red-500 mb-1" onClick={() => removeEvent(i)}><Trash2 className="h-4 w-4" /></Button>
-                        </div>
-                    ))}
-                </CardContent>
-            </Card>
-
-            {/* Channels */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Popular Channels</CardTitle>
-                    <Button variant="outline" size="sm" onClick={addChannel}><Plus className="h-4 w-4 mr-2" /> Add Channel</Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {config.popularChannels.map((channel: any, i: number) => (
-                        <div key={i} className="grid grid-cols-4 gap-2 items-end p-4 border rounded-lg bg-muted/20">
-                            <div className="grid gap-2">
-                                <label className="text-xs font-medium">Name</label>
-                                <Input value={channel.name} onChange={(e) => {
-                                    const next = [...config.popularChannels];
-                                    next[i].name = e.target.value;
-                                    setConfig({ ...config, popularChannels: next });
-                                }} placeholder="general" />
-                            </div>
-                            <div className="grid gap-2 col-span-2">
-                                <label className="text-xs font-medium">Description</label>
-                                <Input value={channel.description} onChange={(e) => {
-                                    const next = [...config.popularChannels];
-                                    next[i].description = e.target.value;
-                                    setConfig({ ...config, popularChannels: next });
-                                }} />
-                            </div>
-                            <div className="flex gap-2">
-                                <div className="grid gap-2 flex-1">
-                                    <label className="text-xs font-medium">Members</label>
-                                    <Input type="number" value={channel.members} onChange={(e) => {
-                                        const next = [...config.popularChannels];
-                                        next[i].members = parseInt(e.target.value);
-                                        setConfig({ ...config, popularChannels: next });
-                                    }} />
+                                <div className="grid gap-2">
+                                    <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Platform Distinction</label>
+                                    <Input value={user.role} onChange={(e) => {
+                                        const next = [...config.topContributors];
+                                        next[i].role = e.target.value;
+                                        setConfig({ ...config, topContributors: next });
+                                    }} className="bg-white/5 border-white/10 h-10 text-sm" />
                                 </div>
-                                <Button variant="ghost" size="icon" className="text-red-500" onClick={() => removeChannel(i)}><Trash2 className="h-4 w-4" /></Button>
+                                <div className="grid gap-2">
+                                    <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Points Pool</label>
+                                    <Input type="number" value={user.points} onChange={(e) => {
+                                        const next = [...config.topContributors];
+                                        next[i].points = parseInt(e.target.value);
+                                        setConfig({ ...config, topContributors: next });
+                                    }} className="bg-white/5 border-white/10 h-10 text-sm font-mono text-yellow-500" />
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="grid gap-2 flex-1">
+                                        <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Initials</label>
+                                        <Input value={user.avatar} onChange={(e) => {
+                                            const next = [...config.topContributors];
+                                            next[i].avatar = e.target.value;
+                                            setConfig({ ...config, topContributors: next });
+                                        }} className="bg-white/5 border-white/10 h-10 text-sm text-center font-bold" />
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="text-gray-600 hover:text-red-500 hover:bg-red-500/10 h-10 w-10 transition-colors" onClick={() => removeContributor(i)}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </CardContent>
-            </Card>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Events */}
+                    <Card className="border-white/10 bg-white/5 backdrop-blur-md overflow-hidden">
+                        <CardHeader className="flex flex-row items-center justify-between border-b border-white/10 pb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-green-500/10 text-green-400">
+                                    <Zap className="h-5 w-5" />
+                                </div>
+                                <CardTitle className="text-lg text-white">Live Events</CardTitle>
+                            </div>
+                            <Button variant="outline" size="sm" onClick={addEvent} className="border-white/10 text-gray-400 hover:bg-white/5 h-8">
+                                <Plus className="h-3.5 w-3.5 mr-1" /> New
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="space-y-4 p-6">
+                            {config.upcomingEvents.map((event: any, i: number) => (
+                                <div key={i} className="flex flex-col gap-4 p-5 rounded-2xl bg-black/40 border border-white/5 group hover:border-green-500/30 transition-all">
+                                    <div className="grid gap-2">
+                                        <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Event Title</label>
+                                        <Input value={event.title} onChange={(e) => {
+                                            const next = [...config.upcomingEvents];
+                                            next[i].title = e.target.value;
+                                            setConfig({ ...config, upcomingEvents: next });
+                                        }} className="bg-white/5 border-white/10 h-10 text-sm" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Timestamp</label>
+                                            <Input value={event.date} onChange={(e) => {
+                                                const next = [...config.upcomingEvents];
+                                                next[i].date = e.target.value;
+                                                setConfig({ ...config, upcomingEvents: next });
+                                            }} className="bg-white/5 border-white/10 h-10 text-sm" placeholder="Feb 15, 20:00" />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Type</label>
+                                            <Input value={event.type} onChange={(e) => {
+                                                const next = [...config.upcomingEvents];
+                                                next[i].type = e.target.value;
+                                                setConfig({ ...config, upcomingEvents: next });
+                                            }} className="bg-white/5 border-white/10 h-10 text-sm" />
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end pt-2">
+                                        <Button variant="ghost" size="sm" className="text-red-500/50 hover:text-red-500 hover:bg-red-500/10 h-8" onClick={() => removeEvent(i)}>
+                                            <Trash2 className="h-4 w-4 mr-1" /> Expel Event
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+
+                    {/* Channels */}
+                    <Card className="border-white/10 bg-white/5 backdrop-blur-md overflow-hidden">
+                        <CardHeader className="flex flex-row items-center justify-between border-b border-white/10 pb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
+                                    <Globe className="h-5 w-5" />
+                                </div>
+                                <CardTitle className="text-lg text-white">Core Nodes</CardTitle>
+                            </div>
+                            <Button variant="outline" size="sm" onClick={addChannel} className="border-white/10 text-gray-400 hover:bg-white/5 h-8">
+                                <Plus className="h-3.5 w-3.5 mr-1" /> New
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="space-y-4 p-6">
+                            {config.popularChannels.map((channel: any, i: number) => (
+                                <div key={i} className="flex flex-col gap-4 p-5 rounded-2xl bg-black/40 border border-white/5 group hover:border-purple-500/30 transition-all">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid gap-2">
+                                            <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Channel Name</label>
+                                            <Input value={channel.name} onChange={(e) => {
+                                                const next = [...config.popularChannels];
+                                                next[i].name = e.target.value;
+                                                setConfig({ ...config, popularChannels: next });
+                                            }} className="bg-white/5 border-white/10 h-10 text-sm font-bold text-purple-400" placeholder="general" />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Pop. Index</label>
+                                            <Input type="number" value={channel.members} onChange={(e) => {
+                                                const next = [...config.popularChannels];
+                                                next[i].members = parseInt(e.target.value);
+                                                setConfig({ ...config, popularChannels: next });
+                                            }} className="bg-white/5 border-white/10 h-10 text-sm" />
+                                        </div>
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <label className="text-[10px] uppercase font-bold tracking-widest text-gray-600">Broadcast Description</label>
+                                        <Input value={channel.description} onChange={(e) => {
+                                            const next = [...config.popularChannels];
+                                            next[i].description = e.target.value;
+                                            setConfig({ ...config, popularChannels: next });
+                                        }} className="bg-white/5 border-white/10 h-10 text-sm text-gray-400" />
+                                    </div>
+                                    <div className="flex justify-end pt-2">
+                                        <Button variant="ghost" size="sm" className="text-red-500/50 hover:text-red-500 hover:bg-red-500/10 h-8" onClick={() => removeChannel(i)}>
+                                            <Trash2 className="h-4 w-4 mr-1" /> Expel Node
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         </div>
     );
 }

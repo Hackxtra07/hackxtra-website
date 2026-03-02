@@ -121,7 +121,7 @@ export default function DevOpsPage() {
                     </div>
                     <div className="flex gap-3">
                         <Button variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-white flex gap-2">
-                            <Rocket className="h-4 w-4" /> Submit Repo
+                            <Rocket className="h-4 w-4" /> Repository
                         </Button>
                     </div>
                 </div>

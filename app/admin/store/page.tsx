@@ -51,37 +51,44 @@ export default function AdminStorePage() {
                 </Link>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {items.map((item) => (
-                    <Card key={item._id}>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-lg font-medium">{item.title}</CardTitle>
-                            <div
-                                className={`w-3 h-3 rounded-full ${item.isActive ? 'bg-green-500' : 'bg-red-500'
-                                    }`}
-                            />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{item.cost} Points</div>
-                            <p className="text-xs text-gray-500 capitalize">{item.type}</p>
-                            <div className="mt-4 flex gap-2">
-                                <Link href={`/admin/store/${item._id}`}>
-                                    <Button variant="outline" size="sm">
-                                        Edit
+                    <Card key={item._id} className="overflow-hidden border-white/10 bg-white/5 backdrop-blur-md group hover:border-blue-500/50 transition-all flex flex-col">
+                        <div className="p-6 flex-1 flex flex-col">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${item.isActive ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                    }`}>
+                                    {item.isActive ? 'Active' : 'Offline'}
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">Cost</div>
+                                    <div className="text-xl font-mono font-bold text-blue-400">{item.cost}</div>
+                                </div>
+                            </div>
+
+                            <h3 className="font-bold text-white text-lg mb-2 truncate group-hover:text-blue-400 transition-colors">{item.title}</h3>
+                            <p className="text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-6">{item.type} • {item.stock} in stock</p>
+
+                            <div className="flex gap-2 mt-auto">
+                                <Link href={`/admin/store/${item._id}`} className="flex-1">
+                                    <Button size="sm" variant="outline" className="w-full bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 text-xs h-9">
+                                        Edit Item
                                     </Button>
                                 </Link>
                                 <Button
-                                    variant="destructive"
                                     size="sm"
+                                    variant="destructive"
                                     onClick={() => deleteItem(item._id)}
+                                    className="bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-600 hover:text-white transition-all text-xs h-9"
                                 >
                                     Delete
                                 </Button>
                             </div>
-                        </CardContent>
+                        </div>
                     </Card>
                 ))}
             </div>
+
         </div>
     );
 }

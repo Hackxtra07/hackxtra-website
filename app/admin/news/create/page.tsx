@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Newspaper, Upload, Image as ImageIcon, Tag, User, Save, X, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { Card } from '@/components/ui/card';
 
 export default function CreateNewsPage() {
     const router = useRouter();
@@ -18,7 +19,7 @@ export default function CreateNewsPage() {
         title: '',
         content: '',
         image: '',
-        author: 'Admin', // Default to Admin, could be dynamic based on logged in user
+        author: 'Admin',
         tags: '',
         isPublished: false,
     });
@@ -38,7 +39,6 @@ export default function CreateNewsPage() {
 
         try {
             const token = localStorage.getItem('adminToken');
-            // Convert comma-separated tags to array
             const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
 
             const payload = {
@@ -59,24 +59,24 @@ export default function CreateNewsPage() {
             const data = await response.json();
 
             if (data.success) {
-                toast.success('News article created successfully');
+                toast.success('Intelligence entry finalized');
                 router.push('/admin/news');
             } else {
-                toast.error(data.error || 'Failed to create news article');
+                toast.error(data.error || 'Failed to instantiate manifest');
             }
         } catch (error) {
-            toast.error('An error occurred');
+            toast.error('An unexpected error occurred during manifestation');
         } finally {
             setLoading(false);
         }
     };
 
     const importFromUrl = async () => {
-        const url = prompt("Enter News URL:");
+        const url = prompt("Enter News Source URI:");
         if (!url) return;
 
         try {
-            toast.loading("Fetching metadata...");
+            const loadingToast = toast.loading("Scraping grid for metadata...");
             const token = localStorage.getItem('adminToken');
             const response = await fetch('/api/admin/scrape', {
                 method: 'POST',
@@ -88,7 +88,7 @@ export default function CreateNewsPage() {
             });
 
             const data = await response.json();
-            toast.dismiss();
+            toast.dismiss(loadingToast);
 
             if (data.error) {
                 toast.error(data.error);
@@ -98,116 +98,212 @@ export default function CreateNewsPage() {
             setFormData(prev => ({
                 ...prev,
                 title: data.title || prev.title,
-                content: prev.content || data.description || '', // Use description as initial content
+                content: prev.content || data.description || '',
                 image: data.image || prev.image,
             }));
-            toast.success("Imported metadata!");
+            toast.success("Intelligence successfully extracted!");
         } catch (error) {
-            toast.dismiss();
-            toast.error("Failed to import");
+            toast.error("Failed to extract external intelligence");
         }
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+        <div className="max-w-5xl mx-auto space-y-10 pb-20">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 p-8 rounded-[2.5rem] border border-white/10 bg-white/5 backdrop-blur-xl relative overflow-hidden group">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,102,241,0.1),transparent)] pointer-events-none" />
+                <div className="flex items-center gap-6 relative z-10">
                     <Link href="/admin/news">
-                        <Button variant="ghost" size="icon">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-12 w-12 rounded-2xl border-white/10 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                        >
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </Link>
-                    <h1 className="text-3xl font-bold">Create News Article</h1>
+                    <div>
+                        <h1 className="text-3xl font-black text-white tracking-tighter flex items-center gap-3">
+                            <Newspaper className="h-7 w-7 text-indigo-400" />
+                            Initialize Transmission
+                        </h1>
+                        <p className="text-gray-500 font-medium text-sm mt-1">Compose and authorize new intelligence for the global feed.</p>
+                    </div>
                 </div>
-                <Button onClick={importFromUrl} variant="outline">
-                    Import from URL
+                <Button
+                    onClick={importFromUrl}
+                    variant="outline"
+                    className="h-12 border-indigo-500/30 bg-indigo-500/5 text-indigo-400 hover:bg-indigo-500/10 font-black uppercase tracking-widest text-[10px] rounded-2xl px-6 relative z-10"
+                >
+                    <Upload className="mr-2 h-4 w-4" /> Extract External Signal
                 </Button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
-                <div className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="title">Title</Label>
-                        <Input
-                            id="title"
-                            name="title"
-                            placeholder="Article Title"
-                            value={formData.title}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                {/* Main Content Area */}
+                <div className="lg:col-span-8 space-y-10">
+                    <Card className="p-8 md:p-10 rounded-[2.5rem] border border-white/10 bg-white/5 backdrop-blur-md relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-30" />
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="author">Author</Label>
-                        <Input
-                            id="author"
-                            name="author"
-                            placeholder="Author Name"
-                            value={formData.author}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                        <div className="space-y-8">
+                            <div className="grid gap-3">
+                                <Label htmlFor="title" className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 ml-1">Transmission Title</Label>
+                                <Input
+                                    id="title"
+                                    name="title"
+                                    placeholder="Enter report headline..."
+                                    value={formData.title}
+                                    onChange={handleChange}
+                                    required
+                                    className="h-14 bg-black/40 border-white/10 focus:border-indigo-500/50 rounded-2xl text-white font-bold placeholder:text-gray-800"
+                                />
+                            </div>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="image">Cover Image URL</Label>
-                        <Input
-                            id="image"
-                            name="image"
-                            placeholder="https://example.com/image.jpg"
-                            value={formData.image}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    {formData.image && (
-                        <div className="relative aspect-video w-40 overflow-hidden rounded-md border border-border">
-                            <img
-                                src={formData.image}
-                                alt="Preview"
-                                className="h-full w-full object-cover"
-                                onError={(e) => (e.currentTarget.style.display = 'none')}
-                            />
+                            <div className="grid gap-3">
+                                <Label htmlFor="content" className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 ml-1">Intel Narrative (Markdown)</Label>
+                                <Textarea
+                                    id="content"
+                                    name="content"
+                                    placeholder="Draft the core manifestation..."
+                                    className="min-h-[450px] bg-black/40 border-white/10 focus:border-indigo-500/50 rounded-3xl text-white text-sm leading-relaxed p-6 resize-none font-medium"
+                                    value={formData.content}
+                                    onChange={handleChange}
+                                    required
+                                />
+                                <div className="flex items-center gap-2 text-[9px] text-gray-500 font-bold uppercase tracking-widest ml-1 opacity-50">
+                                    <Sparkles className="h-3 w-3" /> Rich formatting and markdown nodes supported
+                                </div>
+                            </div>
                         </div>
-                    )}
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="tags">Tags (comma separated)</Label>
-                        <Input
-                            id="tags"
-                            name="tags"
-                            placeholder="Cybersecurity, AI, update"
-                            value={formData.tags}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="content">Content</Label>
-                        <Textarea
-                            id="content"
-                            name="content"
-                            placeholder="Write your article content here..."
-                            className="min-h-[300px]"
-                            value={formData.content}
-                            onChange={handleChange}
-                            required
-                        />
-                        <p className="text-xs text-muted-foreground">You can use Markdown or HTML (sanitize carefully if HTML).</p>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                        <Switch id="isPublished" checked={formData.isPublished} onCheckedChange={handleSwitchChange} />
-                        <Label htmlFor="isPublished">Publish immediately</Label>
-                    </div>
+                    </Card>
                 </div>
 
-                <div className="flex justify-end gap-4">
-                    <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
-                    <Button type="submit" disabled={loading}>
-                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Create Article
-                    </Button>
+                {/* Sidebar Controls */}
+                <div className="lg:col-span-4 space-y-8">
+                    {/* Metadata Card */}
+                    <Card className="p-8 rounded-[2.5rem] border border-white/10 bg-white/5 backdrop-blur-md space-y-8">
+                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 border-b border-white/5 pb-4 mb-2 flex items-center gap-2">
+                            <Tag className="h-4 w-4 text-indigo-400" /> Manifest Details
+                        </h3>
+
+                        <div className="grid gap-6">
+                            <div className="grid gap-2">
+                                <Label htmlFor="author" className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1">Reporting Agent</Label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600" />
+                                    <Input
+                                        id="author"
+                                        name="author"
+                                        placeholder="Agent ID"
+                                        value={formData.author}
+                                        onChange={handleChange}
+                                        required
+                                        className="h-12 pl-12 bg-black/20 border-white/10 rounded-xl text-white text-xs font-bold"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="tags" className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1">Classification Tags</Label>
+                                <div className="relative">
+                                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600" />
+                                    <Input
+                                        id="tags"
+                                        name="tags"
+                                        placeholder="cyber, ai, alert"
+                                        value={formData.tags}
+                                        onChange={handleChange}
+                                        className="h-12 pl-12 bg-black/20 border-white/10 rounded-xl text-white text-xs font-bold"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Image / Media Card */}
+                    <Card className="p-8 rounded-[2.5rem] border border-white/10 bg-white/5 backdrop-blur-md space-y-6 overflow-hidden relative">
+                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 border-b border-white/5 pb-4 mb-2 flex items-center gap-2">
+                            <ImageIcon className="h-4 w-4 text-indigo-400" /> Visual Feed
+                        </h3>
+
+                        <div className="grid gap-3">
+                            <Label htmlFor="image" className="text-[10px] font-black uppercase tracking-widest text-gray-600 ml-1">Asset URI</Label>
+                            <Input
+                                id="image"
+                                name="image"
+                                placeholder="https://..."
+                                value={formData.image}
+                                onChange={handleChange}
+                                className="h-12 bg-black/20 border-white/10 rounded-xl text-white text-[10px] font-mono"
+                            />
+                        </div>
+
+                        {formData.image ? (
+                            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 group shadow-2xl">
+                                <img
+                                    src={formData.image}
+                                    alt="Preview"
+                                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                                    className="absolute top-2 right-2 p-2 rounded-lg bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="aspect-video w-full rounded-2xl border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-3 text-gray-700">
+                                <ImageIcon className="h-8 w-8 opacity-20" />
+                                <span className="text-[9px] font-black uppercase tracking-widest opacity-40">No Visual Attached</span>
+                            </div>
+                        )}
+                    </Card>
+
+                    {/* Authorization Card */}
+                    <Card className="p-8 rounded-[2.5rem] border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-md space-y-8">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Broadcast Protocol</h3>
+                                <p className="text-[9px] text-emerald-500/50 font-bold mt-1">Status: {formData.isPublished ? 'PUBLIC' : 'INTERNAL'}</p>
+                            </div>
+                            <Switch
+                                id="isPublished"
+                                checked={formData.isPublished}
+                                onCheckedChange={handleSwitchChange}
+                                className="data-[state=checked]:bg-emerald-500 shadow-lg shadow-emerald-500/20"
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="h-14 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-xl shadow-indigo-500/20 border border-indigo-400/20 transition-all active:scale-95"
+                            >
+                                {loading ? (
+                                    <div className="flex items-center gap-2">
+                                        <Loader2 className="h-4 w-4 animate-spin" /> SYNCHRONIZING...
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2">
+                                        <Save className="h-4 w-4" /> Finalize Manifest
+                                    </div>
+                                )}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => router.back()}
+                                className="h-12 text-gray-500 hover:text-white font-black uppercase tracking-widest text-[9px] rounded-xl"
+                            >
+                                Abort Operation
+                            </Button>
+                        </div>
+                    </Card>
                 </div>
             </form>
         </div>

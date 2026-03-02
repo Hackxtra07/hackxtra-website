@@ -67,20 +67,20 @@ const isAlive = (s: Session) => s.isValid && new Date(s.expiresAt) > new Date();
 
 // ─── Presence badge component ───────────────────────────────────────────────
 function PresenceDot({ status }: { status: PresenceStatus }) {
-    const map: Record<PresenceStatus, { dot: string; pulse: boolean; label: string }> = {
-        online: { dot: 'bg-green-500', pulse: true, label: 'Online' },
-        away: { dot: 'bg-yellow-400', pulse: false, label: 'Away' },
-        offline: { dot: 'bg-gray-600', pulse: false, label: 'Offline' },
-        expired: { dot: 'bg-gray-700', pulse: false, label: 'Expired' },
-        revoked: { dot: 'bg-red-800', pulse: false, label: 'Revoked' },
+    const map: Record<PresenceStatus, { dot: string; pulse: boolean; label: string; text: string; bg: string }> = {
+        online: { dot: 'bg-emerald-500', pulse: true, label: 'Active Signal', text: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+        away: { dot: 'bg-amber-400', pulse: false, label: 'Idle Signal', text: 'text-amber-400', bg: 'bg-amber-400/10' },
+        offline: { dot: 'bg-zinc-600', pulse: false, label: 'Signal Lost', text: 'text-zinc-500', bg: 'bg-zinc-500/10' },
+        expired: { dot: 'bg-zinc-700', pulse: false, label: 'Manifest Expired', text: 'text-zinc-600', bg: 'bg-zinc-700/10' },
+        revoked: { dot: 'bg-rose-800', pulse: false, label: 'Credential Revoked', text: 'text-rose-700', bg: 'bg-rose-900/10' },
     };
-    const { dot, pulse, label } = map[status];
+    const { dot, pulse, label, text, bg } = map[status];
     return (
-        <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest ${status === 'online' ? 'text-green-400' :
-                status === 'away' ? 'text-yellow-400' :
-                    status === 'revoked' ? 'text-red-700' : 'text-gray-600'
-            }`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${dot} ${pulse ? 'animate-pulse' : ''}`} />
+        <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full border border-white/5 backdrop-blur-md ${bg} ${text} text-[9px] font-black uppercase tracking-widest`}>
+            <span className="relative flex h-2 w-2">
+                {pulse && <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${dot}`}></span>}
+                <span className={`relative inline-flex rounded-full h-2 w-2 ${dot}`}></span>
+            </span>
             {label}
         </span>
     );
@@ -154,153 +154,173 @@ function SessionDetailPanel({
     const overall = bestPresence(group.sessions);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-end">
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-end">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-in fade-in duration-500" onClick={onClose} />
 
-            {/* Panel */}
-            <div className="relative z-10 w-full max-w-lg h-full bg-[#0d0f1a] border-l border-white/10 flex flex-col shadow-2xl overflow-hidden">
+            <div className="relative z-10 w-full sm:max-w-xl h-full bg-zinc-950 border-t sm:border-t-0 sm:border-l border-white/10 flex flex-col shadow-[0_0_100px_rgba(0,0,0,0.5)] animate-in slide-in-from-right-full duration-700">
+                <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-indigo-500 via-transparent to-purple-500 opacity-30 shadow-[0_0_20px_rgba(99,102,241,0.3)]" />
+
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-gradient-to-r from-blue-900/30 to-indigo-900/20">
-                    <div className="flex items-center gap-4">
-                        {/* Avatar with presence ring */}
+                <div className="flex items-center justify-between px-8 py-10 border-b border-white/10 bg-white/[0.02]">
+                    <div className="flex items-center gap-6">
                         <div className="relative">
-                            <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-lg ${group.userModel === 'Admin'
-                                    ? 'bg-red-500/20 text-red-400 ring-1 ring-red-500/30'
-                                    : 'bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/30'
+                            <div className={`h-20 w-20 rounded-3xl flex items-center justify-center text-2xl font-black shadow-2xl relative z-10 ${group.userModel === 'Admin'
+                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                                : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30'
                                 }`}>
                                 {getInitials(group.user, group.userModel)}
                             </div>
-                            {/* Online dot on avatar */}
-                            <span className={`absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-[#0d0f1a] ${overall === 'online' ? 'bg-green-500' :
-                                    overall === 'away' ? 'bg-yellow-400' :
-                                        overall === 'offline' ? 'bg-gray-500' : 'bg-gray-700'
-                                }`} />
+                            <div className="absolute -inset-2 bg-indigo-500/20 rounded-[2rem] blur-xl opacity-20" />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-lg font-bold text-white">{displayName}</h2>
+                            <div className="flex items-center gap-3">
+                                <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">{displayName}</h2>
                                 {group.userModel === 'Admin' && (
-                                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[9px] py-0 px-1.5">ADMIN</Badge>
+                                    <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-[9px] font-black tracking-widest px-2 py-0.5">CORE ADMIN</Badge>
                                 )}
                                 {group.user?.isPro && (
-                                    <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[9px] py-0 px-1.5">PRO</Badge>
+                                    <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30 text-[9px] font-black tracking-widest px-2 py-0.5">ELITE</Badge>
                                 )}
                             </div>
-                            <p className="text-xs text-gray-500">{group.user?.email}</p>
+                            <p className="text-xs font-mono text-zinc-500 mt-1 uppercase tracking-widest">{group.user?.email}</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                        className="p-3 rounded-2xl text-zinc-500 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/10 transition-all"
                     >
-                        <X size={18} />
+                        <X size={20} />
                     </button>
                 </div>
 
-                {/* Stats bar */}
-                <div className="grid grid-cols-3 divide-x divide-white/10 bg-white/3 border-b border-white/10">
-                    <div className="py-3 px-4 text-center">
-                        <div className="text-xl font-bold text-white">{group.sessions.length}</div>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">Total</div>
+                {/* Stats */}
+                <div className="grid grid-cols-3 divide-x divide-white/10 bg-white/[0.01] border-b border-white/10">
+                    <div className="py-6 px-4 text-center group cursor-default">
+                        <div className="text-sm font-black text-zinc-600 uppercase tracking-[0.2em] mb-1">Total Signals</div>
+                        <div className="text-2xl font-black text-white font-mono">{group.sessions.length}</div>
                     </div>
-                    <div className="py-3 px-4 text-center">
-                        <div className="text-xl font-bold text-green-400">{aliveSessions.length}</div>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">Valid</div>
+                    <div className="py-6 px-4 text-center group cursor-default">
+                        <div className="text-sm font-black text-emerald-900 uppercase tracking-[0.2em] mb-1">Active</div>
+                        <div className="text-2xl font-black text-emerald-500 font-mono">{aliveSessions.length}</div>
                     </div>
-                    <div className="py-3 px-4 text-center">
-                        <div className="text-xl font-bold text-gray-400">{group.sessions.length - aliveSessions.length}</div>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">Expired</div>
+                    <div className="py-6 px-4 text-center group cursor-default">
+                        <div className="text-sm font-black text-rose-900 uppercase tracking-[0.2em] mb-1">Dormant</div>
+                        <div className="text-2xl font-black text-rose-500 font-mono">{group.sessions.length - aliveSessions.length}</div>
                     </div>
                 </div>
 
-                {/* Revoke all */}
-                {aliveSessions.length > 0 && (
-                    <div className="px-6 py-3 border-b border-white/10 flex justify-end">
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => onRevokeAll(group.userId, displayName)}
-                            className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 text-xs gap-2"
-                        >
-                            <LogOut size={13} />
-                            Revoke All Valid Sessions
-                        </Button>
+                {/* User Bio/Meta */}
+                <div className="px-8 py-6 bg-black/40 border-b border-white/5">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Security Parameters</h3>
+                        <PresenceDot status={overall} />
                     </div>
-                )}
-
-                {/* User meta */}
-                {group.userModel === 'User' && group.user && (
-                    <div className="px-6 py-4 border-b border-white/10 flex flex-wrap gap-3 text-xs">
-                        {group.user.country && (
-                            <div className="flex items-center gap-1.5 text-gray-400">
-                                <Globe size={11} className="text-gray-600" />
-                                <span className="text-gray-200">{group.user.country}</span>
+                    <div className="flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest">
+                        {group.user?.country && (
+                            <div className="flex items-center gap-2 text-zinc-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                                <Globe size={12} className="text-indigo-500" />
+                                <span>{group.user.country}</span>
                             </div>
                         )}
-                        {group.user.badges && group.user.badges.length > 0 && (
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                                {group.user.badges.slice(0, 6).map((b, i) => (
-                                    <span key={i} className="bg-blue-500/10 text-blue-400 rounded px-1.5 py-0.5 text-[10px]">{b}</span>
-                                ))}
-                            </div>
-                        )}
+                        <div className="flex items-center gap-2 text-zinc-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                            <Activity size={12} className="text-indigo-500" />
+                            <span>LVL: {group.user?.badges?.length || 0} CERT</span>
+                        </div>
                     </div>
-                )}
+                </div>
 
                 {/* Sessions list */}
-                <div className="flex-1 overflow-y-auto divide-y divide-white/5">
-                    {group.sessions.map((session) => {
-                        const presence = getPresence(session);
-                        const ua = parseUA(session.userAgent);
-                        const isCurrent = session.sessionId === currentSessionId;
-                        return (
-                            <div
-                                key={session._id}
-                                className={`px-6 py-4 hover:bg-white/3 transition-colors ${isCurrent ? 'bg-blue-500/5 border-l-2 border-blue-500' : ''}`}
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-black/20">
+                    <div className="px-8 py-4 flex justify-between items-center sticky top-0 bg-zinc-950/80 backdrop-blur-md z-10 border-b border-white/5">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">Active Handshakes</h3>
+                        {aliveSessions.length > 0 && (
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => onRevokeAll(group.userId, displayName)}
+                                className="text-rose-500 hover:text-white hover:bg-rose-500/10 text-[9px] font-black uppercase tracking-widest border border-rose-500/20 h-7"
                             >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                            <span className="text-base">{ua.icon}</span>
-                                            <span className="text-sm font-medium text-gray-200 truncate">{ua.label}</span>
-                                            {isCurrent && (
-                                                <Badge className="bg-blue-500/20 text-blue-400 border-none text-[9px] py-0 px-1.5 font-bold shrink-0">YOU</Badge>
-                                            )}
-                                            <PresenceDot status={presence} />
+                                Force Global Logout
+                            </Button>
+                        )}
+                    </div>
+
+                    <div className="divide-y divide-white/5">
+                        {group.sessions.map((session) => {
+                            const presence = getPresence(session);
+                            const ua = parseUA(session.userAgent);
+                            const isCurrent = session.sessionId === currentSessionId;
+                            return (
+                                <div
+                                    key={session._id}
+                                    className={`px-8 py-8 hover:bg-white/[0.02] transition-all group/row ${isCurrent ? 'bg-indigo-500/5' : ''}`}
+                                >
+                                    <div className="flex items-start justify-between gap-6">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-xl shadow-inner border border-white/10">
+                                                    {ua.icon}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-black text-zinc-100 uppercase tracking-tight">{ua.label}</span>
+                                                        {isCurrent && (
+                                                            <span className="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[8px] px-1.5 py-0.5 rounded font-black tracking-widest">OWN SIGNAL</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-[10px] text-zinc-500 font-mono mt-0.5">
+                                                        <Globe size={10} className="text-indigo-500/50" />
+                                                        {session.ipAddress || '0.0.0.0'}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                                                    <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600">Last Pulse</p>
+                                                    <div className="flex items-center gap-2 text-xs text-zinc-300 font-mono">
+                                                        <Clock size={12} className="text-indigo-500" />
+                                                        {formatRelativeTime(session.lastActive || session.updatedAt)}
+                                                    </div>
+                                                </div>
+                                                <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                                                    <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600">Established</p>
+                                                    <div className="flex items-center gap-2 text-xs text-zinc-300 font-mono">
+                                                        <Calendar size={12} className="text-indigo-500" />
+                                                        {formatShortDate(session.createdAt)}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 flex items-center justify-between">
+                                                <PresenceDot status={presence} />
+                                                <span className="text-[9px] font-mono text-zinc-600 uppercase">EXP: {formatShortDate(session.expiresAt)}</span>
+                                            </div>
                                         </div>
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                                                <Globe size={10} />
-                                                {session.ipAddress || '0.0.0.0'}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                                                <Clock size={10} />
-                                                Last seen {formatRelativeTime(session.lastActive || session.updatedAt)}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                                                <Calendar size={10} />
-                                                Started {formatShortDate(session.createdAt)}
-                                                &nbsp;·&nbsp;
-                                                Expires {formatShortDate(session.expiresAt)}
-                                            </div>
-                                        </div>
+
+                                        {isAlive(session) && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => onRevoke(session.sessionId)}
+                                                className="text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 h-10 w-10 p-0 rounded-xl border border-transparent hover:border-rose-500/20 transition-all"
+                                            >
+                                                <LogOut size={16} />
+                                            </Button>
+                                        )}
                                     </div>
-                                    {isAlive(session) && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => onRevoke(session.sessionId)}
-                                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 text-[10px] shrink-0"
-                                        >
-                                            <LogOut size={12} className="mr-1" />
-                                            Revoke
-                                        </Button>
-                                    )}
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Footer Warning */}
+                <div className="p-6 bg-zinc-950 border-t border-white/10">
+                    <div className="flex items-center gap-4 text-zinc-600">
+                        <Shield size={24} className="opacity-20 shrink-0" />
+                        <p className="text-[9px] font-medium leading-relaxed italic opacity-50">"All session manipulations are logged in the core manifest. Authorized personnel only. Signal revocation will result in immediate termination of the client's handshake."</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -436,189 +456,202 @@ export default function AdminSessionsPage() {
     const expiredCount = groups.reduce((a, g) => a + g.sessions.filter(s => !isAlive(s)).length, 0);
 
     return (
-        <div className="space-y-6">
-            {/* ── Header ── */}
-            <div className="flex justify-between items-center flex-wrap gap-3">
-                <div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
-                        Session Management
+        <div className="space-y-10 max-w-7xl mx-auto pb-20 px-4 sm:px-0">
+            {/* Header Section */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 p-8 rounded-[2.5rem] border border-white/10 bg-white/5 backdrop-blur-xl relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-blue-500/10 opacity-50 pointer-events-none" />
+                <div className="relative z-10">
+                    <h1 className="text-3xl md:text-4xl font-black flex items-center gap-4 text-white tracking-tighter">
+                        <div className="p-3 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 shadow-lg shadow-indigo-500/10 transition-transform group-hover:scale-110 duration-500">
+                            <Activity className="h-8 w-8" />
+                        </div>
+                        Signal Control
                     </h1>
-                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
-                        Live presence · auto-refreshes every 60s
-                        {lastRefreshed && (
-                            <span className="text-gray-700">· next in {countdown}s</span>
-                        )}
+                    <p className="text-gray-400 mt-2 font-medium max-w-md flex items-center gap-2">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Live handshake monitoring · Auto-sync active.
                     </p>
                 </div>
-                <Button
-                    onClick={() => { fetchSessions().then(startCountdown); startPolling(); }}
-                    variant="outline"
-                    className="border-white/10 hover:bg-white/5 gap-2"
-                    disabled={loading}
-                >
-                    <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                    Refresh
-                </Button>
+
+                <div className="flex gap-4 w-full lg:w-auto relative z-10">
+                    <div className="flex flex-col items-end justify-center px-4 border-r border-white/10 py-1">
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-500">Next Synchronization</span>
+                        <span className="text-sm font-mono font-black text-indigo-400">{countdown}S</span>
+                    </div>
+                    <Button
+                        onClick={() => { fetchSessions().then(startCountdown); startPolling(); }}
+                        className="h-14 px-8 bg-indigo-600 border border-indigo-400/30 text-white hover:bg-indigo-500 font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-indigo-500/20 transition-all flex-1 lg:flex-none"
+                        disabled={loading}
+                    >
+                        <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                        {loading ? 'SYNCING...' : 'FORCE SYNC'}
+                    </Button>
+                </div>
             </div>
 
-            {/* ── Stats ── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card className="bg-black/40 border-white/10 p-4 flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400"><Users size={18} /></div>
-                    <div>
-                        <div className="text-xl font-bold text-white">{groups.length}</div>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">Users</div>
-                    </div>
-                </Card>
-                <Card className="bg-black/40 border-white/10 p-4 flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-green-500/10 text-green-400">
-                        <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse inline-block" />
-                    </div>
-                    <div>
-                        <div className="text-xl font-bold text-white">{onlineCount}</div>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">Online Now</div>
-                    </div>
-                </Card>
-                <Card className="bg-black/40 border-white/10 p-4 flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-yellow-500/10 text-yellow-400">
-                        <Timer size={18} />
-                    </div>
-                    <div>
-                        <div className="text-xl font-bold text-white">{awayCount}</div>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">Away</div>
-                    </div>
-                </Card>
-                <Card className="bg-black/40 border-white/10 p-4 flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-gray-500/10 text-gray-500"><Lock size={18} /></div>
-                    <div>
-                        <div className="text-xl font-bold text-white">{expiredCount}</div>
-                        <div className="text-[10px] text-gray-500 uppercase tracking-wider">Expired/Revoked</div>
-                    </div>
-                </Card>
+            {/* Stats Dashboard */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                    { label: 'Identified Users', val: groups.length, icon: Users, color: 'indigo', desc: 'Authorized operatives' },
+                    { label: 'Active Signals', val: onlineCount, icon: Wifi, color: 'emerald', desc: 'Real-time telemetry', pulse: true },
+                    { label: 'Idle Signals', val: awayCount, icon: Timer, color: 'amber', desc: 'Latent handshakes' },
+                    { label: 'Signals Lost', val: expiredCount, icon: Lock, color: 'rose', desc: 'Terminated sessions' }
+                ].map((stat, i) => (
+                    <Card key={i} className="bg-white/5 border-white/10 p-6 rounded-[2rem] backdrop-blur-md relative overflow-hidden group hover:border-white/20 transition-all">
+                        <div className={`absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity`}>
+                            <stat.icon size={100} />
+                        </div>
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className={`p-3 rounded-2xl bg-${stat.color}-500/10 text-${stat.color}-400 border border-${stat.color}-500/20`}>
+                                <stat.icon size={20} className={stat.pulse ? 'animate-pulse' : ''} />
+                            </div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">{stat.label}</span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-black text-white tracking-tighter">{stat.val}</span>
+                            <span className="text-[10px] text-zinc-600 font-medium uppercase">{stat.desc}</span>
+                        </div>
+                    </Card>
+                ))}
             </div>
 
-            {/* ── Empty state ── */}
+            {/* Empty state */}
             {groups.length === 0 && !loading && (
-                <Card className="p-12 text-center bg-black/40 border-white/10">
-                    <Monitor className="mx-auto h-12 w-12 text-gray-600 mb-4" />
-                    <p className="text-gray-400">No sessions found.</p>
-                </Card>
+                <div className="py-20 text-center bg-white/5 border border-white/10 rounded-[3rem] backdrop-blur-md">
+                    <div className="inline-flex p-10 rounded-full bg-white/5 border border-white/10 mb-6 text-zinc-700">
+                        <Monitor size={60} strokeWidth={1} />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 italic">Matrix signal grid empty. No active handshakes detected.</p>
+                </div>
             )}
 
-            {/* ── User groups ── */}
-            <div className="space-y-3">
+            {/* User Group List */}
+            <div className="grid grid-cols-1 gap-6">
                 {groups.map((group) => {
                     const overall = bestPresence(group.sessions);
                     const aliveSessions = group.sessions.filter(isAlive);
                     const isExpanded = expandedUsers.has(group.userId);
-                    const displayName = group.user?.username || group.user?.name || 'Unknown User';
+                    const displayName = group.user?.username || group.user?.name || 'Unknown Operative';
 
                     return (
                         <div
                             key={group.userId}
-                            className="bg-black/40 border border-white/10 rounded-xl overflow-hidden backdrop-blur-sm"
+                            className={`group relative rounded-[2.5rem] border transition-all duration-500 overflow-hidden ${isExpanded ? 'bg-white/5 border-white/20' : 'bg-white/[0.03] border-white/10 hover:border-white/20'}`}
                         >
-                            {/* ─ User row ─ */}
-                            <div className="flex items-center px-5 py-4 gap-4">
-                                {/* Avatar with live dot */}
-                                <div className="relative shrink-0">
-                                    <div className={`h-11 w-11 rounded-xl flex items-center justify-center font-bold text-sm ${group.userModel === 'Admin'
-                                            ? 'bg-red-500/15 text-red-400 ring-1 ring-red-500/25'
-                                            : 'bg-blue-500/15 text-blue-400 ring-1 ring-blue-500/25'
+                            {/* User Row */}
+                            <div className="flex flex-col md:flex-row items-center p-6 md:p-8 gap-6 relative z-10">
+                                {/* Avatar */}
+                                <div className="relative group/avatar">
+                                    <div className={`h-16 w-16 rounded-[1.5rem] flex items-center justify-center font-black text-lg transition-transform duration-500 group-hover/avatar:scale-105 ${group.userModel === 'Admin'
+                                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                                        : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
                                         }`}>
                                         {getInitials(group.user, group.userModel)}
                                     </div>
-                                    {/* Presence dot on avatar */}
-                                    <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#0d0f1a] ${overall === 'online' ? 'bg-green-500 animate-pulse' :
-                                            overall === 'away' ? 'bg-yellow-400' :
-                                                overall === 'offline' ? 'bg-gray-500' : 'bg-gray-700'
-                                        }`} />
+                                    <div className="absolute -inset-1 bg-white/10 rounded-[1.7rem] blur-md opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
                                 </div>
 
-                                {/* Name + email */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="font-semibold text-gray-100 truncate">{displayName}</span>
+                                {/* Identity */}
+                                <div className="flex-1 text-center md:text-left min-w-0">
+                                    <div className="flex items-center justify-center md:justify-start gap-3 mb-1">
+                                        <span className="text-lg font-black text-white uppercase tracking-tight truncate">{displayName}</span>
                                         {group.userModel === 'Admin' && (
-                                            <Badge className="bg-red-500/15 text-red-400 border-red-500/20 text-[9px] py-0 px-1.5">ADMIN</Badge>
+                                            <span className="bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[8px] px-1.5 py-0.5 rounded font-black tracking-widest uppercase">CORE</span>
                                         )}
                                         {group.user?.isPro && (
-                                            <Badge className="bg-yellow-500/15 text-yellow-400 border-yellow-500/20 text-[9px] py-0 px-1.5">PRO</Badge>
+                                            <span className="bg-amber-500/20 text-amber-500 border border-amber-500/30 text-[8px] px-1.5 py-0.5 rounded font-black tracking-widest uppercase">ELITE</span>
                                         )}
                                     </div>
-                                    <div className="text-[11px] text-gray-500 truncate">{group.user?.email}</div>
-                                </div>
-
-                                {/* Presence label + counts */}
-                                <div className="flex items-center gap-3 shrink-0">
-                                    <PresenceDot status={overall} />
-                                    <div className="text-[10px] text-gray-600 bg-white/5 rounded px-2 py-1">
-                                        {aliveSessions.length}/{group.sessions.length}
+                                    <div className="flex items-center justify-center md:justify-start gap-4 text-[10px] font-black tracking-widest text-zinc-500 uppercase">
+                                        <span className="truncate">{group.user?.email}</span>
+                                        <span className="hidden md:inline text-zinc-800">|</span>
+                                        <span className="text-indigo-400/70">{group.user?.country || 'GLOBAL'}</span>
                                     </div>
                                 </div>
 
-                                {/* View details */}
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setSelectedGroup(group)}
-                                    className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 h-8 text-[11px] shrink-0"
-                                >
-                                    Details
-                                </Button>
+                                {/* Signal Status Overlay */}
+                                <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8">
+                                    <div className="text-center">
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-2">Cluster Activity</p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                            <span className="text-sm font-mono font-black text-white">{aliveSessions.length} <span className="text-zinc-700 text-[10px]">/ {group.sessions.length}</span></span>
+                                        </div>
+                                    </div>
 
-                                {/* Expand toggle */}
-                                <button
-                                    onClick={() => toggleExpand(group.userId)}
-                                    className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors shrink-0"
-                                >
-                                    {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                                </button>
+                                    <PresenceDot status={overall} />
+
+                                    <div className="flex items-center gap-3">
+                                        <Button
+                                            size="sm"
+                                            onClick={() => setSelectedGroup(group)}
+                                            className="h-10 px-6 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-[9px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition-all"
+                                        >
+                                            INSPECT
+                                        </Button>
+                                        <button
+                                            onClick={() => toggleExpand(group.userId)}
+                                            className={`p-3 rounded-full transition-all duration-300 ${isExpanded ? 'bg-indigo-500 text-white rotate-180 shadow-lg shadow-indigo-500/20' : 'bg-white/5 text-zinc-600 hover:text-white hover:bg-white/10'}`}
+                                        >
+                                            <ChevronDown size={18} />
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* ─ Expanded sessions inline ─ */}
+                            {/* Inline Session Grid (Expanded) */}
                             {isExpanded && (
-                                <div className="border-t border-white/10 divide-y divide-white/5">
-                                    {group.sessions.map((session) => {
-                                        const presence = getPresence(session);
-                                        const ua = parseUA(session.userAgent);
-                                        const isCurrent = session.sessionId === currentSessionId;
-                                        return (
-                                            <div
-                                                key={session._id}
-                                                className={`flex items-center gap-4 px-6 py-3 text-sm hover:bg-white/3 transition-colors ${isCurrent ? 'border-l-2 border-blue-500 bg-blue-500/5' : ''}`}
-                                            >
-                                                <span className="text-base shrink-0">{ua.icon}</span>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className="text-gray-300 text-xs font-medium">{ua.label}</span>
+                                <div className="p-8 pt-0 border-t border-white/5 animate-in slide-in-from-top-4 duration-500 overflow-hidden">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                                        {group.sessions.map((session) => {
+                                            const presence = getPresence(session);
+                                            const ua = parseUA(session.userAgent);
+                                            const isCurrent = session.sessionId === currentSessionId;
+                                            return (
+                                                <div
+                                                    key={session._id}
+                                                    className={`p-6 rounded-3xl border transition-all relative group/session ${isCurrent ? 'bg-indigo-500/5 border-indigo-500/30' : 'bg-black/20 border-white/5 hover:border-white/10'}`}
+                                                >
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center text-xl border border-white/5 shadow-inner">
+                                                            {ua.icon}
+                                                        </div>
                                                         {isCurrent && (
-                                                            <Badge className="bg-blue-500/20 text-blue-400 border-none text-[9px] py-0 px-1 font-bold">YOU</Badge>
+                                                            <span className="text-[8px] font-black tracking-widest text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded-lg border border-indigo-500/20 uppercase">LOCAL NODE</span>
                                                         )}
                                                     </div>
-                                                    <div className="flex items-center gap-3 text-[10px] text-gray-600 mt-0.5 flex-wrap">
-                                                        <span><Globe size={8} className="inline mr-1" />{session.ipAddress || '0.0.0.0'}</span>
-                                                        <span><Clock size={8} className="inline mr-1" />Last seen {formatRelativeTime(session.lastActive || session.updatedAt)}</span>
-                                                        <span><Calendar size={8} className="inline mr-1" />Exp. {formatShortDate(session.expiresAt)}</span>
+
+                                                    <h4 className="text-xs font-black text-white uppercase tracking-tight mb-4 truncate">{ua.label}</h4>
+
+                                                    <div className="space-y-3 mb-6">
+                                                        <div className="flex items-center justify-between text-[10px] uppercase font-black tracking-tighter">
+                                                            <span className="text-zinc-600">IP ADDRESS</span>
+                                                            <span className="text-zinc-300 font-mono">{session.ipAddress || '0.0.0.0'}</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between text-[10px] uppercase font-black tracking-tighter">
+                                                            <span className="text-zinc-600">LAST PULSE</span>
+                                                            <span className="text-zinc-300 font-mono italic">{formatRelativeTime(session.lastActive || session.updatedAt)}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                                                        <div className="flex items-baseline gap-1">
+                                                            <div className={`h-1.5 w-1.5 rounded-full ${presence === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-700'}`} />
+                                                            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">{presence}</span>
+                                                        </div>
+                                                        {isAlive(session) && (
+                                                            <button
+                                                                onClick={() => handleRevoke(session.sessionId)}
+                                                                className="text-rose-500/50 hover:text-rose-500 transition-colors"
+                                                            >
+                                                                <LogOut size={14} />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
-
-                                                <PresenceDot status={presence} />
-
-                                                {isAlive(session) && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => handleRevoke(session.sessionId)}
-                                                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-7 text-[10px] shrink-0"
-                                                    >
-                                                        Revoke
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -626,7 +659,7 @@ export default function AdminSessionsPage() {
                 })}
             </div>
 
-            {/* ── Detail Side Panel ── */}
+            {/* Sidebar Visualizer Overlay */}
             {selectedGroup && (
                 <SessionDetailPanel
                     group={selectedGroup}

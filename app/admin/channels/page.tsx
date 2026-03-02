@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { useApi } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { Users } from 'lucide-react';
 
 interface Channel {
   _id: string;
@@ -182,39 +183,55 @@ export default function AdminChannelsPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {channels.map((channel) => (
-          <Card key={channel._id} className="p-4">
-            <div className="flex items-start gap-3">
-              {channel.icon && <span className="text-3xl">{channel.icon}</span>}
-              <div className="flex-1">
-                <h3 className="font-bold text-lg">{channel.name}</h3>
-                <p className="text-gray-600 text-sm mb-2">{channel.description.substring(0, 80)}...</p>
-                <div className="space-y-1 text-sm mb-4">
-                  <p><strong>Category:</strong> {channel.category}</p>
-                  <p><strong>Followers:</strong> {channel.followers}</p>
+          <Card key={channel._id} className="overflow-hidden border-white/10 bg-white/5 backdrop-blur-md group hover:border-blue-500/50 transition-all flex flex-col">
+            <div className="p-6 flex-1 flex flex-col">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+                  {channel.icon || '📡'}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-white text-lg truncate group-hover:text-blue-400 transition-colors">{channel.name}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded border border-blue-500/20">{channel.category}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={() => handleEdit(channel)}
-                className="bg-blue-500 hover:bg-blue-600"
-              >
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => handleDelete(channel._id)}
-                variant="destructive"
-              >
-                Delete
-              </Button>
+
+              <p className="text-gray-400 text-xs mb-6 line-clamp-3 leading-relaxed italic">
+                "{channel.description}"
+              </p>
+
+              <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-gray-500">
+                <div className="flex items-center gap-1.5">
+                  <Users className="h-3 w-3 text-gray-600" />
+                  <span>{channel.followers.toLocaleString()} Subscribers</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 mt-5">
+                <Button
+                  size="sm"
+                  onClick={() => handleEdit(channel)}
+                  className="flex-1 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 text-xs h-9"
+                >
+                  Configure
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleDelete(channel._id)}
+                  variant="destructive"
+                  className="bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-600 hover:text-white transition-all text-xs h-9"
+                >
+                  Remove
+                </Button>
+              </div>
             </div>
           </Card>
         ))}
       </div>
+
     </div>
   );
 }
