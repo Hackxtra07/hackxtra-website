@@ -73,9 +73,30 @@ export default function AdminCertificatePage() {
                 notify: notify.toString()
             });
 
-            // Trigger download
-            const url = `/api/certificate?${params.toString()}`;
-            window.open(url, '_blank');
+            // Use fetch with auth token — window.open() strips the Authorization header
+            const token = localStorage.getItem('adminToken');
+            const response = await fetch(`/api/certificate?${params.toString()}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                throw new Error(errorData.error || `Server error ${response.status}`);
+            }
+
+            // Download the PDF as a blob
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `${selectedUser.username}-certificate.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
 
             if (notify) {
                 toast({ title: 'Success', description: `Certificate generated and user ${selectedUser.username} notified via message.` });
@@ -83,7 +104,8 @@ export default function AdminCertificatePage() {
                 toast({ title: 'Success', description: `Certificate generated for ${selectedUser.username}.` });
             }
         } catch (error) {
-            toast({ title: 'Error', description: 'Failed to trigger certificate generation', variant: 'destructive' });
+            const message = error instanceof Error ? error.message : 'Failed to generate certificate';
+            toast({ title: 'Error', description: message, variant: 'destructive' });
         } finally {
             setProcessing(false);
         }
