@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Badge } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET() {
     try {
@@ -17,7 +18,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const auth = await authenticateRequest(request);
-        if (!auth) {
+        if (!auth || auth.role !== 'admin') {
             return createErrorResponse('Unauthorized', 401);
         }
 
@@ -32,6 +33,16 @@ export async function POST(request: NextRequest) {
 
         const badge = new Badge(body);
         await badge.save();
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            auth,
+            'CREATE',
+            'Badge',
+            badge._id.toString(),
+            { name: badge.name }
+        );
 
         return createSuccessResponse(badge, 201);
     } catch (error) {

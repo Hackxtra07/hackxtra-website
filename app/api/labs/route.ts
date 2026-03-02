@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -80,6 +80,16 @@ export async function POST(request: NextRequest) {
 
     const lab = new Lab(body);
     await lab.save();
+
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'CREATE',
+      'Lab',
+      lab._id.toString(),
+      { title: lab.title }
+    );
 
     return createSuccessResponse(lab, 201);
   } catch (error) {

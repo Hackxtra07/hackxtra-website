@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -75,6 +75,16 @@ export async function POST(request: NextRequest) {
 
     const course = new Course(body);
     await course.save();
+
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'CREATE',
+      'Course',
+      course._id.toString(),
+      { title: course.title }
+    );
 
     return createSuccessResponse(course, 201);
   } catch (error) {

@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Lab } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,7 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -41,6 +42,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return createErrorResponse('Lab not found', 404);
     }
 
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'UPDATE',
+      'Lab',
+      id,
+      { title: lab.title }
+    );
+
     return createSuccessResponse(lab);
   } catch (error) {
     console.error('Update lab error:', error);
@@ -52,7 +63,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -62,6 +73,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!lab) {
       return createErrorResponse('Lab not found', 404);
     }
+
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'DELETE',
+      'Lab',
+      id,
+      { title: lab.title }
+    );
 
     return createSuccessResponse({ message: 'Lab deleted successfully' });
   } catch (error) {

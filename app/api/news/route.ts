@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { News } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest) {
     try {
@@ -46,6 +47,16 @@ export async function POST(request: NextRequest) {
         }
 
         const newNews = await News.create(body);
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            user,
+            'CREATE',
+            'News',
+            newNews._id.toString(),
+            { title: newNews.title }
+        );
 
         return createSuccessResponse({ success: true, data: newNews }, 201);
     } catch (error) {

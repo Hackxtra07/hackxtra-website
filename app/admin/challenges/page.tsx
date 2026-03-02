@@ -18,7 +18,7 @@ interface Challenge {
     points: number;
     category: string;
     difficulty: 'Easy' | 'Medium' | 'Hard';
-    type: 'quiz' | 'ctf';
+    type: 'quiz';
     options?: string[];
     flag?: string;
 }
@@ -174,18 +174,7 @@ export default function AdminChallengesPage() {
                         <div className="flex gap-4">
                             <div className="w-1/3">
                                 <Label>Type</Label>
-                                <Select
-                                    value={formData.type}
-                                    onValueChange={(val) => setFormData({ ...formData, type: val })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="quiz">Quiz (Multiple Choice)</SelectItem>
-                                        <SelectItem value="ctf">CTF (Task & Flag)</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Input value="Quiz" disabled className="bg-gray-100" />
                             </div>
                         </div>
 
@@ -218,32 +207,30 @@ export default function AdminChallengesPage() {
                             />
                         </div>
 
-                        {formData.type === 'quiz' && (
-                            <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
-                                <Label className="font-bold">Quiz Options</Label>
-                                {formData.options.map((opt, i) => (
-                                    <div key={i} className="flex gap-2 items-center">
-                                        <span className="text-sm text-gray-500 w-6">{(i + 10).toString(36).toUpperCase()}.</span>
-                                        <Input
-                                            value={opt}
-                                            onChange={(e) => handleOptionChange(i, e.target.value)}
-                                            placeholder={`Option ${i + 1}`}
-                                            required
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant={formData.flag === opt && opt !== '' ? "default" : "outline"}
-                                            size="sm"
-                                            onClick={() => setFormData({ ...formData, flag: opt })}
-                                            className={formData.flag === opt && opt !== '' ? "bg-green-600" : ""}
-                                        >
-                                            {formData.flag === opt && opt !== '' ? "Correct Answer" : "Mark Correct"}
-                                        </Button>
-                                    </div>
-                                ))}
-                                <p className="text-xs text-muted-foreground mt-2">Click "Mark Correct" to select which option is the right answer.</p>
-                            </div>
-                        )}
+                        <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
+                            <Label className="font-bold">Quiz Options</Label>
+                            {formData.options.map((opt, i) => (
+                                <div key={i} className="flex gap-2 items-center">
+                                    <span className="text-sm text-gray-500 w-6">{(i + 10).toString(36).toUpperCase()}.</span>
+                                    <Input
+                                        value={opt}
+                                        onChange={(e) => handleOptionChange(i, e.target.value)}
+                                        placeholder={`Option ${i + 1}`}
+                                        required
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant={formData.flag === opt && opt !== '' ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => setFormData({ ...formData, flag: opt })}
+                                        className={formData.flag === opt && opt !== '' ? "bg-green-600" : ""}
+                                    >
+                                        {formData.flag === opt && opt !== '' ? "Correct Answer" : "Mark Correct"}
+                                    </Button>
+                                </div>
+                            ))}
+                            <p className="text-xs text-muted-foreground mt-2">Click "Mark Correct" to select which option is the right answer.</p>
+                        </div>
 
                         <div className="grid grid-cols-3 gap-4">
                             <div>
@@ -280,17 +267,7 @@ export default function AdminChallengesPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                            {formData.type === 'ctf' && (
-                                <div>
-                                    <Label>Flag (Secret)</Label>
-                                    <Input
-                                        value={formData.flag}
-                                        onChange={(e) => setFormData({ ...formData, flag: e.target.value })}
-                                        placeholder="flag{...}"
-                                        required
-                                    />
-                                </div>
-                            )}
+
                         </div>
 
                         <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={loading}>
@@ -309,7 +286,7 @@ export default function AdminChallengesPage() {
                                     {challenge.title}
                                 </h3>
                                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 uppercase text-gray-500 font-mono border">
-                                    {challenge.type || 'CTF'}
+                                    QUIZ
                                 </span>
                             </div>
                             <div className="flex items-center gap-3 text-gray-500 text-xs">

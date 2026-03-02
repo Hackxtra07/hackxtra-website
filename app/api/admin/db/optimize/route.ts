@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { optimizeDatabase } from '@/lib/db-optimize';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function POST(request: NextRequest) {
     try {
@@ -20,6 +21,15 @@ export async function POST(request: NextRequest) {
             acc.reclaimed += (curr.before.storageSize - curr.after.storageSize);
             return acc;
         }, { totalBefore: 0, totalAfter: 0, reclaimed: 0 });
+
+        await recordAdminAction(
+            request,
+            auth,
+            'OPTIMIZE_DB',
+            'Database',
+            undefined,
+            { reclaimedMB: (summary.reclaimed / 1024 / 1024).toFixed(2) }
+        );
 
         return createSuccessResponse({
             success: true,

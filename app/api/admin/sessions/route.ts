@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Session, User, Admin } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest) {
     try {
@@ -88,10 +89,28 @@ export async function DELETE(request: NextRequest) {
             if (!session) {
                 return createErrorResponse('Session not found', 404);
             }
+
+            // Record admin action
+            await recordAdminAction(
+                request,
+                auth,
+                'REVOKE_SESSION',
+                'Session',
+                sessionId
+            );
         } else if (userId) {
             await Session.updateMany(
                 { userId, isValid: true },
                 { $set: { isValid: false } }
+            );
+
+            // Record admin action
+            await recordAdminAction(
+                request,
+                auth,
+                'REVOKE_ALL_SESSIONS',
+                'User',
+                userId
             );
         }
 

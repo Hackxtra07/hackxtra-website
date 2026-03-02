@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { Challenge } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(
     request: NextRequest,
@@ -49,6 +50,17 @@ export async function PUT(
         if (!challenge) {
             return createErrorResponse('Challenge not found', 404);
         }
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            auth,
+            'UPDATE',
+            'Challenge',
+            id,
+            { title: challenge.title }
+        );
+
         return createSuccessResponse(challenge);
     } catch (error) {
         console.error('Update challenge error:', error);
@@ -73,6 +85,17 @@ export async function DELETE(
         if (!challenge) {
             return createErrorResponse('Challenge not found', 404);
         }
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            auth,
+            'DELETE',
+            'Challenge',
+            id,
+            { title: challenge.title }
+        );
+
         return createSuccessResponse({ message: 'Challenge deleted successfully' });
     } catch (error) {
         console.error('Delete challenge error:', error);

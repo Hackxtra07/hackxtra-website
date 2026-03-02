@@ -2,12 +2,13 @@ import { connectDB } from '@/lib/mongodb';
 import { Position } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
         const auth = await authenticateRequest(request);
-        if (!auth) {
+        if (!auth || auth.role !== 'admin') {
             return createErrorResponse('Unauthorized', 401);
         }
 
@@ -23,6 +24,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             return createErrorResponse('Position not found', 404);
         }
 
+        // Record admin action
+        await recordAdminAction(
+            request,
+            auth,
+            'UPDATE',
+            'Position',
+            id,
+            { title: position.title }
+        );
+
         return createSuccessResponse(position);
     } catch (error) {
         console.error('Update position error:', error);
@@ -34,7 +45,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     try {
         const { id } = await params;
         const auth = await authenticateRequest(request);
-        if (!auth) {
+        if (!auth || auth.role !== 'admin') {
             return createErrorResponse('Unauthorized', 401);
         }
 
@@ -44,6 +55,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         if (!position) {
             return createErrorResponse('Position not found', 404);
         }
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            auth,
+            'DELETE',
+            'Position',
+            id,
+            { title: position.title }
+        );
 
         return createSuccessResponse({ message: 'Position deleted successfully' });
     } catch (error) {

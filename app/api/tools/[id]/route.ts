@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
+import { connectDB } from '@/lib/mongodb';
 import { Tool } from '@/lib/models';
 import { authenticateRequest } from '@/lib/auth';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(
     req: NextRequest,
@@ -37,6 +38,17 @@ export async function PUT(
         if (!tool) {
             return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
         }
+
+        // Record admin action
+        await recordAdminAction(
+            req,
+            user as any,
+            'UPDATE',
+            'Tool',
+            id,
+            { name: tool.name }
+        );
+
         return NextResponse.json(tool);
     } catch (error) {
         return NextResponse.json({ error: 'Failed to update tool' }, { status: 500 });
@@ -59,6 +71,17 @@ export async function DELETE(
         if (!tool) {
             return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
         }
+
+        // Record admin action
+        await recordAdminAction(
+            req,
+            user as any,
+            'DELETE',
+            'Tool',
+            id,
+            { name: tool.name }
+        );
+
         return NextResponse.json({ message: 'Tool deleted successfully' });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to delete tool' }, { status: 500 });

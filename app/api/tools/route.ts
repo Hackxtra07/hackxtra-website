@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
+import { connectDB } from '@/lib/mongodb';
 import { Tool } from '@/lib/models';
 import { authenticateRequest } from '@/lib/auth';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(req: NextRequest) {
     try {
@@ -59,6 +60,19 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
         const newTool = await Tool.create(body);
+
+        // Record admin action
+        if (user && user.role === 'admin') {
+            await recordAdminAction(
+                req,
+                user as any,
+                'CREATE',
+                'Tool',
+                newTool._id.toString(),
+                { name: newTool.name }
+            );
+        }
+
         return NextResponse.json({ tool: newTool }, { status: 201 });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to create tool' }, { status: 500 });

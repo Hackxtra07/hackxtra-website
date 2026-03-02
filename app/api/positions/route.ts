@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Position } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest) {
     try {
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const auth = await authenticateRequest(request);
-        if (!auth) {
+        if (!auth || auth.role !== 'admin') {
             return createErrorResponse('Unauthorized', 401);
         }
 
@@ -43,6 +44,17 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
 
         const position = await Position.create(body);
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            auth,
+            'CREATE',
+            'Position',
+            position._id.toString(),
+            { title: position.title }
+        );
+
         return createSuccessResponse(position, 201);
     } catch (error) {
         console.error('Create position error:', error);

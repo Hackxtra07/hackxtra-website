@@ -474,7 +474,7 @@ export const Documentary = mongoose.models.Documentary || mongoose.model<IDocume
 export const Position = mongoose.models.Position || mongoose.model<IPosition>('Position', positionSchema);
 export const Settings = mongoose.models.Settings || mongoose.model<ISettings>('Settings', settingsSchema);
 
-// Challenge Model (CTF & Quiz)
+// Challenge Model (Quiz)
 export interface IChallenge extends Document {
   title: string;
   description: string;
@@ -482,7 +482,7 @@ export interface IChallenge extends Document {
   points: number;
   category: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
-  type: 'quiz' | 'ctf';
+  type: 'quiz';
   options?: string[]; // For Quiz type
   createdAt: Date;
   updatedAt: Date;
@@ -502,7 +502,7 @@ const challengeSchema = new Schema<IChallenge>(
     },
     type: {
       type: String,
-      enum: ['quiz', 'ctf'],
+      enum: ['quiz'],
       default: 'quiz',
     },
     options: [String],
@@ -985,3 +985,66 @@ devOpsProjectSchema.index({ stars: -1 });
 devOpsProjectSchema.index({ createdAt: -1 });
 
 export const DevOpsProject = mongoose.models.DevOpsProject || mongoose.model<IDevOpsProject>('DevOpsProject', devOpsProjectSchema);
+
+// Audit Log Model for Admin Actions
+export interface IAuditLog extends Document {
+  adminEmail: string;
+  adminName: string;
+  action: string; // e.g., 'Deleted Badge', 'Updated User', 'Generated Certificate'
+  targetId?: string; // ID of the resource affected
+  targetModel?: string; // Model name of the resource affected
+  details?: any; // JSON object with more context
+  ipAddress?: string;
+  createdAt: Date;
+}
+
+const auditLogSchema = new Schema<IAuditLog>(
+  {
+    adminEmail: { type: String, required: true },
+    adminName: { type: String, required: true },
+    action: { type: String, required: true },
+    targetId: { type: String },
+    targetModel: { type: String },
+    details: { type: Schema.Types.Mixed },
+    ipAddress: { type: String },
+  },
+  { timestamps: true }
+);
+
+auditLogSchema.index({ adminEmail: 1 });
+auditLogSchema.index({ action: 1 });
+auditLogSchema.index({ createdAt: -1 });
+
+export const AuditLog = mongoose.models.AuditLog || mongoose.model<IAuditLog>('AuditLog', auditLogSchema);
+// Admin Log Model for tracking administrative actions
+export interface IAdminLog extends Document {
+  adminId: mongoose.Types.ObjectId;
+  adminName: string;
+  action: string;
+  targetType: string;
+  targetId?: string;
+  details?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: Date;
+}
+
+const adminLogSchema = new Schema<IAdminLog>(
+  {
+    adminId: { type: Schema.Types.ObjectId, ref: 'Admin', required: true },
+    adminName: { type: String, required: true },
+    action: { type: String, required: true },
+    targetType: { type: String, required: true },
+    targetId: { type: String },
+    details: { type: String },
+    ipAddress: { type: String },
+    userAgent: { type: String },
+  },
+  { timestamps: { createdAt: true, updatedAt: false } }
+);
+
+adminLogSchema.index({ createdAt: -1 });
+adminLogSchema.index({ adminId: 1 });
+adminLogSchema.index({ targetType: 1 });
+
+export const AdminLog = mongoose.models.AdminLog || mongoose.model<IAdminLog>('AdminLog', adminLogSchema);

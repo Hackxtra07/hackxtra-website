@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { TeamMember } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,7 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -40,6 +41,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return createErrorResponse('Team member not found', 404);
     }
 
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'UPDATE',
+      'TeamMember',
+      id,
+      { name: member.name }
+    );
+
     return createSuccessResponse(member);
   } catch (error) {
     console.error('Update team member error:', error);
@@ -51,7 +62,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -61,6 +72,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!member) {
       return createErrorResponse('Team member not found', 404);
     }
+
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'DELETE',
+      'TeamMember',
+      id,
+      { name: member.name }
+    );
 
     return createSuccessResponse({ message: 'Team member deleted successfully' });
   } catch (error) {

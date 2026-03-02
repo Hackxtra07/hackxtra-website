@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Channel, Course, Documentary } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET() {
   try {
@@ -33,7 +34,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -42,6 +43,16 @@ export async function POST(request: NextRequest) {
 
     const channel = new Channel(body);
     await channel.save();
+
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'CREATE',
+      'Channel',
+      channel._id.toString(),
+      { name: channel.name }
+    );
 
     return createSuccessResponse(channel, 201);
   } catch (error) {

@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Resource } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,7 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -41,6 +42,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return createErrorResponse('Resource not found', 404);
     }
 
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'UPDATE',
+      'Resource',
+      id,
+      { title: resource.title }
+    );
+
     return createSuccessResponse(resource);
   } catch (error) {
     console.error('Update resource error:', error);
@@ -52,7 +63,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -62,6 +73,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!resource) {
       return createErrorResponse('Resource not found', 404);
     }
+
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'DELETE',
+      'Resource',
+      id,
+      { title: resource.title }
+    );
 
     return createSuccessResponse({ message: 'Resource deleted successfully' });
   } catch (error) {

@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Message, User, Admin } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function POST(request: NextRequest) {
     try {
@@ -42,6 +43,16 @@ export async function POST(request: NextRequest) {
 
         if (messages.length > 0) {
             await Message.insertMany(messages);
+
+            // Record admin action
+            await recordAdminAction(
+                request,
+                auth,
+                'BROADCAST',
+                'Messages',
+                undefined,
+                { count: messages.length, subject }
+            );
         }
 
         return createSuccessResponse({ count: messages.length, message: 'Broadcast sent successfully' });

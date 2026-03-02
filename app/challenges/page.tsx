@@ -17,7 +17,7 @@ interface Challenge {
     points: number;
     category: string;
     difficulty: 'Easy' | 'Medium' | 'Hard';
-    type: 'quiz' | 'ctf';
+    type: 'quiz';
     options?: string[];
 }
 
@@ -207,7 +207,7 @@ export default function ChallengesPage() {
                                                         {challenge.difficulty}
                                                     </span>
                                                     <span className="px-2 py-1 rounded text-xs font-medium border border-border bg-muted/50 uppercase">
-                                                        {challenge.type || 'CTF'}
+                                                        QUIZ
                                                     </span>
                                                 </div>
                                                 <span className="text-sm text-primary font-mono font-bold">
@@ -225,7 +225,7 @@ export default function ChallengesPage() {
 
                                             {!isSolved ? (
                                                 <div className="space-y-4">
-                                                    {challenge.type === 'quiz' && challenge.options ? (
+                                                    {challenge.options && (
                                                         <div className="space-y-2">
                                                             {challenge.options.map((option, optIdx) => (
                                                                 <div
@@ -246,13 +246,6 @@ export default function ChallengesPage() {
                                                                 </div>
                                                             ))}
                                                         </div>
-                                                    ) : (
-                                                        <Input
-                                                            placeholder="flag{...}"
-                                                            value={inputs[challenge._id] || ''}
-                                                            onChange={(e) => setInputs({ ...inputs, [challenge._id]: e.target.value })}
-                                                            className="bg-background/50"
-                                                        />
                                                     )}
 
                                                     <Button

@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { News } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -51,6 +52,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             return createErrorResponse('News item not found', 404);
         }
 
+        // Record admin action
+        await recordAdminAction(
+            request,
+            user,
+            'UPDATE',
+            'News',
+            id,
+            { title: updatedNews.title }
+        );
+
         return createSuccessResponse({ success: true, data: updatedNews });
     } catch (error) {
         console.error('Update news error:', error);
@@ -72,6 +83,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         if (!deletedNews) {
             return createErrorResponse('News item not found', 404);
         }
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            user,
+            'DELETE',
+            'News',
+            id,
+            { title: deletedNews.title }
+        );
 
         return createSuccessResponse({ success: true, message: 'News item deleted successfully' });
     } catch (error) {

@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Resource } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -65,6 +66,16 @@ export async function POST(request: NextRequest) {
 
     const resource = new Resource(body);
     await resource.save();
+
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'CREATE',
+      'Resource',
+      resource._id.toString(),
+      { title: resource.title }
+    );
 
     return createSuccessResponse(resource, 201);
   } catch (error) {

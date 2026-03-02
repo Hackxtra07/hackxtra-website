@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Challenge } from '@/lib/models';
 import { challengePool } from '@/lib/challenge-pool';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function POST(request: NextRequest) {
     try {
@@ -31,6 +32,17 @@ export async function POST(request: NextRequest) {
         // 4. Insert into database
         if (toAdd.length > 0) {
             await Challenge.insertMany(toAdd);
+
+            // Record admin action
+            await recordAdminAction(
+                request,
+                auth,
+                'AUTO_ADD',
+                'Challenges',
+                null,
+                { count: toAdd.length, titles: toAdd.map(t => t.title) }
+            );
+
             return createSuccessResponse({
                 message: `Successfully added ${toAdd.length} challenges.`,
                 count: toAdd.length

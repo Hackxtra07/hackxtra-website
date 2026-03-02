@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { User } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -58,6 +59,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
         await user.save();
 
+        // Record admin action
+        await recordAdminAction(
+            request,
+            auth,
+            'UPDATE',
+            'User',
+            id,
+            { username: user.username, email: user.email }
+        );
+
         return createSuccessResponse(user);
     } catch (error) {
         console.error('Update user error:', error);
@@ -79,6 +90,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         if (!user) {
             return createErrorResponse('User not found', 404);
         }
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            auth,
+            'DELETE',
+            'User',
+            id,
+            { username: user.username, email: user.email }
+        );
 
         return createSuccessResponse({ message: 'User deleted successfully' });
     } catch (error) {

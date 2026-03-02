@@ -3,6 +3,7 @@ import { Course } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { Types } from 'mongoose';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -25,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -42,6 +43,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return createErrorResponse('Course not found', 404);
     }
 
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'UPDATE',
+      'Course',
+      id,
+      { title: course.title }
+    );
+
     return createSuccessResponse(course);
   } catch (error) {
     console.error('Update course error:', error);
@@ -53,7 +64,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -63,6 +74,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!course) {
       return createErrorResponse('Course not found', 404);
     }
+
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'DELETE',
+      'Course',
+      id,
+      { title: course.title }
+    );
 
     return createSuccessResponse({ message: 'Course deleted successfully' });
   } catch (error) {

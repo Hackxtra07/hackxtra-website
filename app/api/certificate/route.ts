@@ -3,6 +3,7 @@ import { authenticateRequest, createErrorResponse } from '@/lib/auth';
 import { connectDB } from '@/lib/mongodb';
 import { User } from '@/lib/models';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 /**
  * GET /api/certificate?name=...&achievement=...
@@ -30,6 +31,16 @@ export async function GET(request: NextRequest) {
         await connectDB();
         const user = await User.findById(targetUserId);
         if (!user) return createErrorResponse('User not found', 404);
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            auth,
+            'GENERATE_CERTIFICATE',
+            'User',
+            targetUserId,
+            { username: user.username, achievement: searchParams.get('achievement') }
+        );
 
         // Send notification message if not already sent for this specific session/request
         const shouldNotify = searchParams.get('notify') === 'true';

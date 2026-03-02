@@ -17,12 +17,6 @@ const templates = {
             { q: "Which tool is commonly used for intercepting Web traffic?", a: "Burp Suite", alt: ["Metasploit", "Nmap", "Wireshark"] },
             { q: "What is 'Polyglot' in the context of XSS?", a: "Payload working in multiple contexts", alt: ["Multi-language website", "Encrypted script", "Server-side XSS"] },
             { q: "What does JWT stand for?", a: "JSON Web Token", alt: ["Java Web Tool", "Joint Web Technology", "Just Web Template"] }
-        ],
-        "scenarios": [
-            "A login bypass was found on the staging server. Retrieve the admin flag.",
-            "The /admin interface is blocked by IP. Find a way to spoof your origin.",
-            "A file upload vulnerability exists but only accepts images. Bypass the filter.",
-            "Analyze the source code of the main page to find hidden endpoints."
         ]
     },
     "Crypto": {
@@ -33,12 +27,6 @@ const templates = {
             { q: "In RSA, what does the 'e' stand for?", a: "Public Exponent", alt: ["Encryption key", "Entropy", "Euler's number"] },
             { q: "What is 'Salt' in password hashing?", a: "Random data added to input", alt: ["A type of encryption", "A hardware module", "A database index"] },
             { q: "Which algorithm is used for Diffie-Hellman?", a: "Key Exchange", alt: ["Digital Signature", "Hard Drive Encryption", "File Compression"] }
-        ],
-        "scenarios": [
-            "Decrypt the following message encoded with a simple substitution cipher.",
-            "Find the private key matching the public key provided in key.pub.",
-            "A weak random number generator was used for these signatures. Recover the key.",
-            "Crack the hash provided using the common wordlist attached."
         ]
     },
     "Linux": {
@@ -49,12 +37,6 @@ const templates = {
             { q: "What does the 'S' stand for in SUID?", a: "Set", alt: ["Secure", "System", "Static"] },
             { q: "How do you view the last 10 lines of a file?", a: "tail", alt: ["head", "cat", "grep"] },
             { q: "Which directory contains configuration files?", a: "/etc", alt: ["/bin", "/lib", "/opt"] }
-        ],
-        "scenarios": [
-            "You have low-privilege access. Find a way to escalate to root via SUID.",
-            "A cronjob is running as root. Hijack it to read the flag.",
-            "Search the entire filesystem for files belonging to the 'dev' user.",
-            "Analyze the bash history to find accidentally leaked credentials."
         ]
     },
     "Networking": {
@@ -64,12 +46,6 @@ const templates = {
             { q: "What is the maximum value of a port number?", a: "65535", alt: ["1024", "32768", "8192"] },
             { q: "Which OSI layer does a Router operate at?", a: "Layer 3", alt: ["Layer 2", "Layer 4", "Layer 7"] },
             { q: "What does TTL stand for in a ping request?", a: "Time To Live", alt: ["Total Time Lost", "Target To Locate", "Temporary Trace Link"] }
-        ],
-        "scenarios": [
-            "Perform a port scan on the target and identify the running version of Apache.",
-            "Analyze the PCAP file to find the credentials sent over unencrypted FTP.",
-            "Intercept the DNS request and redirect the user to a malicious IP.",
-            "Calculate the usable hosts for a /26 subnet."
         ]
     },
     "Forensics": {
@@ -77,23 +53,12 @@ const templates = {
             { q: "What is a 'Magic Number' in a file?", a: "Hex signature at the start", alt: ["A random ID", "The file size", "A checksum"] },
             { q: "Which tool is used for memory forensics?", a: "Volatility", alt: ["Autopsy", "Wireshark", "FTK Imager"] },
             { q: "What is 'Carving' in forensics?", a: "Recovering files without metadata", alt: ["Deleting evidence", "Encrypting a drive", "Sorting logs"] }
-        ],
-        "scenarios": [
-            "Examine the memory dump to find the password of the logged-in user.",
-            "Recover a deleted JPEG from the provided disk image.",
-            "Analyze the registry hives to find the last run programs.",
-            "Extract the hidden message from the audio file's LS Bits."
         ]
     },
     "Misc": {
         "questions": [
             { q: "What is Social Engineering?", a: "Manipulating people for info", alt: ["Coding a social network", "Fixing hardware", "Marketing"] },
             { q: "What is a 'Honey Pot'?", a: "Deceptive system to trap hackers", alt: ["A shared password", "A backup server", "A fast network"] }
-        ],
-        "scenarios": [
-            "The flag is hidden in various places. Put the pieces together.",
-            "Solve the logic puzzle to reveal the hidden entry code.",
-            "Identify the hardware component described in the technical manual."
         ]
     }
 };
@@ -105,26 +70,19 @@ function generateChallenges() {
     categories.forEach(cat => {
         const catData = templates[cat] || templates["Misc"];
         for (let i = 1; i <= countPerCategory; i++) {
-            const isQuiz = Math.random() > 0.4;
-            const type = isQuiz ? "quiz" : "ctf";
+            const isQuiz = true; // Force quiz only
+            const type = "quiz";
             const diff = levels[Math.floor(Math.random() * levels.length)];
             const id = 2000 + i; // Start from 2000 to avoid overlap with previous IDs
-            const title = `${cat.substring(0, 3)}-${type === 'quiz' ? 'Q' : 'C'}-${id}`;
+            const title = `${cat.substring(0, 3)}-Q-${id}`;
 
             let description, points, flag, options;
 
-            if (isQuiz) {
-                const qTemplate = catData.questions[i % catData.questions.length];
-                description = `${qTemplate.q} (Ref: ${id})`;
-                flag = qTemplate.a;
-                options = shuffle([...qTemplate.alt, flag]);
-                points = getPoints(diff) / 2; // Quizzes are worth less
-            } else {
-                const sTemplate = catData.scenarios[i % catData.scenarios.length];
-                description = `${sTemplate} The flag format is flag{...}. (ID: ${id})`;
-                flag = `flag{${cat.toLowerCase()}_${id}_${Math.random().toString(36).substring(7)}}`;
-                points = getPoints(diff);
-            }
+            const qTemplate = catData.questions[i % catData.questions.length];
+            description = `${qTemplate.q} (Ref: ${id})`;
+            flag = qTemplate.a;
+            options = shuffle([...qTemplate.alt, flag]);
+            points = getPoints(diff) / 2; // Quizzes are worth less
 
             challenges.push({
                 title,
@@ -134,7 +92,7 @@ function generateChallenges() {
                 difficulty: diff,
                 type,
                 flag,
-                ...(isQuiz && { options })
+                options
             });
         }
     });

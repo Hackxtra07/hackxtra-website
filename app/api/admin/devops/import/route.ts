@@ -1,10 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { DevOpsProject } from '@/lib/models';
 import axios from 'axios';
+import { authenticateRequest, createErrorResponse } from '@/lib/auth';
+import { recordAdminAction } from '@/lib/admin-logger';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
+        const auth = await authenticateRequest(req);
+        if (!auth || auth.role !== 'admin') {
+            return createErrorResponse('Unauthorized', 401);
+        }
+
         const { url } = await req.json();
 
         if (!url || !url.includes('github.com')) {
@@ -47,6 +54,16 @@ export async function POST(req: Request) {
             { githubUrl: projectData.githubUrl },
             projectData,
             { new: true, upsert: true }
+        );
+
+        // Record admin action
+        await recordAdminAction(
+            req,
+            auth,
+            'IMPORT',
+            'DevOpsProject',
+            project._id.toString(),
+            { githubUrl: project.githubUrl }
         );
 
         return NextResponse.json({ project, message: 'Project imported successfully' });

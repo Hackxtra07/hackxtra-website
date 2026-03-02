@@ -50,6 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "DevOps", href: "/admin/devops", icon: Workflow },
     { name: "Badges", href: "/admin/badges", icon: Award },
     { name: "Sessions", href: "/admin/sessions", icon: Monitor },
+    { name: "Audit Logs", href: "/admin/logs", icon: Hammer },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 

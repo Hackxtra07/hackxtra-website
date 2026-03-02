@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { StoreItem, User } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest) {
     try {
@@ -47,6 +48,16 @@ export async function POST(request: NextRequest) {
 
         const newItem = new StoreItem(body);
         await newItem.save();
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            user,
+            'CREATE',
+            'StoreItem',
+            newItem._id.toString(),
+            { title: newItem.title }
+        );
 
         return createSuccessResponse(newItem, 201);
     } catch (error) {

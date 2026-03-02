@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { Channel } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,7 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -40,6 +41,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return createErrorResponse('Channel not found', 404);
     }
 
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'UPDATE',
+      'Channel',
+      id,
+      { name: channel.name }
+    );
+
     return createSuccessResponse(channel);
   } catch (error) {
     console.error('Update channel error:', error);
@@ -51,7 +62,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   try {
     const { id } = await params;
     const auth = await authenticateRequest(request);
-    if (!auth) {
+    if (!auth || auth.role !== 'admin') {
       return createErrorResponse('Unauthorized', 401);
     }
 
@@ -61,6 +72,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     if (!channel) {
       return createErrorResponse('Channel not found', 404);
     }
+
+    // Record admin action
+    await recordAdminAction(
+      request,
+      auth,
+      'DELETE',
+      'Channel',
+      id,
+      { name: channel.name }
+    );
 
     return createSuccessResponse({ message: 'Channel deleted successfully' });
   } catch (error) {

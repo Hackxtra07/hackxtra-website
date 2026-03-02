@@ -2,6 +2,7 @@ import { connectDB } from '@/lib/mongodb';
 import { StoreItem } from '@/lib/models';
 import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { recordAdminAction } from '@/lib/admin-logger';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -56,6 +57,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
             return createErrorResponse('Item not found', 404);
         }
 
+        // Record admin action
+        await recordAdminAction(
+            request,
+            user,
+            'UPDATE',
+            'StoreItem',
+            id,
+            { title: updatedItem.title }
+        );
+
         return createSuccessResponse(updatedItem);
     } catch (error) {
         console.error('Update item error:', error);
@@ -77,6 +88,16 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
         if (!deletedItem) {
             return createErrorResponse('Item not found', 404);
         }
+
+        // Record admin action
+        await recordAdminAction(
+            request,
+            user,
+            'DELETE',
+            'StoreItem',
+            id,
+            { title: deletedItem.title }
+        );
 
         return createSuccessResponse({ message: 'Item deleted successfully' });
     } catch (error) {
