@@ -10,6 +10,7 @@ import { useApi } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { FileText } from 'lucide-react';
 
 interface SocialLinks {
     twitter?: string;
@@ -386,6 +387,15 @@ export default function AdminUsersPage() {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div className="flex justify-end gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="border-blue-200 text-blue-600 hover:bg-blue-50"
+                                            onClick={() => window.open(`/api/certificate?userId=${user._id}&admin=true`, '_blank')}
+                                            title="Generate Certificate"
+                                        >
+                                            <FileText className="h-4 w-4" />
+                                        </Button>
                                         <Button variant="outline" size="sm" onClick={() => handleEdit(user)}>Edit</Button>
                                         <Button variant="destructive" size="sm" onClick={() => handleDelete(user._id)}>Delete</Button>
                                     </div>

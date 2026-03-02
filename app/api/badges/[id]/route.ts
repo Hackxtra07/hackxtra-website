@@ -43,13 +43,22 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
         const { id } = await params;
         await connectDB();
-
-        const badge = await Badge.findByIdAndDelete(id);
+        const badge = await Badge.findById(id);
         if (!badge) {
             return createErrorResponse('Badge not found', 404);
         }
 
-        return createSuccessResponse({ message: 'Badge deleted successfully' });
+        const badgeName = badge.name;
+        await Badge.findByIdAndDelete(id);
+
+        // Remove this badge from all users who have it
+        const { User } = await import('@/lib/models');
+        await User.updateMany(
+            { badges: badgeName },
+            { $pull: { badges: badgeName } }
+        );
+
+        return createSuccessResponse({ message: 'Badge deleted successfully and removed from users' });
     } catch (error) {
         console.error('Delete badge error:', error);
         return createErrorResponse('Failed to delete badge', 500);

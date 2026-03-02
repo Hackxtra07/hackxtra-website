@@ -18,11 +18,20 @@ export async function GET(request: NextRequest) {
         const auth = await authenticateRequest(request);
         if (!auth) return createErrorResponse('Unauthorized — please log in first.', 401);
 
-        await connectDB();
-        const user = await User.findOne({ email: auth.email });
-        if (!user) return createErrorResponse('User not found', 404);
-
         const { searchParams } = new URL(request.url);
+        const targetUserId = searchParams.get('userId');
+
+        await connectDB();
+        let user;
+
+        if (targetUserId && auth.role === 'admin') {
+            user = await User.findById(targetUserId);
+            if (!user) return createErrorResponse('Target user not found', 404);
+        } else {
+            user = await User.findOne({ email: auth.email });
+            if (!user) return createErrorResponse('User not found', 404);
+        }
+
         const recipientName = searchParams.get('name')?.trim() || user.username;
         const achievement = searchParams.get('achievement')?.trim() || `Completing Cybersecurity Challenges with ${user.points} Points`;
         const issuedDate = new Date().toLocaleDateString('en-US', {
