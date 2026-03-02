@@ -498,24 +498,7 @@ export default function ProfilePage() {
                                 </CardContent>
                             </Card>
 
-                            {/* Certificate link card */}
-                            <Card className="border-primary/20 bg-primary/5">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-base">
-                                        🏆 Certificate of Achievement
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Generate a personalized PDF certificate for your HackXtras accomplishments.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Link href="/certificate">
-                                        <Button variant="outline" className="gap-2 border-primary/30 hover:bg-primary/10">
-                                            Go to Certificate Generator →
-                                        </Button>
-                                    </Link>
-                                </CardContent>
-                            </Card>
+
                         </TabsContent>
                     </Tabs>
                 </div>

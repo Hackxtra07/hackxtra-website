@@ -391,7 +391,7 @@ export default function AdminUsersPage() {
                                             variant="outline"
                                             size="sm"
                                             className="border-blue-200 text-blue-600 hover:bg-blue-50"
-                                            onClick={() => window.open(`/api/certificate?userId=${user._id}&admin=true`, '_blank')}
+                                            onClick={() => window.location.href = `/admin/certificate?userId=${user._id}`}
                                             title="Generate Certificate"
                                         >
                                             <FileText className="h-4 w-4" />

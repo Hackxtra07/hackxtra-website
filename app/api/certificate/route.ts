@@ -16,20 +16,38 @@ export async function GET(request: NextRequest) {
         }
 
         const auth = await authenticateRequest(request);
-        if (!auth) return createErrorResponse('Unauthorized — please log in first.', 401);
+        if (!auth || auth.role !== 'admin') {
+            return createErrorResponse('Unauthorized — Admin access required.', 401);
+        }
 
         const { searchParams } = new URL(request.url);
         const targetUserId = searchParams.get('userId');
 
-        await connectDB();
-        let user;
+        if (!targetUserId) {
+            return createErrorResponse('User ID is required', 400);
+        }
 
-        if (targetUserId && auth.role === 'admin') {
-            user = await User.findById(targetUserId);
-            if (!user) return createErrorResponse('Target user not found', 404);
-        } else {
-            user = await User.findOne({ email: auth.email });
-            if (!user) return createErrorResponse('User not found', 404);
+        await connectDB();
+        const user = await User.findById(targetUserId);
+        if (!user) return createErrorResponse('User not found', 404);
+
+        // Send notification message if not already sent for this specific session/request
+        const shouldNotify = searchParams.get('notify') === 'true';
+        if (shouldNotify) {
+            const { Message, Admin: AdminModel } = await import('@/lib/models');
+            const currentAdmin = await AdminModel.findOne({ email: auth.email });
+
+            if (currentAdmin) {
+                await Message.create({
+                    sender: currentAdmin._id,
+                    senderModel: 'Admin',
+                    recipient: user._id,
+                    recipientModel: 'User',
+                    content: `Congratulations! Your certificate for "${searchParams.get('achievement') || 'Cybersecurity Excellence'}" has been generated. Please contact the admin to receive your official copy.`,
+                    isRead: false,
+                    isSaved: false
+                });
+            }
         }
 
         const recipientName = searchParams.get('name')?.trim() || user.username;
