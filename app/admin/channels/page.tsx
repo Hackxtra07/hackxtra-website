@@ -40,7 +40,7 @@ export default function AdminChannelsPage() {
   const fetchChannels = async () => {
     try {
       const data = await request('/api/channels');
-      setChannels(data || []);
+      setChannels(data?.data || []);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch signal spectrum', variant: 'destructive' });
     }

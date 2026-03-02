@@ -7,7 +7,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Send, Search, User } from "lucide-react";
+import {
+    Send, Search, User, Radio, Loader2, Signal,
+    ShieldCheck, MessageSquare, Zap, Globe, Cpu,
+    Terminal, Activity, Fingerprint
+} from "lucide-react";
 import { format } from "date-fns";
 
 interface ChatUser {

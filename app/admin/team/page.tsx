@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Users, Plus, Search, Mail, Shield, UserPlus,
+  Users, Search, Mail, Shield, UserPlus,
   MoreHorizontal, Edit2, Trash2, Loader2, Target,
   Activity, Globe, Zap, Fingerprint, ShieldAlert,
   ChevronRight, Database, Network, Cpu, Clock
@@ -36,7 +36,7 @@ export default function AdminTeamPage() {
   const fetchMembers = async () => {
     try {
       const data = await request("/api/team");
-      setMembers(data || []);
+      setMembers(data?.data || []);
     } catch (error) {
       toast.error("Failed to fetch operative records");
     }
@@ -45,7 +45,7 @@ export default function AdminTeamPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to decommission this operative?")) return;
     try {
-      await request(`/api/team?id=${id}`, { method: "DELETE" });
+      await request(`/api/team/${id}`, { method: "DELETE" });
       toast.success("Operative decommissioned");
       setMembers(members.filter(m => m._id !== id));
     } catch (error) {
