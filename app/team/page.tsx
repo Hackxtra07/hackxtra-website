@@ -141,23 +141,23 @@ export default function TeamPage() {
 
       <Header />
 
-      <main className="pt-32 pb-24">
-        <div className="mx-auto max-w-7xl px-6">
+      <main className="pt-24 md:pt-32 pb-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
           {/* Hero Section */}
           <motion.div
             ref={headerRef}
             initial={{ opacity: 0, y: 30 }}
             animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             transition={{ duration: 0.6 }}
-            className="mb-20 text-center"
+            className="mb-12 md:mb-20 text-center"
           >
-            <span className="font-mono text-sm uppercase tracking-wider text-primary">
+            <span className="font-mono text-xs uppercase tracking-wider text-primary">
               The Minds Behind the Mission
             </span>
-            <h1 className="font-display mt-4 text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
+            <h1 className="font-display mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-6xl">
               Meet the Team
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+            <p className="mx-auto mt-6 max-w-2xl text-base md:text-lg leading-relaxed text-muted-foreground">
               We are a diverse group of security researchers, engineers, and
               educators united by a single goal: to make the digital world safer
               for everyone.
@@ -165,7 +165,7 @@ export default function TeamPage() {
           </motion.div>
 
           {/* Stats Bar */}
-          <div className="mb-24 grid grid-cols-2 gap-8 border-y border-border/50 py-12 md:grid-cols-4">
+          <div className="mb-16 md:mb-24 grid grid-cols-2 gap-y-12 gap-x-4 border-y border-border/50 py-10 md:py-12 md:grid-cols-4">
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -174,15 +174,16 @@ export default function TeamPage() {
                 transition={{ delay: i * 0.1 }}
                 className="text-center"
               >
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <div className="mx-auto mb-4 flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   {/* @ts-ignore */}
-                  <stat.icon className="h-6 w-6" />
+                  <stat.icon className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
-                <div className="text-3xl font-bold text-foreground">{stat.value}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{stat.label}</div>
+                <div className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>
+                <div className="mt-1 text-xs text-muted-foreground uppercase tracking-widest">{stat.label}</div>
               </motion.div>
             ))}
           </div>
+
 
           {/* Team Grid */}
           <div className="mb-16">

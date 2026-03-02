@@ -74,33 +74,34 @@ export default function ContactPage() {
 
             <Header />
 
-            <main className="relative z-10 pt-32 pb-20 px-6">
+            <main className="relative z-10 pt-24 md:pt-32 pb-16 md:pb-20 px-4 sm:px-6">
                 <div className="mx-auto max-w-7xl">
 
-                    <div className="grid lg:grid-cols-2 gap-12 items-start">
+                    <div className="grid lg:grid-cols-2 gap-8 md:gap-12 items-start">
 
                         {/* Contact Info */}
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6 }}
+                            className="text-center lg:text-left"
                         >
-                            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+                            <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 md:mb-6">
                                 Get in <span className="text-primary">Touch</span>
                             </h1>
-                            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                            <p className="text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                                 Have a question, suggestion, or just want to say hi? We'd love to hear from you. Fill out the form or reach us directly.
                             </p>
 
-                            <div className="space-y-6 mb-12">
+                            <div className="flex flex-col sm:flex-row lg:flex-col gap-6 mb-10 text-left">
                                 <div className="flex items-start gap-4">
                                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                         <Mail className="w-5 h-5" />
                                     </div>
-                                    <div>
+                                    <div className="min-w-0">
                                         <h3 className="font-semibold text-lg">Email Us</h3>
-                                        <p className="text-muted-foreground">Detailed inquiries and support</p>
-                                        <a href="mailto:hello@hackxtras.com" className="text-primary hover:underline mt-1 block">
+                                        <p className="text-muted-foreground text-sm">Detailed inquiries and support</p>
+                                        <a href="mailto:hello@hackxtras.com" className="text-primary hover:underline mt-1 block truncate">
                                             hello@hackxtras.com
                                         </a>
                                     </div>
@@ -110,33 +111,35 @@ export default function ContactPage() {
                                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                         <MessageSquare className="w-5 h-5" />
                                     </div>
-                                    <div>
+                                    <div className="min-w-0">
                                         <h3 className="font-semibold text-lg">Community</h3>
-                                        <p className="text-muted-foreground">Join the discussion on Discord</p>
-                                        <a href="#" className="text-primary hover:underline mt-1 block">
+                                        <p className="text-muted-foreground text-sm">Join the discussion on Discord</p>
+                                        <a href="#" className="text-primary hover:underline mt-1 block truncate">
                                             discord.gg/hackxtras
                                         </a>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="p-6 rounded-2xl bg-card border border-border/50">
-                                <h3 className="font-semibold mb-4">Follow Us</h3>
+                            <div className="p-5 rounded-2xl bg-card border border-border/50 inline-block text-left w-full sm:w-auto lg:w-full">
+                                <h3 className="font-semibold mb-3 text-sm uppercase tracking-wider text-muted-foreground">Follow Us</h3>
                                 <div className="flex gap-4">
-                                    <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
-                                        <Twitter className="w-5 h-5" />
+                                    <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors group">
+                                        <Twitter className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                     </a>
-                                    <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
-                                        <Github className="w-5 h-5" />
+                                    <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors group">
+                                        <Github className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                     </a>
-                                    <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
-                                        <Linkedin className="w-5 h-5" />
+                                    <a href="#" className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-colors group">
+                                        <Linkedin className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                     </a>
                                 </div>
                             </div>
 
                             {/* Suggestion Box */}
-                            <SuggestionBox />
+                            <div className="mt-8 text-left">
+                                <SuggestionBox />
+                            </div>
 
                         </motion.div>
 
@@ -146,9 +149,9 @@ export default function ContactPage() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            <Card className="p-8 border-border/50 backdrop-blur-sm bg-card/50 shadow-xl">
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    <div className="grid grid-cols-2 gap-4">
+                            <Card className="p-6 md:p-8 border-border/50 backdrop-blur-sm bg-card/50 shadow-xl overflow-hidden">
+                                <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <label htmlFor="firstName" className="text-sm font-medium">First Name</label>
                                             <Input id="firstName" name="firstName" placeholder="John" required className="bg-background/50" />
@@ -158,6 +161,7 @@ export default function ContactPage() {
                                             <Input id="lastName" name="lastName" placeholder="Doe" required className="bg-background/50" />
                                         </div>
                                     </div>
+
 
                                     <div className="space-y-2">
                                         <label htmlFor="email" className="text-sm font-medium">Email Address</label>

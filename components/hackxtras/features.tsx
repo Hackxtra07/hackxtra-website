@@ -83,7 +83,7 @@ export function Features() {
   const isPro = useProStatus();
 
   return (
-    <section id="courses" className="relative py-32">
+    <section id="courses" className="relative py-20 md:py-32">
       <div className="mx-auto max-w-7xl px-6">
         {/* Section Header */}
         <motion.div
@@ -91,19 +91,20 @@ export function Features() {
           initial={{ opacity: 0, y: 20 }}
           animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.5 }}
-          className="mb-16 max-w-2xl"
+          className="mb-12 md:mb-16 max-w-2xl"
         >
-          <span className={`font-mono text-sm uppercase tracking-wider ${isPro ? 'text-yellow-500' : 'text-primary'}`}>
+          <span className={`font-mono text-[10px] sm:text-sm uppercase tracking-wider ${isPro ? 'text-yellow-500' : 'text-primary'}`}>
             What you&apos;ll learn
           </span>
-          <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="font-display mt-3 text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Comprehensive security training
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+          <p className="mt-4 text-sm sm:text-base leading-relaxed text-muted-foreground">
             From foundational concepts to advanced techniques, our curriculum
             covers every aspect of modern cybersecurity.
           </p>
         </motion.div>
+
 
         {/* Features Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

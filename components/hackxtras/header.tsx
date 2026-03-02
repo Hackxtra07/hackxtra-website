@@ -235,75 +235,103 @@ export function Header() {
               animate={{ opacity: 1, y: 0, height: "auto" }}
               exit={{ opacity: 0, y: -10, height: 0 }}
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-2 overflow-hidden rounded-xl border border-border/50 bg-background/90 backdrop-blur-xl md:hidden"
+              className="mt-2 overflow-hidden rounded-xl border border-border/50 bg-background/95 backdrop-blur-2xl md:hidden shadow-2xl"
             >
-              <div className="flex flex-col gap-1 p-4">
-                {/* Mobile Grouped Links Logic simplified for now just flattening them */}
-                {[...navGroups.Learn, ...navGroups.Community, ...navGroups.Media].map(link => (
+              <div className="flex flex-col p-5 gap-6">
+                {/* Search Bar Mobile */}
+                <div className="relative group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                  <input
+                    type="text"
+                    placeholder="Search platform..."
+                    readOnly
+                    onClick={() => {
+                      setIsOpen(false);
+                      window.dispatchEvent(new Event("open-search"));
+                    }}
+                    className="w-full bg-muted/50 border border-border/50 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
+                  />
+                </div>
+
+                {/* Categorized Links */}
+                <div className="grid grid-cols-2 gap-8">
+                  {Object.entries(navGroups).map(([group, links]) => (
+                    <div key={group} className="space-y-3">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70 mb-1">{group}</h4>
+                      <div className="flex flex-col gap-2.5">
+                        {links.map(link => (
+                          <Link
+                            key={link.name}
+                            href={link.href}
+                            onClick={() => setIsOpen(false)}
+                            className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+                          >
+                            {link.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Primary Actions */}
+                <div className="space-y-3 border-t border-border/50 pt-6">
                   <Link
-                    key={link.name}
-                    href={link.href}
+                    href="/challenges"
                     onClick={() => setIsOpen(false)}
-                    className="rounded-lg px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground block"
+                    className="flex items-center justify-between rounded-lg bg-primary/5 border border-primary/20 px-4 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/10"
                   >
-                    {link.name}
+                    <span>Challenges</span>
+                    <Shield className="h-4 w-4 opacity-50" />
                   </Link>
-                ))}
-                <Link
-                  href="/challenges"
-                  onClick={() => setIsOpen(false)}
-                  className="rounded-lg px-4 py-2.5 text-sm font-bold text-primary transition-colors hover:bg-muted block"
-                >
-                  Challenges
-                </Link>
-                <Link
-                  href="/pricing"
-                  onClick={() => setIsOpen(false)}
-                  className="rounded-lg px-4 py-2.5 text-sm font-bold text-yellow-600 transition-colors hover:bg-muted block"
-                >
-                  Premium
-                </Link>
+                  <Link
+                    href="/pricing"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center justify-between rounded-lg bg-yellow-500/5 border border-yellow-500/20 px-4 py-3 text-sm font-bold text-yellow-600 transition-colors hover:bg-yellow-500/10"
+                  >
+                    <span>Premium Unlocked</span>
+                    <Crown className="h-4 w-4 opacity-50 shadow-[0_0_8px_currentColor]" />
+                  </Link>
+                </div>
 
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    window.dispatchEvent(new Event("open-search"));
-                  }}
-                  className="rounded-lg px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted block w-full text-left flex items-center gap-2"
-                >
-                  <Search className="h-4 w-4" />
-                  Search...
-                </button>
-
-                <div className="mt-3 flex flex-col gap-2 border-t border-border/50 pt-4">
+                {/* User Info / Auth */}
+                <div className="border-t border-border/50 pt-6 pb-2">
                   {isAuthenticated ? (
-                    <>
-                      <Link href="/dashboard/inbox" onClick={() => setIsOpen(false)}>
-                        <Button variant="ghost" size="sm" className="justify-start text-muted-foreground w-full gap-2">
-                          <Mail className="h-4 w-4" />
-                          Inbox
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3 px-2 mb-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isPro ? 'bg-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.2)]' : 'bg-primary/20'}`}>
+                          {isPro ? <Crown className="h-5 w-5 text-yellow-500" /> : <User className="h-5 w-5 text-primary" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-white truncate">{isPro ? "Pro Member" : "Standard Account"}</p>
+                          <p className="text-xs text-muted-foreground truncate">Logged in successfully</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Link href="/profile" onClick={() => setIsOpen(false)} className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full gap-2 border-border/50">
+                            <Settings className="h-4 w-4" /> Account
+                          </Button>
+                        </Link>
+                        <Link href="/dashboard/inbox" onClick={() => setIsOpen(false)} className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full gap-2 border-border/50">
+                            <Mail className="h-4 w-4" /> Inbox
+                          </Button>
+                        </Link>
+                        <Button variant="ghost" size="sm" onClick={handleLogout} className="col-span-2 text-red-500 hover:text-red-400 hover:bg-red-500/5 gap-2 mt-2">
+                          <LogOut className="h-4 w-4" /> Sign Out
                         </Button>
-                      </Link>
-                      <Link href="/profile" onClick={() => setIsOpen(false)}>
-                        <Button variant="ghost" size="sm" className="justify-start text-muted-foreground w-full gap-2">
-                          <User className="h-4 w-4" />
-                          Profile & Settings
-                        </Button>
-                      </Link>
-                    </>
+                      </div>
+                    </div>
                   ) : (
-                    <>
+                    <div className="grid grid-cols-2 gap-3">
                       <Link href="/login" onClick={() => setIsOpen(false)}>
-                        <Button variant="ghost" size="sm" className="justify-start text-muted-foreground w-full">
-                          Sign In
-                        </Button>
+                        <Button variant="outline" className="w-full border-border/50">Sign In</Button>
                       </Link>
                       <Link href="/signup" onClick={() => setIsOpen(false)}>
-                        <Button size="sm" className="bg-primary text-primary-foreground w-full">
-                          Get Started
-                        </Button>
+                        <Button className="w-full bg-primary text-primary-foreground">Get Started</Button>
                       </Link>
-                    </>
+                    </div>
                   )}
                 </div>
               </div>

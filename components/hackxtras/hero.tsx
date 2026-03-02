@@ -15,7 +15,7 @@ export function Hero() {
   const isPro = useProStatus();
 
   return (
-    <section className="relative min-h-screen overflow-hidden pt-32">
+    <section className="relative min-h-screen overflow-hidden pt-24 md:pt-32">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex flex-col items-center text-center">
           {/* Badge */}
@@ -27,12 +27,12 @@ export function Hero() {
             className="flex flex-col items-center"
           >
             {isPro && (
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-1 text-xs font-bold text-yellow-500 backdrop-blur-sm animate-pulse shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-1 text-[10px] sm:text-xs font-bold text-yellow-500 backdrop-blur-sm animate-pulse shadow-[0_0_15px_rgba(234,179,8,0.2)]">
                 <Crown className="h-3 w-3" />
                 <span>PREMIUM PRO CONTENT UNLOCKED</span>
               </div>
             )}
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border/50 bg-muted/50 px-4 py-1.5 text-sm text-muted-foreground backdrop-blur-sm">
+            <div className="mb-6 md:mb-8 inline-flex items-center gap-2 rounded-full border border-border/50 bg-muted/50 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm text-muted-foreground backdrop-blur-sm">
               <Terminal className="h-3.5 w-3.5 text-primary" />
               <span>Next-generation security training</span>
             </div>
@@ -44,7 +44,7 @@ export function Hero() {
             initial="initial"
             animate="animate"
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-display max-w-4xl text-4xl font-semibold leading-[1.1] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
+            className="font-display max-w-4xl text-3xl font-semibold leading-[1.15] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
           >
             <span className="text-balance">
               Master the art of{" "}
@@ -60,7 +60,7 @@ export function Hero() {
             initial="initial"
             animate="animate"
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="mt-6 max-w-2xl text-balance text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl"
+            className="mt-6 max-w-2xl text-balance text-sm sm:text-lg md:text-xl leading-relaxed text-muted-foreground"
           >
             An elite platform designed for developers and security enthusiasts.
             Build real-world skills through hands-on labs, expert-led courses,
@@ -73,19 +73,19 @@ export function Hero() {
             initial="initial"
             animate="animate"
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-10 flex flex-col items-center gap-4 sm:flex-row"
+            className="mt-8 md:mt-10 flex flex-col items-center gap-4 sm:flex-row w-full sm:w-auto px-4 sm:px-0"
           >
-            <Link href="/signup">
-              <Button size="lg" className="group bg-primary text-primary-foreground hover:bg-primary/90">
+            <Link href="/signup" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full group bg-primary text-primary-foreground hover:bg-primary/90">
                 Start Learning
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Button>
             </Link>
-            <Link href="/courses">
+            <Link href="/courses" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 variant="outline"
-                className="border-border/50 bg-transparent text-foreground hover:bg-muted"
+                className="w-full border-border/50 bg-transparent text-foreground hover:bg-muted"
               >
                 Explore Courses
               </Button>
@@ -98,7 +98,7 @@ export function Hero() {
             initial="initial"
             animate="animate"
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-20 grid grid-cols-2 gap-8 border-t border-border/30 pt-10 sm:grid-cols-4 md:gap-16"
+            className="mt-16 md:mt-20 grid grid-cols-2 gap-y-10 gap-x-4 sm:gap-8 border-t border-border/30 pt-10 sm:grid-cols-4 md:gap-16 w-full"
           >
             {[
               { value: "50K+", label: "Active learners" },
@@ -106,14 +106,15 @@ export function Hero() {
               { value: "500+", label: "Hands-on labs" },
               { value: "98%", label: "Success rate" },
             ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="font-display text-2xl font-semibold text-foreground sm:text-3xl">
+              <div key={stat.label} className="text-center px-1">
+                <div className="font-display text-xl font-semibold text-foreground sm:text-3xl">
                   {stat.value}
                 </div>
-                <div className="mt-1 text-sm text-muted-foreground">{stat.label}</div>
+                <div className="mt-1 text-[10px] sm:text-sm uppercase tracking-wider text-muted-foreground/70">{stat.label}</div>
               </div>
             ))}
           </motion.div>
+
         </div>
       </div>
 

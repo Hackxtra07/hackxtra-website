@@ -335,8 +335,8 @@ export default function CoursesPage() {
       </div>
       <Header />
 
-      <main className="pt-32 pb-24">
-        <div className="mx-auto max-w-7xl px-6">
+      <main className="pt-24 md:pt-32 pb-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
           {/* Page Header */}
           <motion.div
             ref={headerRef}
@@ -345,18 +345,17 @@ export default function CoursesPage() {
               isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
             }
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-16"
+            className="mb-10 md:mb-16"
           >
-            <span className="font-mono text-sm uppercase tracking-wider text-primary">
+            <span className="font-mono text-xs uppercase tracking-wider text-primary">
               Learn from experts
             </span>
-            <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            <h1 className="font-display mt-3 text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
               Security Courses
             </h1>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
+            <p className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed text-muted-foreground">
               Comprehensive, hands-on training programs designed by industry
-              professionals. From foundational concepts to advanced techniques,
-              master every aspect of cybersecurity.
+              professionals. Master every aspect of cybersecurity.
             </p>
           </motion.div>
 
@@ -366,8 +365,9 @@ export default function CoursesPage() {
             initial="initial"
             animate="animate"
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-10 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center"
+            className="mb-8 md:mb-10 flex flex-col md:flex-row gap-6 justify-between items-start md:items-center"
           >
+
             <div className="flex flex-wrap gap-3">
               {["All Courses", "Beginner", "Intermediate", "Advanced"].map(
                 (filter) => (

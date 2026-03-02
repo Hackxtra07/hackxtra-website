@@ -347,8 +347,8 @@ export default function LabsPage() {
       </div>
       <Header />
 
-      <main className="pt-32 pb-24">
-        <div className="mx-auto max-w-7xl px-6">
+      <main className="pt-24 md:pt-32 pb-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
           {/* Page Header */}
           <motion.div
             ref={headerRef}
@@ -357,33 +357,34 @@ export default function LabsPage() {
               isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
             }
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-16"
+            className="mb-10 md:mb-16"
           >
-            <span className="font-mono text-sm uppercase tracking-wider text-primary">
+            <span className="font-mono text-xs uppercase tracking-wider text-primary">
               Hands-on practice
             </span>
-            <div className="mt-3 flex flex-col md:flex-row justify-between gap-6 md:items-end">
+            <div className="mt-3 flex flex-col lg:flex-row justify-between gap-6 lg:items-end">
               <div>
-                <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+                <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
                   Hacking Labs
                 </h1>
-                <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
+                <p className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed text-muted-foreground">
                   Real-world scenarios with actual vulnerable applications. Build practical
                   penetration testing skills in a safe, isolated environment.
                 </p>
               </div>
 
-              <div className="relative w-full md:w-72">
+              <div className="relative w-full lg:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Search labs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-lg border border-border/50 bg-background/50 py-2 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/50"
+                  className="w-full rounded-lg border border-border/50 bg-background/50 py-2.5 pl-9 pr-4 text-sm text-foreground focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/50"
                 />
               </div>
             </div>
+
 
             {/* Filter Pills */}
             <div className="mt-10 flex flex-col gap-6">
