@@ -45,11 +45,11 @@ export default function AdminDashboard() {
         const proCount = Array.isArray(users) ? users.filter((u: any) => u.isPro).length : 0;
 
         setStats({
-          courses: getCount(courses),
-          labs: getCount(labs),
-          resources: getCount(resources),
-          team: getCount(team),
-          channels: getCount(channels),
+          courses: getCount(courses?.courses || courses),
+          labs: getCount(labs?.labs || labs),
+          resources: getCount(resources?.resources || resources),
+          team: getCount(team?.data || team),
+          channels: getCount(channels?.data || channels),
           documentaries: getCount(documentaries),
           news: getCount(newsRaw?.data), // News returns { success: true, data: [...] }
           tools: getCount(toolsRaw?.tools), // Tools returns { tools: [...] }

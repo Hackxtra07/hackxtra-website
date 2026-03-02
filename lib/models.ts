@@ -540,6 +540,18 @@ export interface IUser extends Document {
   subscriptionExpiresAt?: Date;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  // 2FA
+  twoFA?: {
+    enabled: boolean;
+    secret?: string;       // TOTP secret (encrypted at rest via env)
+    pendingSecret?: string; // Unconfirmed secret during setup
+  };
+  // Per-challenge attempt tracking
+  challengeAttempts?: {
+    challengeId: string;
+    attempts: number;        // wrong attempts so far
+    replacedBy?: string;     // new challengeId shown instead after 2 failures
+  }[];
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -603,6 +615,18 @@ const userSchema = new Schema<IUser>(
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    twoFA: {
+      enabled: { type: Boolean, default: false },
+      secret: { type: String, select: false },
+      pendingSecret: { type: String, select: false },
+    },
+    challengeAttempts: [
+      {
+        challengeId: { type: String, required: true },
+        attempts: { type: Number, default: 0 },
+        replacedBy: { type: String },
+      },
+    ],
   },
   { timestamps: true }
 );

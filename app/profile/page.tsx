@@ -11,8 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Medal, Github, Twitter, Linkedin, LogOut, Code, User, Settings as SettingsIcon, Mail, Crown } from 'lucide-react';
+import { Trophy, Medal, Github, Twitter, Linkedin, LogOut, Code, User, Settings as SettingsIcon, Mail, Crown, ShieldCheck, ShieldOff, Shield } from 'lucide-react';
 import Link from 'next/link';
+import { OTPInput, REGEXP_ONLY_DIGITS, SlotProps } from 'input-otp';
+import { cn } from '@/lib/utils';
 
 interface UserProfile {
     _id: string;
@@ -24,6 +26,7 @@ interface UserProfile {
     bio?: string;
     country: string;
     isPro?: boolean;
+    twoFA?: { enabled: boolean };
     socialLinks: {
         twitter?: string;
         github?: string;
@@ -31,24 +34,35 @@ interface UserProfile {
     };
 }
 
+function OtpSlot({ char, hasFakeCaret, isActive }: SlotProps) {
+    return (
+        <div className={cn(
+            'w-10 h-12 flex items-center justify-center border rounded-lg text-lg font-mono font-bold transition-all',
+            isActive ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-border bg-card',
+        )}>
+            {char ?? <span className="text-muted-foreground/30">·</span>}
+            {hasFakeCaret && <div className="w-px h-5 bg-primary animate-caret-blink ml-px" />}
+        </div>
+    );
+}
+
 export default function ProfilePage() {
     const router = useRouter();
     const { toast } = useToast();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
-    const [editForm, setEditForm] = useState({
-        bio: '',
-        twitter: '',
-        github: '',
-        linkedin: '',
-    });
+    const [editForm, setEditForm] = useState({ bio: '', twitter: '', github: '', linkedin: '' });
+
+    // 2FA state
+    const [twoFAEnabled, setTwoFAEnabled] = useState(false);
+    const [twoFAStep, setTwoFAStep] = useState<'idle' | 'setup' | 'disabling'>('idle');
+    const [qrDataUrl, setQrDataUrl] = useState('');
+    const [totpCode, setTotpCode] = useState('');
+    const [twoFALoading, setTwoFALoading] = useState(false);
 
     useEffect(() => {
         const token = localStorage.getItem('userToken');
-        if (!token) {
-            router.push('/login');
-            return;
-        }
+        if (!token) { router.push('/login'); return; }
         fetchProfile(token);
     }, []);
 
@@ -57,19 +71,17 @@ export default function ProfilePage() {
             const res = await fetch('/api/users/profile', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-
             if (!res.ok) throw new Error('Failed to fetch profile');
-
             const data = await res.json();
             setProfile(data);
+            setTwoFAEnabled(!!data.twoFA?.enabled);
             setEditForm({
                 bio: data.bio || '',
                 twitter: data.socialLinks?.twitter || '',
                 github: data.socialLinks?.github || '',
                 linkedin: data.socialLinks?.linkedin || '',
             });
-        } catch (error) {
-            console.error(error);
+        } catch {
             handleLogout();
         } finally {
             setLoading(false);
@@ -87,31 +99,90 @@ export default function ProfilePage() {
         e.preventDefault();
         const token = localStorage.getItem('userToken');
         if (!token) return;
-
         try {
             const res = await fetch('/api/users/profile', {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({
                     bio: editForm.bio,
-                    socialLinks: {
-                        twitter: editForm.twitter,
-                        github: editForm.github,
-                        linkedin: editForm.linkedin,
-                    }
-                })
+                    socialLinks: { twitter: editForm.twitter, github: editForm.github, linkedin: editForm.linkedin },
+                }),
             });
-
             if (!res.ok) throw new Error('Update failed');
-
             const updated = await res.json();
             setProfile(updated);
             toast({ title: 'Success', description: 'Profile updated' });
-        } catch (error) {
+        } catch {
             toast({ title: 'Error', description: 'Failed to update profile', variant: 'destructive' });
+        }
+    };
+
+    // ── 2FA handlers ──────────────────────────────────────────────────────────
+    const startSetup2FA = async () => {
+        const token = localStorage.getItem('userToken');
+        if (!token) return;
+        setTwoFALoading(true);
+        try {
+            const res = await fetch('/api/auth/2fa/setup', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            setQrDataUrl(data.qrDataUrl);
+            setTotpCode('');
+            setTwoFAStep('setup');
+        } catch (err: any) {
+            toast({ title: 'Error', description: err.message || 'Failed to start 2FA setup', variant: 'destructive' });
+        } finally {
+            setTwoFALoading(false);
+        }
+    };
+
+    const confirmSetup2FA = async () => {
+        if (totpCode.length !== 6) return;
+        const token = localStorage.getItem('userToken');
+        if (!token) return;
+        setTwoFALoading(true);
+        try {
+            const res = await fetch('/api/auth/2fa/setup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ token: totpCode }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            setTwoFAEnabled(true);
+            setTwoFAStep('idle');
+            setTotpCode('');
+            toast({ title: '2FA Enabled', description: 'Two-factor authentication is now active.' });
+        } catch (err: any) {
+            toast({ title: 'Error', description: err.message || 'Invalid code', variant: 'destructive' });
+        } finally {
+            setTwoFALoading(false);
+        }
+    };
+
+    const disable2FA = async () => {
+        if (totpCode.length !== 6) return;
+        const token = localStorage.getItem('userToken');
+        if (!token) return;
+        setTwoFALoading(true);
+        try {
+            const res = await fetch('/api/auth/2fa/disable', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ token: totpCode }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            setTwoFAEnabled(false);
+            setTwoFAStep('idle');
+            setTotpCode('');
+            toast({ title: '2FA Disabled', description: 'Two-factor authentication has been turned off.' });
+        } catch (err: any) {
+            toast({ title: 'Error', description: err.message || 'Invalid code', variant: 'destructive' });
+        } finally {
+            setTwoFALoading(false);
         }
     };
 
@@ -177,9 +248,10 @@ export default function ProfilePage() {
 
                     {/* Tabs */}
                     <Tabs defaultValue="overview" className="space-y-6">
-                        <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+                        <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
                             <TabsTrigger value="overview">Overview</TabsTrigger>
                             <TabsTrigger value="settings">Settings</TabsTrigger>
+                            <TabsTrigger value="security">Security</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="overview" className="space-y-6">
@@ -263,38 +335,185 @@ export default function ProfilePage() {
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div className="space-y-2">
                                                 <Label>Twitter</Label>
-                                                <Input
-                                                    value={editForm.twitter}
-                                                    onChange={e => setEditForm({ ...editForm, twitter: e.target.value })}
-                                                    placeholder="https://twitter.com/..."
-                                                />
+                                                <Input value={editForm.twitter} onChange={e => setEditForm({ ...editForm, twitter: e.target.value })} placeholder="https://twitter.com/..." />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>GitHub</Label>
-                                                <Input
-                                                    value={editForm.github}
-                                                    onChange={e => setEditForm({ ...editForm, github: e.target.value })}
-                                                    placeholder="https://github.com/..."
-                                                />
+                                                <Input value={editForm.github} onChange={e => setEditForm({ ...editForm, github: e.target.value })} placeholder="https://github.com/..." />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>LinkedIn</Label>
-                                                <Input
-                                                    value={editForm.linkedin}
-                                                    onChange={e => setEditForm({ ...editForm, linkedin: e.target.value })}
-                                                    placeholder="https://linkedin.com/..."
-                                                />
+                                                <Input value={editForm.linkedin} onChange={e => setEditForm({ ...editForm, linkedin: e.target.value })} placeholder="https://linkedin.com/..." />
                                             </div>
                                         </div>
 
                                         <div className="flex justify-between pt-4 border-t">
                                             <Button type="button" variant="destructive" onClick={handleLogout} className="gap-2">
-                                                <LogOut className="w-4 h-4" />
-                                                Logout
+                                                <LogOut className="w-4 h-4" /> Logout
                                             </Button>
                                             <Button type="submit">Save Changes</Button>
                                         </div>
                                     </form>
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+
+                        {/* ── Security Tab ─────────────────────────────────────────────── */}
+                        <TabsContent value="security" className="space-y-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Shield className="w-5 h-5 text-primary" /> Two-Factor Authentication
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Add an extra layer of security. You'll need your authenticator app when signing in.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+
+                                    {/* Status Badge */}
+                                    <div className="flex items-center gap-3 p-4 rounded-lg border bg-muted/20">
+                                        {twoFAEnabled ? (
+                                            <>
+                                                <div className="w-10 h-10 rounded-full bg-green-500/15 flex items-center justify-center">
+                                                    <ShieldCheck className="w-5 h-5 text-green-500" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-green-500">2FA is Active</p>
+                                                    <p className="text-xs text-muted-foreground">Your account is protected with TOTP.</p>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="w-10 h-10 rounded-full bg-orange-500/15 flex items-center justify-center">
+                                                    <ShieldOff className="w-5 h-5 text-orange-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-orange-400">2FA is Disabled</p>
+                                                    <p className="text-xs text-muted-foreground">Enable 2FA to secure your account.</p>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* ── Idle — Show action buttons ────────────────── */}
+                                    {twoFAStep === 'idle' && (
+                                        <div className="flex gap-3">
+                                            {!twoFAEnabled ? (
+                                                <Button onClick={startSetup2FA} disabled={twoFALoading} className="gap-2">
+                                                    <ShieldCheck className="w-4 h-4" />
+                                                    {twoFALoading ? 'Generating QR...' : 'Enable 2FA'}
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="destructive"
+                                                    onClick={() => { setTwoFAStep('disabling'); setTotpCode(''); }}
+                                                    className="gap-2"
+                                                >
+                                                    <ShieldOff className="w-4 h-4" /> Disable 2FA
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* ── Setup flow ───────────────────────────────── */}
+                                    {twoFAStep === 'setup' && (
+                                        <div className="space-y-5 max-w-sm">
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-medium">Step 1 — Scan the QR code</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Open <strong>Google Authenticator</strong>, <strong>Authy</strong>, or any TOTP app and scan:
+                                                </p>
+                                            </div>
+                                            {qrDataUrl && (
+                                                <div className="p-3 rounded-xl border bg-white w-fit">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={qrDataUrl} alt="2FA QR Code" className="w-44 h-44" />
+                                                </div>
+                                            )}
+                                            <div className="space-y-2">
+                                                <p className="text-sm font-medium">Step 2 — Enter the 6-digit code to confirm</p>
+                                                <OTPInput
+                                                    id="setup-totp"
+                                                    maxLength={6}
+                                                    pattern={REGEXP_ONLY_DIGITS}
+                                                    value={totpCode}
+                                                    onChange={setTotpCode}
+                                                    containerClassName="flex gap-2"
+                                                    render={({ slots }) => (
+                                                        <>{slots.map((slot, i) => <OtpSlot key={i} {...slot} />)}</>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div className="flex gap-3">
+                                                <Button
+                                                    onClick={confirmSetup2FA}
+                                                    disabled={twoFALoading || totpCode.length !== 6}
+                                                    className="gap-2"
+                                                >
+                                                    <ShieldCheck className="w-4 h-4" />
+                                                    {twoFALoading ? 'Verifying...' : 'Confirm & Activate'}
+                                                </Button>
+                                                <Button variant="outline" onClick={() => { setTwoFAStep('idle'); setTotpCode(''); }}>
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── Disable flow ─────────────────────────────── */}
+                                    {twoFAStep === 'disabling' && (
+                                        <div className="space-y-5 max-w-sm">
+                                            <p className="text-sm text-muted-foreground">
+                                                Enter your current authenticator code to disable 2FA.
+                                            </p>
+                                            <OTPInput
+                                                id="disable-totp"
+                                                maxLength={6}
+                                                pattern={REGEXP_ONLY_DIGITS}
+                                                value={totpCode}
+                                                onChange={setTotpCode}
+                                                containerClassName="flex gap-2"
+                                                render={({ slots }) => (
+                                                    <>{slots.map((slot, i) => <OtpSlot key={i} {...slot} />)}</>
+                                                )}
+                                            />
+                                            <div className="flex gap-3">
+                                                <Button
+                                                    variant="destructive"
+                                                    onClick={disable2FA}
+                                                    disabled={twoFALoading || totpCode.length !== 6}
+                                                    className="gap-2"
+                                                >
+                                                    <ShieldOff className="w-4 h-4" />
+                                                    {twoFALoading ? 'Disabling...' : 'Confirm Disable'}
+                                                </Button>
+                                                <Button variant="outline" onClick={() => { setTwoFAStep('idle'); setTotpCode(''); }}>
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                </CardContent>
+                            </Card>
+
+                            {/* Certificate link card */}
+                            <Card className="border-primary/20 bg-primary/5">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        🏆 Certificate of Achievement
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Generate a personalized PDF certificate for your HackXtras accomplishments.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Link href="/certificate">
+                                        <Button variant="outline" className="gap-2 border-primary/30 hover:bg-primary/10">
+                                            Go to Certificate Generator →
+                                        </Button>
+                                    </Link>
                                 </CardContent>
                             </Card>
                         </TabsContent>

@@ -40,8 +40,8 @@ export default function AdminChannelsPage() {
 
   const fetchChannels = async () => {
     try {
-      const data = await request('/api/channels');
-      setChannels(data);
+      const res = await request('/api/channels');
+      setChannels(res.data || res || []);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch channels', variant: 'destructive' });
     }

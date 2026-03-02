@@ -46,8 +46,8 @@ export default function AdminTeamPage() {
 
   const fetchMembers = async () => {
     try {
-      const data = await request('/api/team');
-      setMembers(data);
+      const res = await request('/api/team');
+      setMembers(res.data || res || []);
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to fetch team members', variant: 'destructive' });
     }

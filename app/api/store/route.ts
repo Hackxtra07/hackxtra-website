@@ -1,6 +1,6 @@
 import { connectDB } from '@/lib/mongodb';
 import { StoreItem, User } from '@/lib/models';
-import { authenticateRequest, createErrorResponse, createSuccessResponse, getAuthenticatedUser } from '@/lib/auth';
+import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
         // Check if user is admin to see all items, otherwise only active
         const user = await authenticateRequest(request); // Optional auth for viewing
 
-        let filter = { isActive: true };
+        let filter: any = { isActive: true };
         if (user && user.role === 'admin') {
             filter = {}; // Admin sees all
         }

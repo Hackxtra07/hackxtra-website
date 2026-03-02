@@ -107,7 +107,21 @@ export default function ChallengesPage() {
                 // Refresh data to remove the solved challenge and show any new ones added by replenishment
                 fetchData();
             } else {
-                toast({ title: 'Incorrect', description: data.error, variant: 'destructive' });
+                if (data.replaced) {
+                    toast({
+                        title: 'Challenge Replaced',
+                        description: 'You used all 2 attempts. The challenge has been replaced.',
+                        variant: 'destructive'
+                    });
+                    // Clear input for this ID
+                    const newInputs = { ...inputs };
+                    delete newInputs[id];
+                    setInputs(newInputs);
+                    fetchData(); // Refresh list to show new challenge
+                } else {
+                    const attemptsLeft = data.attemptsLeft !== undefined ? ` (${data.attemptsLeft} attempts left)` : '';
+                    toast({ title: 'Incorrect', description: `${data.error}${attemptsLeft}`, variant: 'destructive' });
+                }
             }
         } catch (error) {
             toast({ title: 'Error', description: 'Submission failed', variant: 'destructive' });

@@ -20,8 +20,7 @@ export async function GET(request: NextRequest) {
         }
 
         const query = isAdminRequest ? {} : { isPublished: true };
-        const sort = { publishedAt: -1, createdAt: -1 };
-
+        const sort: any = { publishedAt: -1, createdAt: -1 };
         const news = await News.find(query).sort(sort);
 
         return createSuccessResponse({ success: true, data: news });

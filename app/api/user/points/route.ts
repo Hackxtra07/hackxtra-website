@@ -1,6 +1,6 @@
 import { connectDB } from '@/lib/mongodb';
 import { User } from '@/lib/models';
-import { authenticateRequest, createErrorResponse, createSuccessResponse, getAuthenticatedUser } from '@/lib/auth';
+import { authenticateRequest, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
