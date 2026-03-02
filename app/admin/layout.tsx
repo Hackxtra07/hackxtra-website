@@ -24,6 +24,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     } else {
       setIsAuth(!!token);
     }
+
+    // Close sidebar by default on mobile
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
   }, [router, pathname]);
 
   const handleLogout = () => {
@@ -63,29 +68,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen bg-black text-white selection:bg-blue-500/30">
+    <div className="flex h-screen bg-black text-white selection:bg-blue-500/30 overflow-hidden">
       {/* Background Effects */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f1f_1px,transparent_1px),linear-gradient(to_bottom,#1f1f1f_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       </div>
 
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
-        className={`${sidebarOpen ? 'w-64' : 'w-20'
-          } bg-black/80 backdrop-blur-xl border-r border-white/10 transition-all duration-300 flex flex-col relative z-20`}
+        className={`fixed inset-y-0 left-0 z-40 md:relative md:translate-x-0 transition-transform duration-300 transform ${sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'
+          } bg-black/80 backdrop-blur-xl border-r border-white/10 flex flex-col`}
       >
         <div className="p-4 flex items-center justify-between border-b border-white/10 h-16">
-          {sidebarOpen && (
-            <div className="flex items-center gap-2 font-bold text-xl tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">
+          {(sidebarOpen || !sidebarOpen) && (
+            <div className={`flex items-center gap-2 font-bold text-xl tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 ${!sidebarOpen && 'md:hidden'}`}>
               <ShieldAlert className="h-6 w-6 text-blue-500" />
-              HackXtras
+              {sidebarOpen && "HackXtras"}
             </div>
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} className="md:hidden" />}
+            {!sidebarOpen && <Menu size={20} className="hidden md:block" />}
           </button>
         </div>
 
@@ -94,7 +108,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             const isActive = pathname === item.href;
             const Icon = item.icon;
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} onClick={() => {
+                if (window.innerWidth < 768) setSidebarOpen(false);
+              }}>
                 <div
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group ${isActive
                     ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
@@ -102,7 +118,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     }`}
                 >
                   <Icon size={20} className={isActive ? 'animate-pulse' : ''} />
-                  {sidebarOpen && <span className="font-medium text-sm">{item.name}</span>}
+                  <span className={`font-medium text-sm ${!sidebarOpen ? 'md:hidden' : 'block'}`}>{item.name}</span>
 
                   {isActive && sidebarOpen && (
                     <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_5px_currentColor]" />
@@ -127,21 +143,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10">
-        <header className="h-16 bg-black/50 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-6">
-          <h2 className="text-xl font-bold text-gray-200 flex items-center gap-2">
-            <span className="text-blue-500">/</span>
-            {menuItems.find(i => i.href === pathname)?.name || 'Admin'}
-          </h2>
+        <header className="h-16 bg-black/50 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <div className="text-xs text-gray-500 uppercase font-mono">Logged in as</div>
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 hover:bg-white/10 rounded-lg md:hidden text-gray-400"
+            >
+              <Menu size={22} />
+            </button>
+            <h2 className="text-lg md:text-xl font-bold text-gray-200 flex items-center gap-2">
+              <span className="text-blue-500">/</span>
+              {menuItems.find(i => i.href === pathname)?.name || 'Admin'}
+            </h2>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right hidden lg:block">
+              <div className="text-[10px] text-gray-500 uppercase font-mono leading-none">Logged in as</div>
               <div className="text-sm font-bold text-gray-300 font-mono">{localStorage.getItem('adminEmail')}</div>
             </div>
             <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 ring-2 ring-white/10" />
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <main className="flex-1 overflow-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
           {children}
         </main>
       </div>

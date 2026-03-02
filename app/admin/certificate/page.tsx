@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Header } from "@/components/hackxtras/header";
-import { Footer } from "@/components/hackxtras/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,126 +112,164 @@ export default function AdminCertificatePage() {
     if (loading) return <div className="min-h-screen flex items-center justify-center">Loading Admin Panel...</div>;
 
     return (
-        <div className="min-h-screen bg-background">
-            <Header />
-            <main className="pt-32 pb-24 px-6">
-                <div className="max-w-4xl mx-auto space-y-8">
-                    <div className="space-y-2">
-                        <h1 className="text-4xl font-bold font-display flex items-center gap-3">
-                            <Award className="w-10 h-10 text-primary" /> Admin Certificate Manager
-                        </h1>
-                        <p className="text-muted-foreground text-lg">Search for a user and generate their official achievement certificate.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Search Section */}
-                        <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-xl">
-                                    <Search className="w-5 h-5 text-primary" /> Find User
-                                </CardTitle>
-                                <CardDescription>Search by username or email.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Enter name or email..."
-                                        className="pl-10"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-                                    {filteredUsers.length === 0 && searchQuery && (
-                                        <p className="text-center py-8 text-muted-foreground italic">No users found matching "{searchQuery}"</p>
-                                    )}
-                                    {filteredUsers.map(user => (
-                                        <div
-                                            key={user._id}
-                                            onClick={() => setSelectedUser(user)}
-                                            className={`p-3 rounded-lg border transition-all cursor-pointer flex items-center justify-between ${selectedUser?._id === user._id
-                                                ? 'bg-primary/20 border-primary shadow-[0_0_15px_rgba(var(--primary),0.1)]'
-                                                : 'bg-background hover:bg-muted/50 border-border'
-                                                }`}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                                    {user.username.substring(0, 2).toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold">{user.username}</p>
-                                                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-bold text-primary">{user.points} pts</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Configuration Section */}
-                        <Card className={`border-primary/20 bg-card/50 backdrop-blur-sm transition-opacity ${!selectedUser ? 'opacity-50 grayscale' : 'opacity-100'}`}>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-xl">
-                                    <FileText className="w-5 h-5 text-primary" /> Certificate Options
-                                </CardTitle>
-                                <CardDescription>Configure details for the selected user.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                {selectedUser ? (
-                                    <>
-                                        <div className="pb-4 border-b border-border/50">
-                                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Generating for</Label>
-                                            <p className="text-2xl font-bold flex items-center gap-2">
-                                                <UserIcon className="w-5 h-5 text-primary" /> {selectedUser.username}
-                                            </p>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="achievement">Custom Achievement Text (Optional)</Label>
-                                            <Input
-                                                id="achievement"
-                                                placeholder={`Completing Cybersecurity Challenges with ${selectedUser.points} Points`}
-                                                value={achievement}
-                                                onChange={(e) => setAchievement(e.target.value)}
-                                            />
-                                            <p className="text-[10px] text-muted-foreground">Leave empty to use the default achievement text based on points.</p>
-                                        </div>
-
-                                        <div className="pt-4 flex flex-col gap-3">
-                                            <Button
-                                                className="w-full gap-2 h-12 text-lg shadow-lg shadow-primary/20"
-                                                onClick={() => handleGenerate(true)}
-                                                disabled={processing}
-                                            >
-                                                <Send className="w-5 h-5" /> Generate & Notify User
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                className="w-full gap-2"
-                                                onClick={() => handleGenerate(false)}
-                                                disabled={processing}
-                                            >
-                                                <FileText className="w-4 h-4" /> Just Download PDF
-                                            </Button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="py-20 text-center flex flex-col items-center gap-4 text-muted-foreground">
-                                        <UserIcon className="w-12 h-12 opacity-20" />
-                                        <p>Select a user from the list to continue</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
+        <div className="space-y-6 max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+                        <Award className="w-8 h-8 text-blue-500" /> Certificate Manager
+                    </h1>
+                    <p className="text-gray-400 text-sm md:text-base">Issue official achievement certificates to platform users.</p>
                 </div>
-            </main>
-            <Footer />
+                {selectedUser && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                            setSelectedUser(null);
+                            setAchievement('');
+                        }}
+                        className="w-fit border-white/10 text-gray-400 hover:text-white"
+                    >
+                        Clear Selection
+                    </Button>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                {/* Search Section */}
+                <Card className="lg:col-span-2 border-white/10 bg-white/5 backdrop-blur-md overflow-hidden flex flex-col h-[500px] md:h-[600px]">
+                    <CardHeader className="pb-3 px-4 md:px-6">
+                        <CardTitle className="flex items-center gap-2 text-lg text-white">
+                            <Search className="w-4 h-4 text-blue-400" /> Find User
+                        </CardTitle>
+                        <CardDescription className="text-gray-500 text-xs text-balance">Search by username or email address.</CardDescription>
+                    </CardHeader>
+                    <div className="px-4 md:px-6 pb-4">
+                        <div className="relative group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-400 transition-colors" />
+                            <Input
+                                placeholder="Filter users..."
+                                className="pl-10 bg-black/40 border-white/10 focus:border-blue-500/50 transition-all"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <CardContent className="flex-1 overflow-y-auto pr-1 px-2 md:px-4 space-y-2 scrollbar-thin scrollbar-thumb-white/10">
+                        {filteredUsers.length === 0 && searchQuery && (
+                            <div className="text-center py-12 text-gray-500 italic space-y-2">
+                                <Users className="w-8 h-8 mx-auto opacity-20" />
+                                <p>No users found matching "{searchQuery}"</p>
+                            </div>
+                        )}
+                        {filteredUsers.map(user => (
+                            <div
+                                key={user._id}
+                                onClick={() => setSelectedUser(user)}
+                                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${selectedUser?._id === user._id
+                                    ? 'bg-blue-600/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                                    : 'bg-white/5 hover:bg-white/10 border-transparent hover:border-white/10'
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${selectedUser?._id === user._id ? 'bg-blue-500 text-white' : 'bg-white/10 text-gray-400'
+                                        }`}>
+                                        {user.username.substring(0, 2).toUpperCase()}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-medium text-sm text-gray-200 truncate">{user.username}</p>
+                                        <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right shrink-0">
+                                    <p className="text-xs font-mono font-bold text-blue-400">{user.points} pt</p>
+                                </div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+                {/* Configuration Section */}
+                <Card className={`lg:col-span-3 border-white/10 bg-white/5 backdrop-blur-md transition-all duration-300 ${!selectedUser ? 'opacity-40 grayscale pointer-events-none' : 'opacity-100'}`}>
+                    <CardHeader className="px-4 md:px-6">
+                        <CardTitle className="flex items-center gap-2 text-lg text-white">
+                            <FileText className="w-4 h-4 text-blue-400" /> Certificate Options
+                        </CardTitle>
+                        <CardDescription className="text-gray-500 text-xs">Configure details for the selected recipient.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6 px-4 md:px-6">
+                        {selectedUser ? (
+                            <>
+                                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                                        <UserIcon className="w-6 h-6" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <Label className="text-[10px] uppercase tracking-widest text-blue-400/70 font-bold mb-1 block">Active Recipient</Label>
+                                        <p className="text-xl font-bold text-white truncate">{selectedUser.username}</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <Label htmlFor="achievement" className="text-gray-300 text-sm">Custom Achievement Text</Label>
+                                    <Input
+                                        id="achievement"
+                                        placeholder={`Completing Cybersecurity Challenges with ${selectedUser.points} Points`}
+                                        className="bg-black/40 border-white/10 focus:border-blue-500/50 h-12"
+                                        value={achievement}
+                                        onChange={(e) => setAchievement(e.target.value)}
+                                    />
+                                    <div className="flex items-start gap-2 bg-white/5 p-3 rounded-lg">
+                                        <InformationCircle className="w-4 h-4 text-gray-500 mt-0.5 shrink-0" />
+                                        <p className="text-[10px] text-gray-500 leading-relaxed italic">
+                                            If left blank, it defaults to: "Completing Cybersecurity Challenges with {selectedUser.points} Points"
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                                    <Button
+                                        className="w-full gap-2 h-14 bg-blue-600 hover:bg-blue-500 text-white font-bold shadow-lg shadow-blue-500/20 order-2 sm:order-1"
+                                        onClick={() => handleGenerate(true)}
+                                        disabled={processing}
+                                    >
+                                        {processing ? 'Processing...' : (
+                                            <>
+                                                <Send className="w-5 h-5" /> Generate & Notify
+                                            </>
+                                        )}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full gap-2 h-14 border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 order-1 sm:order-2"
+                                        onClick={() => handleGenerate(false)}
+                                        disabled={processing}
+                                    >
+                                        <FileText className="w-5 h-5" /> Instant Download
+                                    </Button>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-24 text-center flex flex-col items-center gap-4 text-gray-600">
+                                <div className="relative">
+                                    <UserIcon className="w-16 h-16 opacity-10" />
+                                    <Award className="w-8 h-8 absolute -bottom-2 -right-2 text-blue-500 opacity-20" />
+                                </div>
+                                <p className="max-w-[200px] text-sm">Select a user from the list to visualize and configure their certificate</p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
+    );
+}
+
+// Simple Info Icon replacement since I don't know if Info exists in lucide-react here
+function InformationCircle({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+        </svg>
     );
 }
