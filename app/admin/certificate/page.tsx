@@ -20,7 +20,7 @@ interface User {
 
 export default function AdminCertificatePage() {
     const { toast } = useToast();
-    const { fetchApi } = useApi();
+    const { request, loading: apiLoading } = useApi();
     const [users, setUsers] = useState<User[]>([]);
     const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -44,7 +44,7 @@ export default function AdminCertificatePage() {
 
     const fetchUsers = async () => {
         try {
-            const data = await fetchApi('/api/users');
+            const data = await request('/api/users');
             setUsers(data);
             setFilteredUsers(data);
         } catch (error) {
