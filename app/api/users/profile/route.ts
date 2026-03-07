@@ -17,6 +17,9 @@ export async function GET(request: NextRequest) {
             return createErrorResponse('User not found', 404);
         }
 
+        const { Certificate } = await import('@/lib/models');
+        const certificates = await Certificate.find({ userId: user._id }).sort({ issuedAt: -1 });
+
         // Retroactive Badge Check
         const { awardBadges } = await import('@/lib/badge-utils');
         await awardBadges(user._id);
@@ -26,7 +29,8 @@ export async function GET(request: NextRequest) {
 
         return createSuccessResponse({
             ...user.toObject(),
-            rank
+            rank,
+            certificates
         });
     } catch (error) {
         console.error('Profile fetch error:', error);

@@ -16,6 +16,13 @@ import Link from 'next/link';
 import { OTPInput, REGEXP_ONLY_DIGITS, SlotProps } from 'input-otp';
 import { cn } from '@/lib/utils';
 
+interface Certificate {
+    _id: string;
+    achievement: string;
+    certId: string;
+    issuedAt: string;
+}
+
 interface UserProfile {
     _id: string;
     username: string;
@@ -23,6 +30,7 @@ interface UserProfile {
     points: number;
     badges: string[];
     solvedChallenges?: string[];
+    certificates?: Certificate[];
     bio?: string;
     country: string;
     isPro?: boolean;
@@ -186,6 +194,34 @@ export default function ProfilePage() {
         }
     };
 
+    const handleDownloadCertificate = async (achievement: string) => {
+        const token = localStorage.getItem('userToken');
+        if (!token || !profile) return;
+
+        try {
+            const params = new URLSearchParams({
+                userId: profile._id,
+                achievement: achievement
+            });
+            const res = await fetch(`/api/certificate?${params.toString()}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Download failed');
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Certificate-${achievement.replace(/\s+/g, '_')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch {
+            toast({ title: 'Error', description: 'Failed to download certificate', variant: 'destructive' });
+        }
+    };
+
     if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
     if (!profile) return null;
 
@@ -248,12 +284,70 @@ export default function ProfilePage() {
 
                     {/* Tabs */}
                     <Tabs defaultValue="overview" className="space-y-6">
-                        <TabsList className="grid w-full grid-cols-3 max-w-[500px]">
+                        <TabsList className="grid w-full grid-cols-4 max-w-[600px]">
                             <TabsTrigger value="overview">Overview</TabsTrigger>
+                            <TabsTrigger value="certificates">Certificates</TabsTrigger>
                             <TabsTrigger value="settings">Settings</TabsTrigger>
                             <TabsTrigger value="security">Security</TabsTrigger>
                         </TabsList>
 
+                        <TabsContent value="certificates" className="space-y-6">
+                            <Card className="border-border/50 bg-card/30 backdrop-blur-xl group overflow-hidden relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
+                                <CardHeader className="relative z-10">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <CardTitle className="text-2xl font-black tracking-tight flex items-center gap-3">
+                                                <Award className="w-6 h-6 text-primary" />
+                                                Verified Credentials
+                                            </CardTitle>
+                                            <CardDescription className="font-medium mt-1">Official manifolds of your cybersecurity prowess.</CardDescription>
+                                        </div>
+                                        <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
+                                            <ShieldCheck className="w-3.5 h-3.5" /> Zero-Trust Verified
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="relative z-10">
+                                    {!profile.certificates || profile.certificates.length === 0 ? (
+                                        <div className="py-20 text-center flex flex-col items-center gap-6 opacity-40">
+                                            <Award className="w-20 h-20 text-muted-foreground" />
+                                            <div>
+                                                <p className="font-bold text-lg">No Credentials Issued</p>
+                                                <p className="text-sm">Complete high-level challenges or achievements to earn professional certification.</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {profile.certificates.map((cert) => (
+                                                <Card key={cert._id} className="bg-black/40 border-white/5 hover:border-primary/40 transition-all duration-500 overflow-hidden group/cert">
+                                                    <div className="p-6 flex gap-6">
+                                                        <div className="w-20 h-20 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary group-hover/cert:scale-110 transition-transform duration-500 shadow-2xl">
+                                                            <Award className="w-10 h-10" />
+                                                        </div>
+                                                        <div className="flex-1 space-y-3">
+                                                            <div>
+                                                                <h4 className="font-black text-white tracking-tight leading-tight line-clamp-2">{cert.achievement}</h4>
+                                                                <div className="flex items-center gap-3 mt-2">
+                                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-md">ID: {cert.certId}</span>
+                                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{new Date(cert.issuedAt).toLocaleDateString()}</span>
+                                                                </div>
+                                                            </div>
+                                                            <Button
+                                                                onClick={() => handleDownloadCertificate(cert.achievement)}
+                                                                className="w-full h-10 bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground font-black uppercase tracking-widest text-[9px] gap-2 rounded-xl border border-primary/20 transition-all active:scale-95"
+                                                            >
+                                                                Download Credential
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
                         <TabsContent value="overview" className="space-y-6">
                             {/* Bio & Stats */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -502,8 +596,8 @@ export default function ProfilePage() {
                         </TabsContent>
                     </Tabs>
                 </div>
-            </main>
+            </main >
             <Footer />
-        </div>
+        </div >
     );
 }

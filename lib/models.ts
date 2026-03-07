@@ -1061,3 +1061,30 @@ adminLogSchema.index({ adminId: 1 });
 adminLogSchema.index({ targetType: 1 });
 
 export const AdminLog = mongoose.models.AdminLog || mongoose.model<IAdminLog>('AdminLog', adminLogSchema);
+
+// Certificate Model
+export interface ICertificate extends Document {
+  userId: mongoose.Types.ObjectId;
+  recipientName: string;
+  achievement: string;
+  certId: string;
+  issuedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const certificateSchema = new Schema<ICertificate>(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    recipientName: { type: String, required: true },
+    achievement: { type: String, required: true },
+    certId: { type: String, required: true, unique: true },
+    issuedAt: { type: Date, default: Date.now },
+  },
+  { timestamps: true }
+);
+
+certificateSchema.index({ userId: 1 });
+certificateSchema.index({ certId: 1 });
+
+export const Certificate = mongoose.models.Certificate || mongoose.model<ICertificate>('Certificate', certificateSchema);

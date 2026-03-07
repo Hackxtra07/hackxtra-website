@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateRequest, createErrorResponse } from '@/lib/auth';
 import { connectDB } from '@/lib/mongodb';
-import { User } from '@/lib/models';
+import { User, Certificate } from '@/lib/models';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { recordAdminAction } from '@/lib/admin-logger';
+import crypto from 'node:crypto';
 
 /**
- * GET /api/certificate?name=...&achievement=...
- * Generates and streams a styled PDF certificate for the authenticated user.
+ * GET /api/certificate?userId=...&achievement=...
+ * Generates and streams a styled PDF certificate.
  */
 export async function GET(request: NextRequest) {
     try {
@@ -17,8 +18,8 @@ export async function GET(request: NextRequest) {
         }
 
         const auth = await authenticateRequest(request);
-        if (!auth || auth.role !== 'admin') {
-            return createErrorResponse('Unauthorized — Admin access required.', 401);
+        if (!auth) {
+            return createErrorResponse('Unauthorized', 401);
         }
 
         const { searchParams } = new URL(request.url);
@@ -28,19 +29,29 @@ export async function GET(request: NextRequest) {
             return createErrorResponse('User ID is required', 400);
         }
 
+        // Allow if admin OR if it's the user's own ID
+        const isSelf = auth.id === targetUserId;
+        const isAdmin = auth.role === 'admin';
+
+        if (!isAdmin && !isSelf) {
+            return createErrorResponse('Unauthorized — You can only access your own credentials.', 403);
+        }
+
         await connectDB();
         const user = await User.findById(targetUserId);
         if (!user) return createErrorResponse('User not found', 404);
 
-        // Record admin action
-        await recordAdminAction(
-            request,
-            auth,
-            'GENERATE_CERTIFICATE',
-            'User',
-            targetUserId,
-            { username: user.username, achievement: searchParams.get('achievement') }
-        );
+        // Record admin action if it's an admin generating
+        if (isAdmin && !isSelf) {
+            await recordAdminAction(
+                request,
+                auth,
+                'GENERATE_CERTIFICATE',
+                'User',
+                targetUserId,
+                { username: user.username, achievement: searchParams.get('achievement') }
+            );
+        }
 
         // Send notification message if not already sent for this specific session/request
         const shouldNotify = searchParams.get('notify') === 'true';
@@ -63,17 +74,60 @@ export async function GET(request: NextRequest) {
 
         const recipientName = searchParams.get('name')?.trim() || user.username;
         const achievement = searchParams.get('achievement')?.trim() || `Completing Cybersecurity Challenges with ${user.points} Points`;
-        const issuedDate = new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-        });
-        const certId = crypto.randomUUID().split('-')[0].toUpperCase();
+
+        // Try to handle certificate persistence
+        let certId = '';
+        let issuedDate = '';
+
+        const existingCert = await Certificate.findOne({ userId: user._id, achievement });
+
+        if (existingCert) {
+            certId = existingCert.certId;
+            issuedDate = existingCert.issuedAt.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            });
+        } else if (isAdmin) {
+            // Only admin can create new certificate records
+            certId = crypto.randomUUID().split('-')[0].toUpperCase();
+            await Certificate.create({
+                userId: user._id,
+                recipientName,
+                achievement,
+                certId,
+            });
+            issuedDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            });
+        } else {
+            return createErrorResponse('No valid certificate found for this achievemnt. Ask an admin to generate one.', 404);
+        }
+
+        // ── Notification Logic ──
+        const shouldNotify = searchParams.get('notify') === 'true';
+        if (shouldNotify && isAdmin) {
+            const { Message, Admin: AdminModel } = await import('@/lib/models');
+            const currentAdmin = await AdminModel.findOne({ email: auth.email });
+
+            if (currentAdmin) {
+                await Message.create({
+                    sender: currentAdmin._id,
+                    senderModel: 'Admin',
+                    recipient: user._id,
+                    recipientModel: 'User',
+                    content: `Congratulations! Your certificate for "${achievement}" has been generated. You can now download it directly from your Profile Achievements. [Download Link](/api/certificate?userId=${user._id}&achievement=${encodeURIComponent(achievement)})`,
+                    isRead: false,
+                    isSaved: false
+                });
+            }
+        }
 
         const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
 
         const pdfDoc = await PDFDocument.create();
-        // A4 landscape: 841.89 × 595.28 pts
         const page = pdfDoc.addPage([841.89, 595.28]);
         const { width, height } = page.getSize();
 
@@ -81,15 +135,9 @@ export async function GET(request: NextRequest) {
         const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const timesRomanItalic = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
 
-        // ── Background ─────────────────────────────────────────────────
-        // Deep navy background
-        page.drawRectangle({
-            x: 0, y: 0,
-            width, height,
-            color: rgb(0.05, 0.07, 0.14),
-        });
+        // ── Background & Styling ──
+        page.drawRectangle({ x: 0, y: 0, width, height, color: rgb(0.05, 0.07, 0.14) });
 
-        // Inner card (slightly lighter)
         const margin = 30;
         page.drawRectangle({
             x: margin, y: margin,
@@ -101,23 +149,7 @@ export async function GET(request: NextRequest) {
             opacity: 0.95,
         });
 
-        // Top accent bar
-        page.drawRectangle({
-            x: margin, y: height - margin - 8,
-            width: width - margin * 2,
-            height: 8,
-            color: rgb(0.33, 0.69, 0.99),
-        });
-
-        // Bottom accent bar
-        page.drawRectangle({
-            x: margin, y: margin,
-            width: width - margin * 2,
-            height: 8,
-            color: rgb(0.33, 0.69, 0.99),
-        });
-
-        // Corner decorations (small squares)
+        // Corner accents
         const cornerSize = 12;
         const cornerColor = rgb(0.33, 0.69, 0.99);
         const corners = [
@@ -130,170 +162,107 @@ export async function GET(request: NextRequest) {
             page.drawRectangle({ x: c.x, y: c.y, width: cornerSize, height: cornerSize, color: cornerColor, opacity: 0.4 });
         }
 
-        // ── Logo ──────────────────────────────────────────────────────
-        const logoSize = 20;
-        page.drawText('HACK', {
-            x: width / 2 - 68,
-            y: height - 100,
-            size: logoSize,
-            font: helveticaBold,
-            color: rgb(0.33, 0.69, 0.99),
-        });
-        page.drawText('XTRAS', {
-            x: width / 2 - 10,
-            y: height - 100,
-            size: logoSize,
-            font: helveticaBold,
-            color: rgb(0.95, 0.95, 0.95),
-        });
+        // ── Logo & Title ──
+        const logoSize = 18;
+        page.drawText('HACK', { x: width / 2 - 60, y: height - 100, size: logoSize, font: helveticaBold, color: rgb(0.33, 0.69, 0.99) });
+        page.drawText('XTRAS', { x: width / 2 - 10, y: height - 100, size: logoSize, font: helveticaBold, color: rgb(0.95, 0.95, 0.95) });
 
-        // ── "Certificate of Achievement" ──────────────────────────────
         const titleText = 'CERTIFICATE OF ACHIEVEMENT';
         const titleSize = 28;
         const titleWidth = helveticaBold.widthOfTextAtSize(titleText, titleSize);
-        page.drawText(titleText, {
-            x: (width - titleWidth) / 2,
-            y: height - 155,
-            size: titleSize,
-            font: helveticaBold,
-            color: rgb(0.95, 0.95, 0.95),
-        });
+        page.drawText(titleText, { x: (width - titleWidth) / 2, y: height - 155, size: titleSize, font: helveticaBold, color: rgb(0.95, 0.95, 0.95) });
 
-        // Divider line under title
-        page.drawLine({
-            start: { x: width / 2 - 180, y: height - 170 },
-            end: { x: width / 2 + 180, y: height - 170 },
-            thickness: 0.8,
-            color: rgb(0.33, 0.69, 0.99),
-            opacity: 0.6,
-        });
+        // Divider
+        page.drawLine({ start: { x: width / 2 - 150, y: height - 170 }, end: { x: width / 2 + 150, y: height - 170 }, thickness: 0.8, color: rgb(0.33, 0.69, 0.99), opacity: 0.6 });
 
-        // ── "This certifies that" ─────────────────────────────────────
-        const subText = 'This certifies that';
+        // Content
         const subSize = 14;
-        const subWidth = timesRomanItalic.widthOfTextAtSize(subText, subSize);
-        page.drawText(subText, {
-            x: (width - subWidth) / 2,
-            y: height - 205,
-            size: subSize,
-            font: timesRomanItalic,
-            color: rgb(0.7, 0.75, 0.85),
-        });
+        const certText = 'This certifies that';
+        const certWidth = timesRomanItalic.widthOfTextAtSize(certText, subSize);
+        page.drawText(certText, { x: (width - certWidth) / 2, y: height - 205, size: subSize, font: timesRomanItalic, color: rgb(0.7, 0.75, 0.85) });
 
-        // ── Recipient Name ────────────────────────────────────────────
-        const nameSize = 36;
+        // Name
+        const nameSize = 42;
         const nameWidth = helveticaBold.widthOfTextAtSize(recipientName, nameSize);
-        page.drawText(recipientName, {
-            x: (width - nameWidth) / 2,
-            y: height - 255,
-            size: nameSize,
-            font: helveticaBold,
-            color: rgb(0.33, 0.69, 0.99),
-        });
+        page.drawText(recipientName, { x: (width - nameWidth) / 2, y: height - 260, size: nameSize, font: helveticaBold, color: rgb(0.33, 0.69, 0.99) });
 
-        // Name underline
-        page.drawLine({
-            start: { x: (width - nameWidth) / 2 - 20, y: height - 263 },
-            end: { x: (width + nameWidth) / 2 + 20, y: height - 263 },
-            thickness: 0.5,
-            color: rgb(0.33, 0.69, 0.99),
-            opacity: 0.4,
-        });
+        const compText = 'has successfully completed';
+        const compWidth = timesRomanItalic.widthOfTextAtSize(compText, subSize);
+        page.drawText(compText, { x: (width - compWidth) / 2, y: height - 295, size: subSize, font: timesRomanItalic, color: rgb(0.7, 0.75, 0.85) });
 
-        // ── "has successfully completed" ──────────────────────────────
-        const completedText = 'has successfully completed';
-        const completedWidth = timesRomanItalic.widthOfTextAtSize(completedText, subSize);
-        page.drawText(completedText, {
-            x: (width - completedWidth) / 2,
-            y: height - 292,
-            size: subSize,
-            font: timesRomanItalic,
-            color: rgb(0.7, 0.75, 0.85),
-        });
-
-        // ── Achievement ───────────────────────────────────────────────
-        // Wrap long achievement text across multiple lines if needed
+        // Achievement Text
         const achSize = 16;
-        const maxAchWidth = width - 200;
+        const maxAchWidth = width - 240;
         const words = achievement.split(' ');
-        const achLines: string[] = [];
-        let currentLine = '';
-        for (const word of words) {
-            const testLine = currentLine ? `${currentLine} ${word}` : word;
-            if (helvetica.widthOfTextAtSize(testLine, achSize) > maxAchWidth) {
-                achLines.push(currentLine);
-                currentLine = word;
-            } else {
-                currentLine = testLine;
-            }
+        const lines: string[] = [];
+        let curr = '';
+        for (const w of words) {
+            const test = curr ? `${curr} ${w}` : w;
+            if (helvetica.widthOfTextAtSize(test, achSize) > maxAchWidth) { lines.push(curr); curr = w; }
+            else curr = test;
         }
-        if (currentLine) achLines.push(currentLine);
+        if (curr) lines.push(curr);
 
-        let achY = height - 325;
-        for (const line of achLines) {
-            const lw = helvetica.widthOfTextAtSize(line, achSize);
-            page.drawText(line, {
-                x: (width - lw) / 2,
-                y: achY,
-                size: achSize,
-                font: helvetica,
-                color: rgb(0.95, 0.95, 0.95),
-            });
+        let achY = height - 330;
+        for (const l of lines) {
+            const lw = helvetica.widthOfTextAtSize(l, achSize);
+            page.drawText(l, { x: (width - lw) / 2, y: achY, size: achSize, font: helvetica, color: rgb(0.95, 0.95, 0.95) });
             achY -= 24;
         }
 
-        // ── Footer: Date, Cert ID, Signature area ─────────────────────
-        const footerY = margin + 55;
+        // ── Unique Signature Area ──
+        const footerY = margin + 50;
+        const sigX = width - margin - 200;
 
-        // Date
-        page.drawText('Date of Issue', {
-            x: margin + 60,
-            y: footerY + 18,
-            size: 9,
+        // "Authorized by" label
+        page.drawText('Authorized by', {
+            x: sigX,
+            y: footerY + 65,
+            size: 8,
             font: helvetica,
             color: rgb(0.5, 0.55, 0.65),
+            opacity: 0.8
         });
-        page.drawText(issuedDate, {
-            x: margin + 60,
-            y: footerY,
-            size: 11,
-            font: helveticaBold,
-            color: rgb(0.85, 0.88, 0.95),
+
+        // Stylized handwritten signature
+        page.drawText('HackXtras Command', {
+            x: sigX,
+            y: footerY + 40,
+            size: 22,
+            font: timesRomanItalic,
+            color: rgb(0.33, 0.69, 0.99)
         });
+
+        // Cryptographic unique signature (The "Magic" part)
+        const uniqueSig = `SIGN_VERIFIED_${crypto.createHash('md5').update(certId + user._id).digest('hex').substring(0, 16).toUpperCase()}`;
+        page.drawText(uniqueSig, {
+            x: sigX,
+            y: footerY + 25,
+            size: 7,
+            font: helvetica,
+            color: rgb(0.33, 0.69, 0.99),
+            opacity: 0.5
+        });
+
+        // Underline for signature
+        page.drawLine({
+            start: { x: sigX, y: footerY + 35 },
+            end: { x: width - margin - 40, y: footerY + 35 },
+            thickness: 0.5,
+            color: rgb(0.33, 0.69, 0.99),
+            opacity: 0.3
+        });
+
+        // ── Secondary Info ──
+        // Date
+        page.drawText('Date of Issue', { x: margin + 60, y: footerY + 18, size: 9, font: helvetica, color: rgb(0.5, 0.55, 0.65) });
+        page.drawText(issuedDate, { x: margin + 60, y: footerY, size: 11, font: helveticaBold, color: rgb(0.85, 0.88, 0.95) });
 
         // Cert ID
-        const certIdLabel = `CERT ID: ${certId}`;
-        const certIdWidth = helvetica.widthOfTextAtSize(certIdLabel, 9);
-        page.drawText('Certificate ID', {
-            x: (width - certIdWidth) / 2,
-            y: footerY + 18,
-            size: 9,
-            font: helvetica,
-            color: rgb(0.5, 0.55, 0.65),
-        });
-        page.drawText(certIdLabel, {
-            x: (width - certIdWidth) / 2,
-            y: footerY,
-            size: 9,
-            font: helvetica,
-            color: rgb(0.5, 0.55, 0.65),
-        });
-
-        // Authorized signature side
-        page.drawText('Authorized by', {
-            x: width - margin - 160,
-            y: footerY + 18,
-            size: 9,
-            font: helvetica,
-            color: rgb(0.5, 0.55, 0.65),
-        });
-        page.drawText('HackXtras Team', {
-            x: width - margin - 160,
-            y: footerY,
-            size: 11,
-            font: helveticaBold,
-            color: rgb(0.85, 0.88, 0.95),
-        });
+        const cidLabel = `CERT ID: ${certId}`;
+        const cidWidth = helvetica.widthOfTextAtSize(cidLabel, 9);
+        page.drawText('Zero-Trust ID', { x: (width - cidWidth) / 2, y: footerY + 18, size: 9, font: helvetica, color: rgb(0.5, 0.55, 0.65) });
+        page.drawText(cidLabel, { x: (width - cidWidth) / 2, y: footerY, size: 9, font: helvetica, color: rgb(0.5, 0.55, 0.65) });
 
         const pdfBytes = await pdfDoc.save();
         const pdfBuffer = Buffer.from(pdfBytes);
@@ -309,6 +278,6 @@ export async function GET(request: NextRequest) {
         });
     } catch (error) {
         console.error('Certificate generation error:', error);
-        return createErrorResponse('Failed to generate certificate', 500);
+        return createErrorResponse('Failed to generate credential', 500);
     }
 }
