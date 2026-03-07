@@ -1,31 +1,35 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Shield, Github, Twitter, Linkedin, Mail, Youtube, Crown } from "lucide-react";
+import { Shield, Github, Twitter, Linkedin, Mail, Youtube, Crown, Instagram, MessageCircle } from "lucide-react";
 import { useProStatus } from "@/hooks/use-pro-status";
 import Link from "next/link";
 
 const footerLinks = {
   company: [
-    { label: "About", href: "/about" },
+    { label: "About", href: "/channels" },
   ],
   resources: [
-    { label: "Community", href: "/community" },
+    { label: "Community", href: "/channels" },
   ],
   learning: [
-    { label: "Courses", href: "/courses" },
-    { label: "Labs", href: "/labs" },
-    { label: "Resources", href: "/resources" },
-    { label: "Documentary", href: "/documentary" },
+    { label: "Courses", href: "/channels" },
+    { label: "Labs", href: "/channels" },
+    { label: "Resources", href: "/channels" },
+    { label: "Channels", href: "/channels" },
+    { label: "Challenges", href: "/channels" },
+    { label: "Documentary", href: "/channels" },
   ],
 };
 
 const socialLinks = [
-  { icon: Twitter, href: "#", label: "Twitter" },
-  { icon: Github, href: "#", label: "GitHub" },
-  { icon: Linkedin, href: "#", label: "LinkedIn" },
-  { icon: Youtube, href: "#", label: "YouTube" },
-  { icon: Mail, href: "#", label: "Email" },
+  { icon: Twitter, href: "/channels", label: "Twitter" },
+  { icon: Github, href: "/channels", label: "GitHub" },
+  { icon: Linkedin, href: "/channels", label: "LinkedIn" },
+  { icon: Youtube, href: "/channels", label: "YouTube" },
+  { icon: Instagram, href: "/channels", label: "Instagram" },
+  { icon: MessageCircle, href: "/channels", label: "Discord" },
+  { icon: Mail, href: "/channels", label: "Email" },
 ];
 
 export function Footer() {
@@ -44,7 +48,7 @@ export function Footer() {
           <div className="mb-12 grid gap-12 md:grid-cols-4">
             {/* Brand */}
             <div className="md:col-span-1">
-              <Link href="/" className="flex items-center gap-2.5 mb-4">
+              <Link href="/channels" className="flex items-center gap-2.5 mb-4">
                 <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${isPro ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-primary/10 border-primary/20'} border`}>
                   {isPro ? (
                     <Crown className="h-5 w-5 text-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
