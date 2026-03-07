@@ -7,6 +7,8 @@ export function useProStatus() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [isAdmin, setIsAdmin] = useState(false);
+
     useEffect(() => {
         const syncSession = async () => {
             const userToken = localStorage.getItem('userToken');
@@ -20,6 +22,7 @@ export function useProStatus() {
                 if (loggedOut) {
                     setIsPro(false);
                     setIsAuthenticated(false);
+                    setIsAdmin(false);
                     setIsLoading(false);
                     return;
                 }
@@ -33,6 +36,7 @@ export function useProStatus() {
                             localStorage.setItem('userData', JSON.stringify(data.user));
                             setIsPro(!!data.user.isPro || data.user.role === 'admin');
                             setIsAuthenticated(true);
+                            setIsAdmin(data.user.role === 'admin');
                             setIsLoading(false);
                             window.dispatchEvent(new Event('storage'));
                             return;
@@ -41,16 +45,19 @@ export function useProStatus() {
                 } catch (e) { }
                 setIsPro(false);
                 setIsAuthenticated(false);
+                setIsAdmin(false);
                 setIsLoading(false);
                 return;
             }
 
             // 2. Initial optimistic check from cache
             setIsAuthenticated(true);
+            setIsAdmin(!!adminToken);
             if (userDataStr) {
                 try {
                     const parsed = JSON.parse(userDataStr);
-                    setIsPro(!!parsed.isPro || !!adminToken);
+                    setIsPro(!!parsed.isPro || !!adminToken || parsed.role === 'admin');
+                    if (parsed.role === 'admin') setIsAdmin(true);
                 } catch (e) { }
             }
             setIsLoading(false);
@@ -66,15 +73,18 @@ export function useProStatus() {
                         localStorage.removeItem('adminToken');
                         setIsPro(false);
                         setIsAuthenticated(false);
+                        setIsAdmin(false);
                         return null;
                     }
                     if (res.ok) return res.json();
                     return null;
                 }).then(data => {
                     if (data) {
-                        const proStatus = !!data.isPro || !!adminToken || data.role === 'admin';
+                        const isAdm = !!adminToken || data.role === 'admin';
+                        const proStatus = !!data.isPro || isAdm;
                         setIsPro(proStatus);
                         setIsAuthenticated(true);
+                        setIsAdmin(isAdm);
                         localStorage.setItem('userData', JSON.stringify(data));
                     }
                 }).catch(() => { });
@@ -93,5 +103,5 @@ export function useProStatus() {
         return () => window.removeEventListener('storage', handleStorage);
     }, []);
 
-    return { isPro, isAuthenticated, isLoading };
+    return { isPro, isAuthenticated, isLoading, isAdmin };
 }

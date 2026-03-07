@@ -1,5 +1,5 @@
 import { connectDB } from '@/lib/mongodb';
-import { User, Session } from '@/lib/models';
+import { User, Session, Settings } from '@/lib/models';
 import { signToken, createErrorResponse, createSuccessResponse } from '@/lib/auth';
 import { getClientIp } from '@/lib/rate-limit';
 import { NextRequest } from 'next/server';
@@ -7,6 +7,13 @@ import { NextRequest } from 'next/server';
 export async function POST(request: NextRequest) {
     try {
         await connectDB();
+
+        // Check if signups are allowed
+        const platformSettings = await Settings.findOne();
+        if (platformSettings && platformSettings.allowSignups === false) {
+            return createErrorResponse('New operative registration is currently restricted by Command Center.', 403);
+        }
+
         const { username, email, password } = await request.json();
 
         if (!username || !email || !password) {

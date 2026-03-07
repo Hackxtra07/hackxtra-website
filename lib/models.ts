@@ -398,14 +398,27 @@ const positionSchema = new Schema<IPosition>(
 // Settings Model (for Global Config)
 export interface ISettings extends Document {
   contactEmail: string;
+  maintenanceMode: boolean;
+  allowSignups: boolean;
+  announcement: string;
+  announcementActive: boolean;
 }
 
 const settingsSchema = new Schema<ISettings>(
   {
     contactEmail: { type: String, required: true, default: 'admin@example.com' },
+    maintenanceMode: { type: Boolean, default: false },
+    allowSignups: { type: Boolean, default: true },
+    announcement: { type: String, default: '' },
+    announcementActive: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
+
+// Helper to clear settings model if fields are missing (for dev)
+if (mongoose.models.Settings && !mongoose.models.Settings.schema.paths.maintenanceMode) {
+  delete mongoose.models.Settings;
+}
 
 // Create models with proper typing
 // Special check to force re-registration if coverImage field is missing (fixes stale models in Next.js dev)

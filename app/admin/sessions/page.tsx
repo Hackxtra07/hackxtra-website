@@ -343,14 +343,14 @@ export default function AdminSessionsPage() {
     const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('userToken');
+        const token = localStorage.getItem('token');
         if (token) {
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
                 setCurrentSessionId(payload.sessionId);
             } catch { }
         }
-    }, [groups]); // Re-check when groups update to ensure we identify own signal correctly
+    }, []);
 
     // ── Core fetch ──────────────────────────────────────────────────────────
     const fetchSessions = useCallback(async (): Promise<UserGroup[]> => {

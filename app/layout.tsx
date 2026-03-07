@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { CommandMenu } from "@/components/hackxtras/command-menu";
 import { GlobalLoader } from "@/components/hackxtras/global-loader";
+import { MaintenanceGuard } from "@/components/hackxtras/maintenance-guard";
 
 const inter = Inter({
   subsets: ["latin"],
