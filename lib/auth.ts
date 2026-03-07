@@ -28,6 +28,8 @@ export function getTokenFromRequest(request: NextRequest): string | null {
   return authHeader.slice(7);
 }
 
+import { rateLimit, getClientIp, getRateLimitRetryAfter } from '@/lib/rate-limit';
+
 export async function authenticateRequest(request: NextRequest): Promise<any | null> {
   const token = getTokenFromRequest(request);
   if (!token) {
@@ -39,28 +41,36 @@ export async function authenticateRequest(request: NextRequest): Promise<any | n
 
   try {
     await connectDB();
+    const currentIp = getClientIp(request);
+    const currentUserAgent = request.headers.get('user-agent') || 'unknown';
 
     // Verify session if sessionId is present
     if (payload.sessionId) {
-      const TWO_MINUTES_AGO = new Date(Date.now() - 2 * 60 * 1000);
-
-      // Only update lastActive if it hasn't been updated in the last 2 minutes
-      // This throttles DB writes while keeping presence tracking accurate
-      const session = await Session.findOneAndUpdate(
-        {
-          sessionId: payload.sessionId,
-          isValid: true,
-          $or: [
-            { lastActive: { $lt: TWO_MINUTES_AGO } },
-            { lastActive: { $exists: false } },
-          ],
-        },
-        { $set: { lastActive: new Date() } },
-        { new: true }
-      ) || await Session.findOne({ sessionId: payload.sessionId, isValid: true });
+      const session = await Session.findOne({
+        sessionId: payload.sessionId,
+        isValid: true
+      });
 
       if (!session || session.expiresAt < new Date()) {
         return null;
+      }
+
+      // ── Device Footprint Check ──────────────────────────────────────────
+      // This prevents session hijacking by mismatching IP or User-Agent
+      // NOTE: We allow IP change if the User-Agent matches (for mobile switches),
+      // but if BOTH change, we invalidate. Actually, for high security, 
+      // we should be strict or at least log it.
+      if (session.userAgent && session.userAgent !== currentUserAgent) {
+        console.warn(`Session footprint mismatch: ${session.userAgent} !== ${currentUserAgent}`);
+        return null; // Force re-login
+      }
+
+      const TWO_MINUTES_AGO = new Date(Date.now() - 2 * 60 * 1000);
+      if (!session.lastActive || session.lastActive < TWO_MINUTES_AGO) {
+        await Session.updateOne(
+          { _id: session._id },
+          { $set: { lastActive: new Date(), ipAddress: currentIp } }
+        );
       }
     }
 

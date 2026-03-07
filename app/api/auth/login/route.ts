@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     const token = signToken(admin.email, sessionId);
 
-    return createSuccessResponse({
+    const response = createSuccessResponse({
       token,
       admin: {
         id: admin._id,
@@ -53,6 +53,17 @@ export async function POST(request: NextRequest) {
         name: admin.name,
       },
     }, 200);
+
+    // Set session cookie for auto-login/middleware
+    response.cookies.set('sessionId', sessionId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/',
+    });
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return createErrorResponse('Internal server error', 500);

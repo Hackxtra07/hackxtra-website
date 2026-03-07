@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
         const token = signToken(user.email, sessionId);
 
-        return createSuccessResponse({
+        const response = createSuccessResponse({
             token,
             user: {
                 id: user._id,
@@ -70,6 +70,17 @@ export async function POST(request: NextRequest) {
                 isPro: user.isPro,
             }
         });
+
+        // Set session cookie for auto-login/middleware
+        response.cookies.set('sessionId', sessionId, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60, // 7 days
+            path: '/',
+        });
+
+        return response;
     } catch (error) {
         console.error('Login error:', error);
         return createErrorResponse('Login failed', 500);

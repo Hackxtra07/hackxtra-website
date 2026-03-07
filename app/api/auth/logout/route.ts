@@ -27,7 +27,9 @@ export async function POST(request: NextRequest) {
             return createErrorResponse('Session not found', 404);
         }
 
-        return createSuccessResponse({ message: 'Logged out successfully' });
+        const response = createSuccessResponse({ message: 'Logged out successfully' });
+        response.cookies.delete('sessionId');
+        return response;
     } catch (error) {
         console.error('Logout error:', error);
         return createErrorResponse('Logout failed', 500);
