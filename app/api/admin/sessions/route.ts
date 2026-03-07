@@ -36,29 +36,38 @@ export async function GET(request: NextRequest) {
         // Group sessions by userId
         const userMap: Record<string, any> = {};
         for (const session of enrichedSessions) {
-            const uid = String(session.userId);
+            const uid = session.userId ? String(session.userId) : 'unknown';
             if (!userMap[uid]) {
                 userMap[uid] = {
                     userId: uid,
-                    userModel: session.userModel,
-                    user: session.user,
+                    userModel: session.userModel || 'User',
+                    user: session.user || null,
                     sessions: [],
                 };
+            }
+            // If we find user data in any of the sessions for this UID, use it
+            if (!userMap[uid].user && session.user) {
+                userMap[uid].user = session.user;
             }
             userMap[uid].sessions.push(session);
         }
 
-        const grouped = Object.values(userMap).sort((a, b) => {
-            // Sort by most recent session activity
-            const aLatest = Math.max(...a.sessions.map((s: any) => new Date(s.lastActive || s.updatedAt).getTime()));
-            const bLatest = Math.max(...b.sessions.map((s: any) => new Date(s.lastActive || s.updatedAt).getTime()));
-            return bLatest - aLatest;
+        const grouped = Object.values(userMap).sort((a: any, b: any) => {
+            const getLatest = (group: any) => {
+                const times = group.sessions.map((s: any) => {
+                    const d = s.lastActive || s.updatedAt || 0;
+                    const t = new Date(d).getTime();
+                    return isNaN(t) ? 0 : t;
+                });
+                return times.length > 0 ? Math.max(...times) : 0;
+            };
+            return getLatest(b) - getLatest(a);
         });
 
         return createSuccessResponse(grouped);
     } catch (error) {
-        console.error('Fetch sessions error:', error);
-        return createErrorResponse('Failed to fetch sessions', 500);
+        console.error('Fetch sessions detailed error:', error);
+        return createErrorResponse(`Failed to fetch sessions: ${error instanceof Error ? error.message : 'Unknown error'}`, 500);
     }
 }
 
