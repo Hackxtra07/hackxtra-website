@@ -195,16 +195,12 @@ export function Header() {
                 >
                   <Search className="h-5 w-5" />
                 </Button>
-                <Link href="/login">
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    Get Started
-                  </Button>
-                </Link>
+                <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <Link href="/login">Sign In</Link>
+                </Button>
+                <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Link href="/signup">Get Started</Link>
+                </Button>
               </>
             )}
           </div>
@@ -316,12 +312,12 @@ export function Header() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-3">
-                      <Link href="/login" onClick={() => setIsOpen(false)}>
-                        <Button variant="outline" className="w-full border-border/50">Sign In</Button>
-                      </Link>
-                      <Link href="/signup" onClick={() => setIsOpen(false)}>
-                        <Button className="w-full bg-primary text-primary-foreground">Get Started</Button>
-                      </Link>
+                      <Button asChild variant="outline" className="w-full border-border/50">
+                        <Link href="/login" onClick={() => setIsOpen(false)}>Sign In</Link>
+                      </Button>
+                      <Button asChild className="w-full bg-primary text-primary-foreground">
+                        <Link href="/signup" onClick={() => setIsOpen(false)}>Get Started</Link>
+                      </Button>
                     </div>
                   )}
                 </div>

@@ -40,11 +40,6 @@ export function middleware(request: NextRequest) {
         }
     }
 
-    // 2. Prevent logged in users from visiting login/signup
-    if (authRoutes.includes(pathname) && sessionId) {
-        return NextResponse.redirect(new URL('/', request.url));
-    }
-
     return NextResponse.next();
 }
 
