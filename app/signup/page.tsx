@@ -42,6 +42,7 @@ export default function SignupPage() {
       // Ensure any admin tokens are cleared
       localStorage.removeItem('adminToken');
       localStorage.removeItem('adminEmail');
+      localStorage.removeItem('loggedOut');
 
       toast({ title: "Account created!", description: "Welcome to HackXtras." });
       router.push('/');

@@ -16,6 +16,14 @@ export function useProStatus() {
 
             // 1. Auto-Login / Session Restore
             if (!token) {
+                const loggedOut = localStorage.getItem('loggedOut') === 'true';
+                if (loggedOut) {
+                    setIsPro(false);
+                    setIsAuthenticated(false);
+                    setIsLoading(false);
+                    return;
+                }
+
                 try {
                     const res = await fetch('/api/auth/session');
                     if (res.ok) {

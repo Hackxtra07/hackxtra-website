@@ -66,6 +66,7 @@ export default function LoginPage() {
             localStorage.setItem('userData', JSON.stringify(data.user));
             localStorage.removeItem('adminToken');
             localStorage.removeItem('adminEmail');
+            localStorage.removeItem('loggedOut');
 
             toast({ title: "Welcome back!", description: "Logged in successfully." });
             router.push('/');
@@ -106,6 +107,7 @@ export default function LoginPage() {
             localStorage.setItem('userData', JSON.stringify(data.user));
             localStorage.removeItem('adminToken');
             localStorage.removeItem('adminEmail');
+            localStorage.removeItem('loggedOut');
 
             toast({ title: "Welcome back!", description: "Logged in successfully." });
             router.push('/');

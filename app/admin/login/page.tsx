@@ -46,6 +46,7 @@ export default function AdminLoginPage() {
 
       localStorage.setItem('adminToken', data.token);
       localStorage.setItem('adminEmail', data.admin.email);
+      localStorage.removeItem('loggedOut');
       toast({ title: 'Authentication Successful', description: 'Access granted to the HackXtra Command Center.' });
       router.push('/admin/dashboard');
     } catch (error) {

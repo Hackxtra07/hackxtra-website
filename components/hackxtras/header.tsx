@@ -51,6 +51,7 @@ export function Header() {
     localStorage.removeItem('userData');
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminEmail');
+    localStorage.setItem('loggedOut', 'true');
     window.dispatchEvent(new Event('storage'));
     router.push('/');
     router.refresh();
