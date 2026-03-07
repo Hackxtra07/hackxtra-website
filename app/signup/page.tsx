@@ -44,7 +44,7 @@ export default function SignupPage() {
       localStorage.removeItem('adminEmail');
 
       toast({ title: "Account created!", description: "Welcome to HackXtras." });
-      router.push('/profile');
+      router.push('/');
       router.refresh();
     } catch (error) {
       toast({

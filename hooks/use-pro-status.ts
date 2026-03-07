@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 
 export function useProStatus() {
     const [isPro, setIsPro] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const syncSession = async () => {
@@ -13,7 +15,6 @@ export function useProStatus() {
             let token = adminToken || userToken;
 
             // 1. Auto-Login / Session Restore
-            // If no tokens in localStorage, try hitting the session API (uses sessionId cookie)
             if (!token) {
                 try {
                     const res = await fetch('/api/auth/session');
@@ -23,28 +24,28 @@ export function useProStatus() {
                             localStorage.setItem('userToken', data.token);
                             localStorage.setItem('userData', JSON.stringify(data.user));
                             setIsPro(!!data.user.isPro || data.user.role === 'admin');
+                            setIsAuthenticated(true);
+                            setIsLoading(false);
                             window.dispatchEvent(new Event('storage'));
                             return;
                         }
-                    } else {
-                        setIsPro(false);
-                        return;
                     }
-                } catch (e) {
-                    setIsPro(false);
-                    return;
-                }
+                } catch (e) { }
+                setIsPro(false);
+                setIsAuthenticated(false);
+                setIsLoading(false);
+                return;
             }
 
             // 2. Initial optimistic check from cache
+            setIsAuthenticated(true);
             if (userDataStr) {
                 try {
                     const parsed = JSON.parse(userDataStr);
                     setIsPro(!!parsed.isPro || !!adminToken);
-                } catch (e) {
-                    setIsPro(false);
-                }
+                } catch (e) { }
             }
+            setIsLoading(false);
 
             // 3. Silent Sync & Validation
             if (token) {
@@ -56,6 +57,7 @@ export function useProStatus() {
                         localStorage.removeItem('userData');
                         localStorage.removeItem('adminToken');
                         setIsPro(false);
+                        setIsAuthenticated(false);
                         return null;
                     }
                     if (res.ok) return res.json();
@@ -64,11 +66,10 @@ export function useProStatus() {
                     if (data) {
                         const proStatus = !!data.isPro || !!adminToken || data.role === 'admin';
                         setIsPro(proStatus);
+                        setIsAuthenticated(true);
                         localStorage.setItem('userData', JSON.stringify(data));
                     }
-                }).catch(() => {
-                    if (!userDataStr) setIsPro(false);
-                });
+                }).catch(() => { });
             }
         };
 
@@ -84,5 +85,5 @@ export function useProStatus() {
         return () => window.removeEventListener('storage', handleStorage);
     }, []);
 
-    return isPro;
+    return { isPro, isAuthenticated, isLoading };
 }

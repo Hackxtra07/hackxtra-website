@@ -40,29 +40,19 @@ const navGroups = {
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const isPro = useProStatus();
+  const { isPro, isAuthenticated } = useProStatus();
   const router = useRouter();
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const userToken = localStorage.getItem('userToken');
-      const adminToken = localStorage.getItem('adminToken');
-      setIsAuthenticated(!!userToken || !!adminToken);
-    };
-    checkAuth();
-
-    window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
-  }, []);
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) { }
     localStorage.removeItem('userToken');
     localStorage.removeItem('userData');
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminEmail');
-    setIsAuthenticated(false);
-    router.push('/login');
+    window.dispatchEvent(new Event('storage'));
+    router.push('/');
     router.refresh();
   };
 

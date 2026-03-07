@@ -33,7 +33,7 @@ const socialLinks = [
 ];
 
 export function Footer() {
-  const isPro = useProStatus();
+  const { isPro } = useProStatus();
 
   return (
     <footer className={`relative border-t ${isPro ? 'border-yellow-500/20 bg-black' : 'border-border/30 bg-background'}`}>

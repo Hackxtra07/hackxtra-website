@@ -182,30 +182,16 @@ export default function LabsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Labs");
   const [activeDifficulty, setActiveDifficulty] = useState("All Difficulties");
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
     limit: 9
   });
-  const isPro = useProStatus();
+  const { isPro, isAuthenticated, isLoading } = useProStatus();
 
-  // We still need all categories for the filter pills, but filtering is server-side
-  // For simplicity, we'll keep the categories derived from the first fetch or use a predefined list
   const [categories, setCategories] = useState(["All Labs"]);
   const difficulties = ["All Difficulties", "Easy", "Medium", "Hard"];
-
-  useEffect(() => {
-    const checkAuth = () => {
-      const userToken = localStorage.getItem('userToken');
-      const adminToken = localStorage.getItem('adminToken');
-      setIsAuthenticated(!!userToken || !!adminToken);
-    };
-    checkAuth();
-    window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
-  }, []);
 
   const fetchLabs = async (page = 1, search = searchQuery, cat = activeCategory, diff = activeDifficulty, showLoading = true) => {
     try {

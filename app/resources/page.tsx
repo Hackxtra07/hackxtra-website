@@ -136,25 +136,13 @@ export default function ResourcesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
     limit: 9
   });
-  const isPro = useProStatus();
-
-  useEffect(() => {
-    const checkAuth = () => {
-      const userToken = localStorage.getItem('userToken');
-      const adminToken = localStorage.getItem('adminToken');
-      setIsAuthenticated(!!userToken || !!adminToken);
-    };
-    checkAuth();
-    window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
-  }, []);
+  const { isPro, isAuthenticated, isLoading } = useProStatus();
 
   const fetchResources = async (page = 1, search = searchQuery, showLoading = true) => {
     try {

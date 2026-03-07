@@ -68,7 +68,7 @@ export default function LoginPage() {
             localStorage.removeItem('adminEmail');
 
             toast({ title: "Welcome back!", description: "Logged in successfully." });
-            router.push('/profile');
+            router.push('/');
             router.refresh();
         } catch (error) {
             toast({
@@ -108,7 +108,7 @@ export default function LoginPage() {
             localStorage.removeItem('adminEmail');
 
             toast({ title: "Welcome back!", description: "Logged in successfully." });
-            router.push('/profile');
+            router.push('/');
             router.refresh();
         } catch (error) {
             toast({

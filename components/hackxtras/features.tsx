@@ -80,7 +80,7 @@ function FeatureCard({
 export function Features() {
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
-  const isPro = useProStatus();
+  const { isPro } = useProStatus();
 
   return (
     <section id="courses" className="relative py-20 md:py-32">

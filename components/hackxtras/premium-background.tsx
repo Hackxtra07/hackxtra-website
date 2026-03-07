@@ -3,7 +3,7 @@
 import { useProStatus } from "@/hooks/use-pro-status";
 
 export function PremiumBackground() {
-    const isPro = useProStatus();
+    const { isPro } = useProStatus();
 
     if (!isPro) return null;
 

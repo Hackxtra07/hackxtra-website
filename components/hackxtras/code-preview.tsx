@@ -40,7 +40,7 @@ export function CodePreview() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [copied, setCopied] = useState(false);
-  const isPro = useProStatus();
+  const { isPro } = useProStatus();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(codeExample);

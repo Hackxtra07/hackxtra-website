@@ -69,7 +69,7 @@ function TestimonialCard({
 export function Testimonials() {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
-  const isPro = useProStatus();
+  const { isPro } = useProStatus();
 
   return (
     <section id="community" className="relative py-32">

@@ -21,6 +21,11 @@ export function middleware(request: NextRequest) {
     // Check for sessionId cookie - this is the source of truth for auth in middleware
     const sessionId = request.cookies.get('sessionId')?.value;
 
+    // Handle /dashboard specially since it's now part of the virtual homepage
+    if (pathname === '/dashboard') {
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+
     // 1. Check if the route is protected
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
     const isAdminRoute = pathname.startsWith('/admin') && !pathname.includes('/admin/login');
@@ -37,7 +42,7 @@ export function middleware(request: NextRequest) {
 
     // 2. Prevent logged in users from visiting login/signup
     if (authRoutes.includes(pathname) && sessionId) {
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+        return NextResponse.redirect(new URL('/', request.url));
     }
 
     return NextResponse.next();

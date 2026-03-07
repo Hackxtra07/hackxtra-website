@@ -183,25 +183,13 @@ export default function CoursesPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All Courses");
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
     limit: 9
   });
-  const isPro = useProStatus();
-
-  useEffect(() => {
-    const checkAuth = () => {
-      const userToken = localStorage.getItem('userToken');
-      const adminToken = localStorage.getItem('adminToken');
-      setIsAuthenticated(!!userToken || !!adminToken);
-    };
-    checkAuth();
-    window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
-  }, []);
+  const { isPro, isAuthenticated, isLoading } = useProStatus();
 
   const fetchCourses = async (page = 1, search = searchQuery, filter = activeFilter, showLoading = true) => {
     try {

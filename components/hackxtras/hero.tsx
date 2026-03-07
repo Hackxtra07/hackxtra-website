@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Terminal, Crown } from "lucide-react";
 import { useProStatus } from "@/hooks/use-pro-status";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 const fadeUp = {
   initial: { opacity: 0, y: 15 },
@@ -12,7 +13,7 @@ const fadeUp = {
 };
 
 export function Hero() {
-  const isPro = useProStatus();
+  const { isPro, isAuthenticated } = useProStatus();
 
   return (
     <section className="relative min-h-screen overflow-hidden pt-24 md:pt-32">
@@ -75,10 +76,27 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mt-8 md:mt-10 flex flex-col items-center gap-4 sm:flex-row w-full sm:w-auto px-4 sm:px-0"
           >
-            <Link href="/signup" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full group bg-primary text-primary-foreground hover:bg-primary/90">
-                Start Learning
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+            <Link href={isPro ? "/dashboard" : "/signup"} className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                className={cn(
+                  "w-full group transition-all duration-300",
+                  isPro
+                    ? "bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-bold shadow-[0_0_20px_rgba(234,179,8,0.3)] border-none"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                )}
+              >
+                {isPro ? (
+                  <>
+                    <Crown className="mr-2 h-4 w-4" />
+                    Access Premium Dashboard
+                  </>
+                ) : (
+                  <>
+                    Start Learning
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </>
+                )}
               </Button>
             </Link>
             <Link href="/courses" className="w-full sm:w-auto">
