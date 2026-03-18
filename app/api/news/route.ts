@@ -4,6 +4,9 @@ import { authenticateRequest, createErrorResponse, createSuccessResponse } from 
 import { NextRequest } from 'next/server';
 import { recordAdminAction } from '@/lib/admin-logger';
 
+export const dynamic = 'force-dynamic';
+
+
 export async function GET(request: NextRequest) {
     try {
         await connectDB();

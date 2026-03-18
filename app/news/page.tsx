@@ -11,6 +11,9 @@ export const metadata = {
     description: "Latest updates, articles, and announcements from HackXtras.",
 };
 
+export const dynamic = 'force-dynamic';
+
+
 async function getNews() {
     await connectDB();
     const news = await News.find({ isPublished: true })
