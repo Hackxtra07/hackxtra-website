@@ -53,24 +53,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Send notification message if not already sent for this specific session/request
-        const shouldNotify = searchParams.get('notify') === 'true';
-        if (shouldNotify) {
-            const { Message, Admin: AdminModel } = await import('@/lib/models');
-            const currentAdmin = await AdminModel.findOne({ email: auth.email });
 
-            if (currentAdmin) {
-                await Message.create({
-                    sender: currentAdmin._id,
-                    senderModel: 'Admin',
-                    recipient: user._id,
-                    recipientModel: 'User',
-                    content: `Congratulations! Your certificate for "${searchParams.get('achievement') || 'Cybersecurity Excellence'}" has been generated. Please contact the admin to receive your official copy.`,
-                    isRead: false,
-                    isSaved: false
-                });
-            }
-        }
 
         const recipientName = searchParams.get('name')?.trim() || user.username;
         const achievement = searchParams.get('achievement')?.trim() || `Completing Cybersecurity Challenges with ${user.points} Points`;
@@ -103,12 +86,12 @@ export async function GET(request: NextRequest) {
                 day: 'numeric',
             });
         } else {
-            return createErrorResponse('No valid certificate found for this achievemnt. Ask an admin to generate one.', 404);
+            return createErrorResponse('No valid certificate found for this achievement. Ask an admin to generate one.', 404);
         }
 
         // ── Notification Logic ──
-        const shouldNotify = searchParams.get('notify') === 'true';
-        if (shouldNotify && isAdmin) {
+        const shouldNotifyUser = searchParams.get('notify') === 'true';
+        if (shouldNotifyUser && isAdmin) {
             const { Message, Admin: AdminModel } = await import('@/lib/models');
             const currentAdmin = await AdminModel.findOne({ email: auth.email });
 
