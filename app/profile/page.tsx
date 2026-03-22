@@ -126,11 +126,11 @@ export default function ProfilePage() {
                     {/* Hero Profile Info */}
                     <div className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-10">
                         <div className={`w-32 h-32 rounded-full flex items-center justify-center border-2 border-primary/20 text-4xl font-bold text-primary shadow-lg ring-4 ${profile.isPro ? 'ring-yellow-500/50 bg-gradient-to-br from-yellow-500/20 to-primary/10' : 'ring-background bg-primary/10'}`}>
-                            {(profile.username || 'User').substring(0, 2).toUpperCase()}
+                            {String(profile.username || 'User').substring(0, 2).toUpperCase()}
                         </div>
                         <div className="text-center md:text-left flex-1 space-y-2">
-                            <h1 className="text-4xl font-bold font-display">{profile.username || 'Guest User'}</h1>
-                            <p className="text-muted-foreground text-lg">{profile.email}</p>
+                            <h1 className="text-4xl font-bold font-display">{String(profile.username || 'Guest User')}</h1>
+                            <p className="text-muted-foreground text-lg">{profile.email || 'Email not found'}</p>
                             <div className="flex gap-4 justify-center md:justify-start items-center">
                                 <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium border border-primary/20">
                                     {profile.country || 'Global'}
