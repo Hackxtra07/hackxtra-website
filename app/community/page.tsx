@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   MessageSquare,
   Users,
@@ -560,6 +560,7 @@ export default function CommunityPage() {
                     {/* Badges Grid */}
                     <div>
                       <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6">Achievement Assets</h4>
+                      <div className="flex flex-wrap gap-3">
                         {hackerProfile.badges?.map((badge: string, idx: number) => (
                           <div key={idx} className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
                             <ShieldCheck className="w-3 h-3" /> {badge}
@@ -576,7 +577,7 @@ export default function CommunityPage() {
               ) : null}
 
               {/* Modal Footer */}
-              <div className="p-6 border-t border-white/5 bg-black/40 flex justify-end gap-4">
+              <div className="p-6 border-t border-white/5 bg-black/40 flex justify-end gap-4 mt-auto">
                  <Button variant="outline" onClick={() => setSelectedHackerId(null)} className="rounded-xl font-black uppercase tracking-widest text-[10px]">Close Briefing</Button>
                  <Button className="rounded-xl px-8 font-black uppercase tracking-widest text-[10px]">Follow Target</Button>
               </div>
