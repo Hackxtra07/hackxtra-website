@@ -144,8 +144,13 @@ export default function CommunityPage() {
       fetch(`/api/users/${selectedHackerId}/public`).then(res => res.json()),
       fetch(`/api/users/${selectedHackerId}/certificates`).then(res => res.json())
     ]).then(([profileData, certsData]) => {
-      if (profileData.success) setHackerProfile(profileData.data);
-      if (certsData.success) setHackerCerts(certsData.data);
+      // Handle both wrapped and unwrapped responses
+      const profile = profileData.success !== undefined ? profileData.data : profileData;
+      const certs = certsData.success !== undefined ? certsData.data : certsData;
+
+      if (profile && !profile.error) setHackerProfile(profile);
+      if (Array.isArray(certs)) setHackerCerts(certs);
+      else if (certs && !certs.error && Array.isArray(certs.data)) setHackerCerts(certs.data);
     }).catch(err => {
       console.error("Failed to fetch hacker profile details", err);
     }).finally(() => {
