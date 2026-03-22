@@ -54,6 +54,8 @@ interface HackerProfile extends Hacker {
   };
   createdAt: string;
   solvedChallenges?: string[];
+  completedLabs?: string[];
+  completedCourses?: string[];
 }
 
 interface Certificate {
@@ -504,6 +506,23 @@ export default function CommunityPage() {
                              <span className="text-[10px] font-black uppercase tracking-widest">Kills</span>
                           </div>
                           <p className="text-2xl font-black">{hackerProfile.solvedChallenges?.length || 0}</p>
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                       <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
+                          <div className="flex items-center gap-2 mb-2">
+                             <LucideIcons.Terminal className="w-4 h-4 text-primary" />
+                             <span className="text-[10px] font-black uppercase tracking-widest">Labs</span>
+                          </div>
+                          <p className="text-2xl font-black">{hackerProfile.completedLabs?.length || 0}</p>
+                       </div>
+                       <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
+                          <div className="flex items-center gap-2 mb-2">
+                             <LucideIcons.BookCheck className="w-4 h-4 text-primary" />
+                             <span className="text-[10px] font-black uppercase tracking-widest">Courses</span>
+                          </div>
+                          <p className="text-2xl font-black">{hackerProfile.completedCourses?.length || 0}</p>
                        </div>
                     </div>
 

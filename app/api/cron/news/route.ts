@@ -75,15 +75,16 @@ export async function GET(request: NextRequest) {
 
         console.log(`🔎 Intelligence Hub: Found ${processedArticles.length} new signals.`);
 
-        // 4. Update Database
+        // 4. Update Database: Reset & Rebuild
         if (processedArticles.length > 0) {
-            // Delete ALL previous news to perform a fresh sync
-            await News.deleteMany({});
+            console.log(`🧹 Clearing legacy intelligence: Preparing for grid reset.`);
+            const deletionResult = await News.deleteMany({});
+            console.log(`✅ Deleted ${deletionResult.deletedCount || 'all'} legacy signals.`);
             
             // Insert the new intelligence nodes
-            await News.insertMany(processedArticles);
-            
-            console.log('✨ Global intelligence grid synchronized (Reset & Rebuild).');
+            const insertionResult = await News.insertMany(processedArticles);
+            console.log(`✨ Manifested ${insertionResult.length} new intelligence nodes.`);
+            console.log('✨ Global intelligence grid synchronized successfully.');
         }
 
         return createSuccessResponse({

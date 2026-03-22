@@ -8,6 +8,13 @@ export interface IAdmin extends Document {
   name: string;
   createdAt: Date;
   updatedAt: Date;
+  // Verification & Progress
+  completedLabs: string[];
+  completedCourses: string[];
+  courseProgress: {
+    courseId: string;
+    completedModules: number[];
+  }[];
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -62,6 +69,16 @@ export interface ICourse extends Document {
   instructor: string;
   coverImage?: string;
   isPremium: boolean;
+  modules: {
+    title: string;
+    description?: string;
+    videoUrl: string;
+    quiz?: {
+      question: string;
+      options: string[];
+      answer: string;
+    };
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -101,9 +118,26 @@ const courseSchema = new Schema<ICourse>(
       type: String,
       required: false,
     },
+    modules: [
+      {
+        title: { type: String, required: true },
+        description: String,
+        videoUrl: { type: String, required: true },
+        quiz: {
+          question: String,
+          options: [String],
+          answer: { type: String, select: false } // Hidden by default
+        }
+      }
+    ],
     isPremium: {
       type: Boolean,
       default: false,
+    },
+    flag: {
+      type: String,
+      required: false,
+      select: false, // Hidden by default
     },
   },
   { timestamps: true }
@@ -126,6 +160,7 @@ export interface ILab extends Document {
   url?: string;
   coverImage?: string;
   isPremium: boolean;
+  flag?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -638,6 +673,14 @@ const userSchema = new Schema<IUser>(
         challengeId: { type: String, required: true },
         attempts: { type: Number, default: 0 },
         replacedBy: { type: String },
+      },
+    ],
+    completedLabs: [{ type: Schema.Types.ObjectId, ref: 'Lab' }],
+    completedCourses: [{ type: Schema.Types.ObjectId, ref: 'Course' }],
+    courseProgress: [
+      {
+        courseId: { type: Schema.Types.ObjectId, ref: 'Course' },
+        completedModules: [Number],
       },
     ],
   },

@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Medal, Github, Twitter, Linkedin, LogOut, Code, User, Settings as SettingsIcon, Mail, Crown, ShieldCheck, ShieldOff, Shield, Award } from 'lucide-react';
+import { Trophy, Medal, Github, Twitter, Linkedin, LogOut, Code, User, Settings as SettingsIcon, Mail, Crown, ShieldCheck, ShieldOff, Shield, Award, Terminal, BookCheck, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { OTPInput, REGEXP_ONLY_DIGITS, SlotProps } from 'input-otp';
 import { cn } from '@/lib/utils';
@@ -31,6 +31,9 @@ interface UserProfile {
     badges?: string[];
     solvedChallenges?: string[];
     certificates?: Certificate[];
+    completedLabs?: string[];
+    completedCourses?: string[];
+    courseProgress?: { courseId: string; completedModules: number[] }[];
     bio?: string;
     country?: string;
     isPro?: boolean;
@@ -276,7 +279,7 @@ export default function ProfilePage() {
                             <Card className={`backdrop-blur-md border-t-2 ${profile.isPro ? 'border-yellow-500/50 bg-gradient-to-b from-yellow-500/10 to-transparent shadow-[0_0_20px_rgba(234,179,8,0.1)]' : 'bg-card/50 border-border/50'}`}>
                                 <CardContent className="p-4 text-center">
                                     <div className={`text-3xl font-bold mb-1 ${profile.isPro ? 'text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]' : 'text-primary'}`}>{profile.points || 0}</div>
-                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Total Points</div>
+                                    <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Skill Credits</div>
                                 </CardContent>
                             </Card>
                         </div>
@@ -363,25 +366,63 @@ export default function ProfilePage() {
                                 </Card>
 
                                 <div className="space-y-6">
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle className="flex items-center gap-2 text-base"><Code className="w-4 h-4" /> Solved Challenges</CardTitle>
+                                    <Card className="bg-primary/5 border-primary/20">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="flex items-center justify-between text-sm">
+                                                <span className="flex items-center gap-2 text-primary uppercase tracking-widest font-black text-[10px]"><Terminal className="w-3.5 h-3.5" /> Ops Mastery</span>
+                                                <Zap className="w-3 h-3 text-yellow-500 animate-pulse" />
+                                            </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <div className="text-2xl font-bold">{profile.solvedChallenges?.length || 0}</div>
-                                            <p className="text-xs text-muted-foreground">Challenges Completed</p>
+                                            <div className="text-3xl font-black text-white">{profile.completedLabs?.length || 0}</div>
+                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">Missions Accomplished</p>
                                         </CardContent>
                                     </Card>
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle className="flex items-center gap-2 text-base"><Trophy className="w-4 h-4 text-yellow-500" /> Badges Earned</CardTitle>
+
+                                    <Card className="bg-primary/5 border-primary/20">
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="flex items-center justify-between text-sm">
+                                                <span className="flex items-center gap-2 text-primary uppercase tracking-widest font-black text-[10px]"><BookCheck className="w-3.5 h-3.5" /> Knowledge Rank</span>
+                                                <Shield className="w-3 h-3 text-primary animate-pulse" />
+                                            </CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <div className="text-2xl font-bold">{profile.badges?.length || 0}</div>
-                                            <p className="text-xs text-muted-foreground">Total Achievements</p>
+                                            <div className="text-3xl font-black text-white">{profile.completedCourses?.length || 0}</div>
+                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mt-1">Professional Courses</p>
                                         </CardContent>
                                     </Card>
                                 </div>
+                            </div>
+
+                            {/* Achievements grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-base"><Code className="w-4 h-4" /> Solved Challenges</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">{profile.solvedChallenges?.length || 0}</div>
+                                        <p className="text-xs text-muted-foreground">Bug Bounty Missions</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-base"><Trophy className="w-4 h-4 text-yellow-500" /> Badges Earned</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">{profile.badges?.length || 0}</div>
+                                        <p className="text-xs text-muted-foreground">Honorary Distinctions</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-base"><Medal className="w-4 h-4 text-primary" /> Active Skills</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="text-2xl font-bold">{(profile.completedLabs?.length || 0) + (profile.completedCourses?.length || 0)}</div>
+                                        <p className="text-xs text-muted-foreground">Certified Capabilities</p>
+                                    </CardContent>
+                                </Card>
                             </div>
 
                             {/* Badges Grid */}

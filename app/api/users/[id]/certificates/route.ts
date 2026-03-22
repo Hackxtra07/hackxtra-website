@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         
         const certificates = await Certificate.find({ userId: id }).sort({ issuedAt: -1 });
 
-        return createSuccessResponse(certificates);
+        return createSuccessResponse({ success: true, data: certificates });
     } catch (error) {
         console.error('Fetch user certificates error:', error);
         return createErrorResponse('Failed to fetch certificates', 500);

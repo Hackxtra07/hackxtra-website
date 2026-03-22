@@ -151,21 +151,16 @@ function LabCard({ lab, index }: { lab: Lab; index: number }) {
           )}
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="mt-4 group/btn text-green-400 hover:bg-green-500/10 hover:text-green-300 w-full"
-          onClick={() => {
-            if (lab.url) {
-              window.open(lab.url, '_blank');
-            } else {
-              alert("No lab URL specified. Please contact admin.");
-            }
-          }}
-        >
-          <Play className="mr-2 h-3.5 w-3.5" />
-          Start Lab
-        </Button>
+        <Link href={`/labs/${lab._id}`} className="w-full">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-4 group/btn text-green-400 hover:bg-green-500/10 hover:text-green-300 w-full border border-green-500/20"
+          >
+            <Terminal className="mr-2 h-3.5 w-3.5" />
+            Launch Mission
+          </Button>
+        </Link>
       </div>
     </motion.div >
   );
