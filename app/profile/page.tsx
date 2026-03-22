@@ -534,8 +534,8 @@ export default function ProfilePage() {
                                                     value={totpCode}
                                                     onChange={setTotpCode}
                                                     containerClassName="flex gap-2"
-                                                    render={({ slots }) => (
-                                                        <>{slots.map((slot, i) => <OtpSlot key={i} {...slot} />)}</>
+                                                    render={({ slots }: { slots: any[] }) => (
+                                                        <>{slots.map((slot: any, i: number) => <OtpSlot key={i} {...slot} />)}</>
                                                     )}
                                                 />
                                             </div>
