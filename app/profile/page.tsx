@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Medal, Github, Twitter, Linkedin, LogOut, Code, User, Settings as SettingsIcon, Mail, Crown, ShieldCheck, ShieldOff, Shield } from 'lucide-react';
+import { Trophy, Medal, Github, Twitter, Linkedin, LogOut, Code, User, Settings as SettingsIcon, Mail, Crown, ShieldCheck, ShieldOff, Shield, Award } from 'lucide-react';
 import Link from 'next/link';
 import { OTPInput, REGEXP_ONLY_DIGITS, SlotProps } from 'input-otp';
 import { cn } from '@/lib/utils';
@@ -25,17 +25,17 @@ interface Certificate {
 
 interface UserProfile {
     _id: string;
-    username: string;
+    username?: string;
     email: string;
-    points: number;
-    badges: string[];
+    points?: number;
+    badges?: string[];
     solvedChallenges?: string[];
     certificates?: Certificate[];
     bio?: string;
-    country: string;
+    country?: string;
     isPro?: boolean;
     twoFA?: { enabled: boolean };
-    socialLinks: {
+    socialLinks?: {
         twitter?: string;
         github?: string;
         linkedin?: string;
@@ -233,14 +233,14 @@ export default function ProfilePage() {
                     {/* Hero Profile Info */}
                     <div className="flex flex-col md:flex-row gap-8 items-center md:items-start mb-10">
                         <div className={`w-32 h-32 rounded-full flex items-center justify-center border-2 border-primary/20 text-4xl font-bold text-primary shadow-lg ring-4 ${profile.isPro ? 'ring-yellow-500/50 bg-gradient-to-br from-yellow-500/20 to-primary/10' : 'ring-background bg-primary/10'}`}>
-                            {profile.username.substring(0, 2).toUpperCase()}
+                            {String(profile.username || 'User').substring(0, 2).toUpperCase()}
                         </div>
                         <div className="text-center md:text-left flex-1 space-y-2">
-                            <h1 className="text-4xl font-bold font-display">{profile.username}</h1>
-                            <p className="text-muted-foreground text-lg">{profile.email}</p>
+                            <h1 className="text-4xl font-bold font-display">{String(profile.username || 'Guest User')}</h1>
+                            <p className="text-muted-foreground text-lg">{profile.email || 'Email not found'}</p>
                             <div className="flex gap-4 justify-center md:justify-start items-center">
                                 <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium border border-primary/20">
-                                    {profile.country}
+                                    {profile.country || 'Global'}
                                 </span>
                                 {profile.isPro && (
                                     <span className="bg-gradient-to-r from-yellow-500/20 to-amber-500/20 text-yellow-500 px-3 py-1 rounded-full text-xs font-bold border border-yellow-500/30 flex items-center gap-1.5 shadow-[0_0_15px_rgba(234,179,8,0.1)]">
@@ -275,7 +275,7 @@ export default function ProfilePage() {
                         <div className="flex flex-col gap-2 min-w-[200px]">
                             <Card className={`backdrop-blur-md border-t-2 ${profile.isPro ? 'border-yellow-500/50 bg-gradient-to-b from-yellow-500/10 to-transparent shadow-[0_0_20px_rgba(234,179,8,0.1)]' : 'bg-card/50 border-border/50'}`}>
                                 <CardContent className="p-4 text-center">
-                                    <div className={`text-3xl font-bold mb-1 ${profile.isPro ? 'text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]' : 'text-primary'}`}>{profile.points}</div>
+                                    <div className={`text-3xl font-bold mb-1 ${profile.isPro ? 'text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]' : 'text-primary'}`}>{profile.points || 0}</div>
                                     <div className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Total Points</div>
                                 </CardContent>
                             </Card>
@@ -377,7 +377,7 @@ export default function ProfilePage() {
                                             <CardTitle className="flex items-center gap-2 text-base"><Trophy className="w-4 h-4 text-yellow-500" /> Badges Earned</CardTitle>
                                         </CardHeader>
                                         <CardContent>
-                                            <div className="text-2xl font-bold">{profile.badges.length}</div>
+                                            <div className="text-2xl font-bold">{profile.badges?.length || 0}</div>
                                             <p className="text-xs text-muted-foreground">Total Achievements</p>
                                         </CardContent>
                                     </Card>
@@ -389,7 +389,7 @@ export default function ProfilePage() {
                                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                                     <Medal className="w-5 h-5 text-primary" /> Achievements
                                 </h3>
-                                {profile.badges.length === 0 ? (
+                                {!profile.badges || profile.badges.length === 0 ? (
                                     <Card className="bg-muted/20 border-border/50 border-dashed">
                                         <CardContent className="p-8 text-center text-muted-foreground">
                                             No badges earned yet. Complete challenges to earn them!
