@@ -59,12 +59,8 @@ export async function GET(request: NextRequest) {
         }
 
         // 3. Intelligence Processing & De-duplication
-        // Fetch existing titles to avoid duplicates
-        const existingNews = await News.find({}, { title: 1 }).lean();
-        const seenTitles = new Set(existingNews.map(n => n.title));
-
         const processedArticles = allItems
-            .filter(item => item.title && !seenTitles.has(item.title))
+            .filter(item => !!item.title)
             .map(item => ({
                 title: item.title,
                 content: item.contentSnippet || item.content || 'Transmission content encrypted or unavailable.',
@@ -81,30 +77,13 @@ export async function GET(request: NextRequest) {
 
         // 4. Update Database
         if (processedArticles.length > 0) {
-            // Note: We no longer deleteMany({}) to build an archive, 
-            // but we could limit the collection size if needed.
+            // Delete ALL previous news to perform a fresh sync
+            await News.deleteMany({});
+            
+            // Insert the new intelligence nodes
             await News.insertMany(processedArticles);
             
-            // Optional: Keep only last 50 items to prevent DB bloat
-            const totalCount = await News.countDocuments();
-            if (totalCount > 50) {
-                const oldestToKeep = await News.find()
-                    .sort({ publishedAt: -1, createdAt: -1 })
-                    .skip(50)
-                    .limit(1);
-                
-                if (oldestToKeep.length > 0) {
-                    await News.deleteMany({ 
-                        $or: [
-                            { publishedAt: { $lt: oldestToKeep[0].publishedAt } },
-                            { createdAt: { $lt: oldestToKeep[0].createdAt } }
-                        ]
-                    });
-                    console.log('🧹 Purged outdated intelligence nodes.');
-                }
-            }
-            
-            console.log('✨ Global intelligence grid synchronized successfully.');
+            console.log('✨ Global intelligence grid synchronized (Reset & Rebuild).');
         }
 
         return createSuccessResponse({

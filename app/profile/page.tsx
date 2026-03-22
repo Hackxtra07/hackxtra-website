@@ -319,7 +319,7 @@ export default function ProfilePage() {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {profile.certificates.map((cert) => (
+                                            {profile.certificates.map((cert: any) => (
                                                 <Card key={cert._id} className="bg-black/40 border-white/5 hover:border-primary/40 transition-all duration-500 overflow-hidden group/cert">
                                                     <div className="p-6 flex gap-6">
                                                         <div className="w-20 h-20 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary group-hover/cert:scale-110 transition-transform duration-500 shadow-2xl">
@@ -397,7 +397,7 @@ export default function ProfilePage() {
                                     </Card>
                                 ) : (
                                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                        {profile.badges.map((badge, i) => (
+                                        {profile.badges?.map((badge: string, i: number) => (
                                             <Card key={i} className={`p-4 flex flex-col items-center justify-center text-center gap-2 transition-all duration-300 ${profile.isPro ? 'bg-gradient-to-br from-yellow-500/10 to-transparent border-yellow-500/40 hover:border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.05)] hover:shadow-[0_0_20px_rgba(234,179,8,0.2)]' : 'bg-gradient-to-br from-card to-background border-primary/20 hover:border-primary/50'}`}>
                                                 <Medal className={`w-8 h-8 ${profile.isPro ? 'text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]' : 'text-yellow-500'}`} />
                                                 <span className={`font-medium text-sm ${profile.isPro ? 'text-yellow-100' : ''}`}>{badge}</span>
@@ -420,7 +420,7 @@ export default function ProfilePage() {
                                             <Label>Bio</Label>
                                             <Textarea
                                                 value={editForm.bio}
-                                                onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
+                                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditForm({ ...editForm, bio: e.target.value })}
                                                 placeholder="Tell us about yourself..."
                                                 className="min-h-[120px]"
                                             />
@@ -429,15 +429,15 @@ export default function ProfilePage() {
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div className="space-y-2">
                                                 <Label>Twitter</Label>
-                                                <Input value={editForm.twitter} onChange={e => setEditForm({ ...editForm, twitter: e.target.value })} placeholder="https://twitter.com/..." />
+                                                <Input value={editForm.twitter} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, twitter: e.target.value })} placeholder="https://twitter.com/..." />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>GitHub</Label>
-                                                <Input value={editForm.github} onChange={e => setEditForm({ ...editForm, github: e.target.value })} placeholder="https://github.com/..." />
+                                                <Input value={editForm.github} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, github: e.target.value })} placeholder="https://github.com/..." />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>LinkedIn</Label>
-                                                <Input value={editForm.linkedin} onChange={e => setEditForm({ ...editForm, linkedin: e.target.value })} placeholder="https://linkedin.com/..." />
+                                                <Input value={editForm.linkedin} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({ ...editForm, linkedin: e.target.value })} placeholder="https://linkedin.com/..." />
                                             </div>
                                         </div>
 

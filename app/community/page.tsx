@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
 import {
   MessageSquare,
   Users,
@@ -11,13 +11,59 @@ import {
   Globe,
   Zap,
   Shield,
+  Search,
+  Award,
+  Github,
+  Twitter,
+  Linkedin,
+  Medal,
+  Code,
+  X,
+  Target,
+  ExternalLink,
+  ShieldCheck,
+  Crown
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/hackxtras/header";
 import { Footer } from "@/components/hackxtras/footer";
 import { Loader } from "@/components/hackxtras/loader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import * as LucideIcons from "lucide-react";
 
+// --- Types ---
+interface Hacker {
+  _id: string;
+  username: string;
+  points: number;
+  badges: string[];
+  country: string;
+  avatarColor: string;
+  isPro?: boolean;
+}
+
+interface HackerProfile extends Hacker {
+  bio?: string;
+  socialLinks?: {
+    twitter?: string;
+    github?: string;
+    linkedin?: string;
+  };
+  createdAt: string;
+  solvedChallenges?: string[];
+}
+
+interface Certificate {
+  _id: string;
+  achievement: string;
+  certId: string;
+  issuedAt: string;
+}
+
+// --- Mock Data Fallbacks ---
 const communityStats = [
   { icon: Users, value: "50K+", label: "Active Members" },
   { icon: MessageSquare, value: "1M+", label: "Messages Sent" },
@@ -26,12 +72,7 @@ const communityStats = [
 ];
 
 const topContributors = [
-  {
-    name: "Alex Chen",
-    role: "Security Researcher",
-    points: 24500,
-    avatar: "AC",
-  },
+  { name: "Alex Chen", role: "Security Researcher", points: 24500, avatar: "AC" },
   { name: "Sarah Kim", role: "Pentester", points: 22100, avatar: "SK" },
   { name: "Mike Johnson", role: "SOC Analyst", points: 19800, avatar: "MJ" },
   { name: "Emma Wilson", role: "Bug Hunter", points: 18200, avatar: "EW" },
@@ -39,73 +80,39 @@ const topContributors = [
 ];
 
 const upcomingEvents = [
-  {
-    title: "CTF Competition: Web Hacking",
-    date: "Feb 15, 2026",
-    time: "2:00 PM UTC",
-    participants: 342,
-    type: "Competition",
-  },
-  {
-    title: "Live Stream: Malware Analysis",
-    date: "Feb 18, 2026",
-    time: "6:00 PM UTC",
-    participants: 1200,
-    type: "Workshop",
-  },
-  {
-    title: "Community Q&A with Core Team",
-    date: "Feb 22, 2026",
-    time: "4:00 PM UTC",
-    participants: 890,
-    type: "AMA",
-  },
+  { title: "CTF Competition: Web Hacking", date: "Feb 15, 2026", time: "2:00 PM UTC", participants: 342, type: "Competition" },
+  { title: "Live Stream: Malware Analysis", date: "Feb 18, 2026", time: "6:00 PM UTC", participants: 1200, type: "Workshop" },
+  { title: "Community Q&A with Core Team", date: "Feb 22, 2026", time: "4:00 PM UTC", participants: 890, type: "AMA" },
 ];
 
 const channels = [
-  {
-    icon: Shield,
-    name: "general",
-    description: "General discussion about cybersecurity",
-    members: 45000,
-  },
-  {
-    icon: Zap,
-    name: "ctf-challenges",
-    description: "Discuss and collaborate on CTF challenges",
-    members: 32000,
-  },
-  {
-    icon: MessageSquare,
-    name: "help-desk",
-    description: "Get help from community members",
-    members: 28000,
-  },
+  { icon: Shield, name: "general", description: "General discussion about cybersecurity", members: 45000 },
+  { icon: Zap, name: "ctf-challenges", description: "Discuss and collaborate on CTF challenges", members: 32000 },
+  { icon: MessageSquare, name: "help-desk", description: "Get help from community members", members: 28000 },
 ];
-
-import { useEffect, useState } from "react";
-import * as LucideIcons from "lucide-react";
 
 export default function CommunityPage() {
   const [config, setConfig] = useState<any>(null);
   const [badges, setBadges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hackers, setHackers] = useState<Hacker[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedHackerId, setSelectedHackerId] = useState<string | null>(null);
+  const [hackerProfile, setHackerProfile] = useState<HackerProfile | null>(null);
+  const [hackerCerts, setHackerCerts] = useState<Certificate[]>([]);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const headerRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: "-100px" });
-  const leaderboardRef = useRef(null);
-  const isLeaderboardInView = useInView(leaderboardRef, {
-    once: true,
-    margin: "-100px",
-  });
 
   useEffect(() => {
+    // Fetch basic community data
     fetch("/api/community")
       .then(res => res.json())
       .then(data => {
         if (data.success) setConfig(data.data);
       })
-      .finally(() => setLoading(false));
+      .catch(err => console.error("Failed to fetch community config", err));
 
     fetch("/api/badges")
       .then(res => res.json())
@@ -113,20 +120,52 @@ export default function CommunityPage() {
         setBadges(Array.isArray(data) ? data : (data.data || []));
       })
       .catch(err => console.error("Failed to fetch badges", err));
+
+    // Fetch hackers list
+    fetch("/api/users")
+      .then(res => res.json())
+      .then(data => {
+        setHackers(Array.isArray(data) ? data : []);
+      })
+      .catch(err => console.error("Failed to fetch hackers", err))
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!selectedHackerId) {
+      setHackerProfile(null);
+      setHackerCerts([]);
+      return;
+    }
+
+    setProfileLoading(true);
+    // Fetch detailed profile
+    Promise.all([
+      fetch(`/api/users/${selectedHackerId}/public`).then(res => res.json()),
+      fetch(`/api/users/${selectedHackerId}/certificates`).then(res => res.json())
+    ]).then(([profileData, certsData]) => {
+      if (profileData.success) setHackerProfile(profileData.data);
+      if (certsData.success) setHackerCerts(certsData.data);
+    }).catch(err => {
+      console.error("Failed to fetch hacker profile details", err);
+    }).finally(() => {
+      setProfileLoading(false);
+    });
+  }, [selectedHackerId]);
 
   const getIcon = (iconInput: any) => {
     if (!iconInput) return <LucideIcons.HelpCircle className="h-5 w-5" />;
-
     if (typeof iconInput === 'string') {
       const Icon = (LucideIcons as any)[iconInput] || LucideIcons.HelpCircle;
       return <Icon className="h-5 w-5" />;
     }
-
-    // If it's already a component
     const Icon = iconInput;
     return <Icon className="h-5 w-5" />;
   };
+
+  const filteredHackers = hackers.filter((h: Hacker) => 
+    h.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const stats = config?.stats || communityStats;
   const contributors = config?.topContributors || topContributors;
@@ -136,301 +175,416 @@ export default function CommunityPage() {
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center pt-32"><Loader /></div>;
 
   return (
-    <div className="relative min-h-screen bg-background">
-      {/* Textured Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Techy Grid Pattern Background */}
+    <div className="relative min-h-screen bg-background text-foreground">
+      {/* Background elements */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: `
-            linear-gradient(0deg, transparent 24%, rgba(39, 97, 195, 0.3) 25%, rgba(39, 97, 195, 0.3) 26%, transparent 27%, transparent 74%, rgba(39, 97, 195, 0.3) 75%, rgba(39, 97, 195, 0.3) 76%, transparent 77%, transparent),
-            linear-gradient(90deg, transparent 24%, rgba(39, 97, 195, 0.3) 25%, rgba(39, 97, 195, 0.3) 26%, transparent 27%, transparent 74%, rgba(39, 97, 195, 0.3) 75%, rgba(39, 97, 195, 0.3) 76%, transparent 77%, transparent)
-          `,
+          backgroundImage: `linear-gradient(0deg, transparent 24%, rgba(39, 97, 195, 0.3) 25%, rgba(39, 97, 195, 0.3) 26%, transparent 27%, transparent 74%, rgba(39, 97, 195, 0.3) 75%, rgba(39, 97, 195, 0.3) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(39, 97, 195, 0.3) 25%, rgba(39, 97, 195, 0.3) 26%, transparent 27%, transparent 74%, rgba(39, 97, 195, 0.3) 75%, rgba(39, 97, 195, 0.3) 76%, transparent 77%, transparent)`,
           backgroundSize: '50px 50px',
         }} />
-        {/* Tech nodes/dots */}
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: 'radial-gradient(circle, #2761c3 1px, transparent 1px)',
-          backgroundSize: '50px 50px',
-        }} />
-        <div className="absolute -top-40 -right-40 w-96 h-96 opacity-60" style={{
-          background: 'radial-gradient(circle, oklch(0.55 0.06 220 / 1) 0%, transparent 70%)',
-          filter: 'blur(80px)',
-        }} />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 opacity-50" style={{
-          background: 'radial-gradient(circle, oklch(0.65 0.08 230 / 1) 0%, transparent 70%)',
-          filter: 'blur(100px)',
-        }} />
-        {/* Glassy Edge Effect */}
-        <div className="absolute inset-0" style={{
-          background: 'radial-gradient(ellipse at center, transparent 0%, rgba(20, 20, 40, 0.3) 100%)',
-          backdropFilter: 'blur(0.5px)',
-        }} />
-        {/* Top glassy edge */}
-        <div className="absolute top-0 left-0 right-0 h-32" style={{
-          background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0%, transparent 100%)',
-          backdropFilter: 'blur(0.5px)',
-        }} />
-        {/* Border frame effect */}
-        <div className="absolute inset-0 border border-blue-500/10 rounded-3xl" />
+        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] opacity-30 bg-blue-500/20 blur-[120px] rounded-full" />
+        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] opacity-20 bg-indigo-500/20 blur-[120px] rounded-full" />
       </div>
+
       <Header />
 
-      <main className="pt-32 pb-24">
+      <main className="pt-32 pb-24 relative z-10">
         <div className="mx-auto max-w-7xl px-6">
-          {/* Page Header */}
+          {/* Hero Header */}
           <motion.div
             ref={headerRef}
             initial={{ opacity: 0, y: 30 }}
-            animate={
-              isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
-            }
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="mb-16"
+            animate={isHeaderInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.6 }}
+            className="mb-12"
           >
-            <span className="font-mono text-sm uppercase tracking-wider text-primary">
-              Connect & collaborate
-            </span>
-            <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-              Community
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Join a global network of security professionals, enthusiasts, and
-              learners. Share knowledge, solve challenges together, and grow
-              your career in cybersecurity.
+            <span className="font-mono text-sm uppercase tracking-widest text-primary font-bold">The HackXtras Collective</span>
+            <h1 className="mt-4 text-5xl font-black tracking-tight sm:text-7xl bg-gradient-to-r from-foreground to-foreground/50 bg-clip-text text-transparent">Community</h1>
+            <p className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
+              Connect with 50,000+ cybersecurity experts. Share tradecraft, solve zero-day challenges, and build the future of ethical hacking.
             </p>
           </motion.div>
 
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-16 grid grid-cols-2 gap-4 sm:grid-cols-4"
-          >
-            {stats.map((stat: any) => (
-              <div
-                key={stat.label}
-                className="flex flex-col items-center rounded-xl border border-border/50 bg-card/30 p-6 text-center"
-              >
-                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
-                  {getIcon(stat.icon)}
-                </div>
-                <div className="font-display text-2xl font-semibold text-foreground">
-                  {stat.value}
-                </div>
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </motion.div>
+          <Tabs defaultValue="overview" className="space-y-12">
+            <TabsList className="bg-card/30 border border-border/50 p-1 rounded-xl backdrop-blur-xl w-fit">
+              <TabsTrigger value="overview" className="px-8 py-2.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold transition-all">Overview Feed</TabsTrigger>
+              <TabsTrigger value="hackers" className="px-8 py-2.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold transition-all">Hacker Directory</TabsTrigger>
+            </TabsList>
 
-          <div className="grid gap-8 lg:grid-cols-3">
-            {/* Leaderboard */}
-            <motion.div
-              ref={leaderboardRef}
-              initial={{ opacity: 0, y: 30 }}
-              animate={
-                isLeaderboardInView
-                  ? { opacity: 1, y: 0 }
-                  : { opacity: 0, y: 30 }
-              }
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="lg:col-span-1"
-            >
-              <div className="rounded-xl border border-border/50 bg-card/50 p-6">
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="font-display text-lg font-medium text-foreground">
-                    Top Contributors
-                  </h2>
-                  <Trophy className="h-5 w-5 text-primary" />
+            <TabsContent value="overview" className="space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Internal Overview Logic */}
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                {stats.map((stat: any) => (
+                  <div key={stat.label} className="group relative overflow-hidden rounded-2xl border border-white/5 bg-white/5 p-8 backdrop-blur-md hover:border-primary/50 transition-all duration-500">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10">
+                      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                        {getIcon(stat.icon)}
+                      </div>
+                      <div className="text-3xl font-black text-foreground mb-1">{stat.value}</div>
+                      <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid gap-8 lg:grid-cols-3">
+                 {/* Leaderboard Summary */}
+                 <div className="lg:col-span-1 rounded-3xl border border-white/5 bg-white/5 p-8 backdrop-blur-xl">
+                   <div className="mb-8 flex items-center justify-between">
+                     <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
+                       <Trophy className="w-5 h-5 text-yellow-500" />
+                       Elite Contributors
+                     </h2>
+                   </div>
+                   <div className="space-y-4">
+                     {contributors.map((user: any, index: number) => (
+                       <div key={user.name} className="flex items-center gap-4 rounded-xl p-3 border border-transparent hover:border-white/10 hover:bg-white/5 transition-all group">
+                         <span className="w-4 text-xs font-black text-muted-foreground">{index + 1}</span>
+                         <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary group-hover:scale-110 transition-transform">
+                           {user.avatar}
+                         </div>
+                         <div className="flex-1 min-w-0">
+                           <p className="text-sm font-bold truncate">{user.name}</p>
+                           <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">{user.role}</p>
+                         </div>
+                         <div className="text-right">
+                           <span className="text-sm font-black text-primary">{user.points?.toLocaleString()}</span>
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                   <Button variant="outline" className="mt-8 w-full h-12 rounded-xl border-white/10 hover:bg-primary hover:text-primary-foreground font-black uppercase tracking-widest text-[10px]" asChild>
+                     <Link href="/leaderboard">Full Leaderboard <ArrowRight className="ml-2 w-4 h-4" /></Link>
+                   </Button>
+                 </div>
+
+                 {/* Activity & Channels */}
+                 <div className="lg:col-span-2 space-y-8">
+                   <div className="rounded-3xl border border-white/5 bg-white/5 p-8 backdrop-blur-xl">
+                     <div className="mb-8 flex items-center justify-between">
+                       <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
+                         <Calendar className="w-5 h-5 text-primary" />
+                         Operations Briefing
+                       </h2>
+                     </div>
+                     <div className="space-y-4">
+                       {events.map((event: any) => (
+                         <div key={event.title} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-all">
+                           <div>
+                              <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary border border-primary/20">
+                                <Zap className="w-3 h-3" /> {event.type}
+                              </div>
+                              <h3 className="font-bold text-lg mb-1">{event.title}</h3>
+                              <p className="text-sm text-muted-foreground font-medium">{event.date} • {event.time}</p>
+                           </div>
+                           <div className="flex items-center gap-4">
+                              <div className="flex -space-x-2">
+                                {[1, 2, 3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-card bg-muted" />)}
+                                <div className="w-6 h-6 rounded-full border-2 border-card bg-primary/20 flex items-center justify-center text-[8px] font-bold">+{event.participants - 3}</div>
+                              </div>
+                              <Button className="rounded-xl px-6 h-10 font-black uppercase tracking-widest text-[10px]">Deploy</Button>
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+
+                   <div className="rounded-3xl border border-white/5 bg-white/5 p-8 backdrop-blur-xl">
+                     <div className="mb-8 flex items-center justify-between">
+                        <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
+                          <MessageSquare className="w-5 h-5 text-primary" />
+                          Secure Channels
+                        </h2>
+                     </div>
+                     <div className="grid sm:grid-cols-2 gap-4">
+                        {popularChannels.map((channel: any) => (
+                          <div key={channel.name} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-white/10 transition-all cursor-pointer group">
+                            <div className="flex items-center gap-4 mb-3">
+                              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                {getIcon(channel.icon)}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-sm">#{channel.name}</h4>
+                                <p className="text-[10px] text-muted-foreground font-bold">{(channel.members / 1000).toFixed(0)}K ACTIVE</p>
+                              </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{channel.description}</p>
+                          </div>
+                        ))}
+                     </div>
+                   </div>
+                 </div>
+              </div>
+
+              {/* Global Badges */}
+              <div className="mt-16 rounded-3xl border border-white/5 bg-white/5 p-8 backdrop-blur-xl">
+                <div className="mb-8 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-black tracking-tight">Merit Awards</h2>
+                    <p className="text-sm text-muted-foreground font-medium mt-1">Proof of capability. Earned through blood, sweat, and code.</p>
+                  </div>
                 </div>
-                <div className="space-y-4">
-                  {contributors.map((user: any, index: number) => (
-                    <div
-                      key={user.name}
-                      className="flex items-center gap-4 rounded-lg p-2 transition-colors hover:bg-muted/50"
-                    >
-                      <span className="flex h-6 w-6 items-center justify-center text-sm font-medium text-muted-foreground">
-                        {index + 1}
-                      </span>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted text-sm font-medium text-foreground">
-                        {user.avatar}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">
-                          {user.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {user.role}
-                        </p>
-                      </div>
-                      <span className="font-mono text-sm text-primary">
-                        {user.points?.toLocaleString()}
-                      </span>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {badges.map((badge: any) => (
+                    <div key={badge._id} className="group p-6 rounded-2xl bg-black/20 border border-white/5 hover:border-primary/50 transition-all hover:translate-y-[-4px]">
+                       <div className="flex items-center gap-4 mb-4">
+                          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-transparent border border-primary/20 flex items-center justify-center text-primary shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                             {getIcon(badge.icon || 'Award')}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-lg">{badge.name}</h3>
+                            <div className="flex gap-2 mt-1">
+                               {badge.requirements?.requirePro && <span className="text-[8px] font-black uppercase tracking-widest text-yellow-500/80 bg-yellow-500/10 px-2 py-0.5 rounded-md border border-yellow-500/20">Pro Only</span>}
+                               <span className="text-[8px] font-black uppercase tracking-widest text-primary/80 bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">{badge.requirements?.minPoints || 0} PTS</span>
+                            </div>
+                          </div>
+                       </div>
+                       <p className="text-sm text-muted-foreground font-medium leading-relaxed">{badge.description}</p>
                     </div>
                   ))}
                 </div>
-                <Button
-                  variant="outline"
-                  className="mt-6 w-full border-border/50 bg-transparent hover:bg-muted"
-                  asChild
-                >
-                  <Link href="/leaderboard">
-                    View Full Leaderboard
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
               </div>
-            </motion.div>
+            </TabsContent>
 
-            {/* Events & Channels */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="space-y-8 lg:col-span-2"
-            >
-              {/* Upcoming Events */}
-              <div className="rounded-xl border border-border/50 bg-card/50 p-6">
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="font-display text-lg font-medium text-foreground">
-                    Upcoming Events
-                  </h2>
-                  <Calendar className="h-5 w-5 text-primary" />
-                </div>
-                <div className="space-y-4">
-                  {events.map((event: any) => (
-                    <div
-                      key={event.title}
-                      className="flex flex-col gap-3 rounded-lg border border-border/30 bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <div>
-                        <span className="mb-1 inline-block rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                          {event.type}
-                        </span>
-                        <h3 className="font-medium text-foreground">
-                          {event.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {event.date} at {event.time}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <LucideIcons.Users className="h-3.5 w-3.5" />
-                          {event.participants}
-                        </span>
-                        <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                          Join
+            <TabsContent value="hackers" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+               {/* Search & Toolbelt */}
+               <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
+                 <div className="relative w-full max-w-xl group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Input 
+                      placeholder="Search hacker alias, ID, or specialty..." 
+                      className="pl-12 h-14 rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all text-lg font-medium"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                 </div>
+                 <div className="flex gap-4">
+                    <div className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-widest text-muted-foreground">
+                      <Users className="w-4 h-4 text-primary" /> {hackers.length} Registered
+                    </div>
+                 </div>
+               </div>
+
+               {/* Hacker Grid */}
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                 {filteredHackers.map((hacker, i) => (
+                   <motion.div
+                    key={hacker._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    onClick={() => setSelectedHackerId(hacker._id)}
+                    className="group cursor-pointer relative p-6 rounded-3xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-primary/50 transition-all duration-500"
+                   >
+                     <div className="flex flex-col items-center text-center">
+                        <div className={`w-20 h-20 rounded-full ${hacker.avatarColor || 'bg-primary/20 text-primary'} border-2 border-white/5 group-hover:border-primary/40 transition-all duration-500 flex items-center justify-center text-2xl font-black mb-4 group-hover:scale-110 shadow-2xl relative`}>
+                           {hacker.username.substring(0, 2).toUpperCase()}
+                           {hacker.isPro && (
+                             <div className="absolute -bottom-1 -right-1 bg-yellow-500 rounded-full p-1 border-2 border-background shadow-lg">
+                                <Crown className="w-3 h-3 text-black" />
+                             </div>
+                           )}
+                        </div>
+                        <h3 className="text-xl font-bold tracking-tight mb-1 group-hover:text-primary transition-colors">{hacker.username}</h3>
+                        <div className="flex items-center gap-2 text-xs font-black text-muted-foreground uppercase tracking-widest mb-4">
+                          <Globe className="w-3 h-3" /> {hacker.country || 'GLOBAL'}
+                        </div>
+                        <div className="w-full grid grid-cols-2 gap-2">
+                           <div className="bg-black/20 rounded-xl p-2 border border-white/5">
+                              <p className="text-[8px] font-black text-muted-foreground uppercase">Points</p>
+                              <p className="text-sm font-black text-primary">{hacker.points}</p>
+                           </div>
+                           <div className="bg-black/20 rounded-xl p-2 border border-white/5">
+                              <p className="text-[8px] font-black text-muted-foreground uppercase">Badges</p>
+                              <p className="text-sm font-black text-foreground">{hacker.badges?.length || 0}</p>
+                           </div>
+                        </div>
+                        <Button variant="ghost" className="mt-6 w-full h-10 rounded-xl text-[10px] uppercase font-black tracking-widest bg-white/5 border border-white/5 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary opacity-50 group-hover:opacity-100 transition-all">
+                          Intercept ID
                         </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                     </div>
+                   </motion.div>
+                 ))}
+               </div>
+
+               {filteredHackers.length === 0 && (
+                 <div className="py-32 text-center border-2 border-dashed border-white/10 rounded-3xl">
+                    <Search className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-20" />
+                    <h3 className="text-2xl font-bold">No Hackers Located</h3>
+                    <p className="text-muted-foreground mt-2">Adjust your parameters to find the target.</p>
+                 </div>
+               )}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+
+      {/* --- Hacker Profile Modal --- */}
+      <AnimatePresence>
+        {selectedHackerId && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-12">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedHackerId(null)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-md" 
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-4xl bg-[#0a0a0c] border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            >
+              {/* Modal Header */}
+              <div className="absolute top-6 right-6 z-20">
+                <Button variant="ghost" size="icon" onClick={() => setSelectedHackerId(null)} className="rounded-full bg-white/5 hover:bg-white/10">
+                  <X className="w-5 h-5 text-white" />
+                </Button>
               </div>
 
-              {/* Channels */}
-              <div className="rounded-xl border border-border/50 bg-card/50 p-6">
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="font-display text-lg font-medium text-foreground">
-                    Popular Channels
-                  </h2>
-                  <MessageSquare className="h-5 w-5 text-primary" />
+              {profileLoading ? (
+                <div className="flex-1 flex flex-col items-center justify-center py-24 gap-6">
+                   <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                   <div className="font-mono text-xs uppercase tracking-[0.3em] text-primary animate-pulse">Decrypting Identity...</div>
                 </div>
-                <div className="space-y-3">
-                  {popularChannels.map((channel: any) => (
-                    <div
-                      key={channel.name}
-                      className="group flex cursor-pointer items-center gap-4 rounded-lg p-3 transition-colors hover:bg-muted/50"
-                    >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition-colors group-hover:border-primary/30 group-hover:text-primary">
-                        {getIcon(channel.icon)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">
-                          #{channel.name}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {channel.description}
-                        </p>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {(channel.members / 1000).toFixed(0)}K members
-                      </span>
+              ) : hackerProfile ? (
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-8 sm:p-12">
+                <div className="flex flex-col md:flex-row gap-10">
+                  {/* Left Column: ID & Socials */}
+                  <div className="w-full md:w-1/3 flex flex-col items-center text-center space-y-6">
+                    <div className={`w-32 h-32 rounded-[2.5rem] ${hackerProfile.avatarColor || 'bg-primary/20 text-primary'} border-2 border-primary/20 flex items-center justify-center text-4xl font-black shadow-[0_0_50px_rgba(39,97,195,0.2)]`}>
+                      {hackerProfile.username.substring(0, 2).toUpperCase()}
                     </div>
-                  ))}
+                    <div>
+                      <h2 className="text-3xl font-black tracking-tight">{hackerProfile.username}</h2>
+                      <p className="text-xs font-bold text-primary uppercase tracking-widest mt-1">Level {Math.floor(hackerProfile.points/100)} Hacker</p>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      {hackerProfile.socialLinks?.github && (
+                        <a href={hackerProfile.socialLinks.github} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-primary hover:text-white transition-all shadow-xl">
+                          <Github className="w-5 h-5" />
+                        </a>
+                      )}
+                      {hackerProfile.socialLinks?.twitter && (
+                        <a href={hackerProfile.socialLinks.twitter} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-blue-400 hover:text-white transition-all shadow-xl">
+                          <Twitter className="w-5 h-5" />
+                        </a>
+                      )}
+                      {hackerProfile.socialLinks?.linkedin && (
+                        <a href={hackerProfile.socialLinks.linkedin} target="_blank" rel="noreferrer" className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-blue-600 hover:text-white transition-all shadow-xl">
+                          <Linkedin className="w-5 h-5" />
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="w-full space-y-3 pt-4">
+                       <div className="flex justify-between items-center px-4 py-3 rounded-2xl bg-white/5 border border-white/10">
+                          <span className="text-[10px] font-black uppercase text-muted-foreground">Joined</span>
+                          <span className="text-xs font-bold">{new Date(hackerProfile.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}</span>
+                       </div>
+                       <div className="flex justify-between items-center px-4 py-3 rounded-2xl bg-white/5 border border-white/10">
+                          <span className="text-[10px] font-black uppercase text-muted-foreground">Location</span>
+                          <span className="text-xs font-bold flex items-center gap-1.5"><Globe className="w-3 h-3 text-primary" /> {hackerProfile.country || 'GLOBAL'}</span>
+                       </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Bio & Achievements */}
+                  <div className="flex-1 space-y-10">
+                    <div>
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4">Tactical Biography</h4>
+                      <p className="text-muted-foreground leading-relaxed font-medium">
+                        {hackerProfile.bio || "No tactical briefing provided by this operator yet. They prefer working in the shadows."}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                       <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="flex items-center gap-2 mb-2">
+                             <Zap className="w-4 h-4 text-yellow-500" />
+                             <span className="text-[10px] font-black uppercase tracking-widest">Experience</span>
+                          </div>
+                          <p className="text-2xl font-black">{hackerProfile.points} <span className="text-xs text-muted-foreground">XP</span></p>
+                       </div>
+                       <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="flex items-center gap-2 mb-2">
+                             <Medal className="w-4 h-4 text-primary" />
+                             <span className="text-[10px] font-black uppercase tracking-widest">Merits</span>
+                          </div>
+                          <p className="text-2xl font-black">{hackerProfile.badges?.length || 0}</p>
+                       </div>
+                       <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                          <div className="flex items-center gap-2 mb-2">
+                             <Target className="w-4 h-4 text-red-500" />
+                             <span className="text-[10px] font-black uppercase tracking-widest">Kills</span>
+                          </div>
+                          <p className="text-2xl font-black">{hackerProfile.solvedChallenges?.length || 0}</p>
+                       </div>
+                    </div>
+
+                    {/* Certificates */}
+                    <div>
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6">Verified Operations (Certificates)</h4>
+                      {hackerCerts.length === 0 ? (
+                        <div className="p-8 rounded-2xl bg-white/5 border border-dashed border-white/10 text-center">
+                           <Award className="w-8 h-8 text-muted-foreground mx-auto mb-3 opacity-20" />
+                           <p className="text-xs text-muted-foreground font-bold">No verified credentials found for this operator.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {hackerCerts.map((cert) => (
+                            <div key={cert._id} className="group p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/50 transition-all flex items-center justify-between gap-4">
+                               <div className="flex items-center gap-4">
+                                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                   <Award className="w-5 h-5" />
+                                 </div>
+                                 <div className="min-w-0">
+                                   <h5 className="font-bold text-sm truncate">{cert.achievement}</h5>
+                                   <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">ID: {cert.certId}</p>
+                                 </div>
+                               </div>
+                               <Button variant="ghost" size="icon" className="group-hover:text-primary" asChild>
+                                 <a href={`/api/certificate?userId=${hackerProfile._id}&achievement=${encodeURIComponent(cert.achievement)}`} download>
+                                   <ExternalLink className="w-4 h-4" />
+                                 </a>
+                               </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Badges Grid */}
+                    <div>
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6">Achievement Assets</h4>
+                        {hackerProfile.badges?.map((badge: string, idx: number) => (
+                          <div key={idx} className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                            <ShieldCheck className="w-3 h-3" /> {badge}
+                          </div>
+                        ))}
+                        {(!hackerProfile.badges || hackerProfile.badges.length === 0) && (
+                          <p className="text-xs text-muted-foreground font-medium">No assets acquired yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  className="mt-6 w-full border-border/50 bg-transparent hover:bg-muted"
-                  asChild
-                >
-                  <Link href="/channels">
-                    Browse All Channels
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
+              </div>
+              ) : null}
+
+              {/* Modal Footer */}
+              <div className="p-6 border-t border-white/5 bg-black/40 flex justify-end gap-4">
+                 <Button variant="outline" onClick={() => setSelectedHackerId(null)} className="rounded-xl font-black uppercase tracking-widest text-[10px]">Close Briefing</Button>
+                 <Button className="rounded-xl px-8 font-black uppercase tracking-widest text-[10px]">Follow Target</Button>
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
 
-          {/* Badges Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-16"
-          >
-            <div className="rounded-xl border border-border/50 bg-card/50 p-6 shadow-sm">
-              <div className="mb-6 flex items-center justify-between border-b border-border/50 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Trophy className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h2 className="font-display text-xl font-medium text-foreground">
-                      Custom Badges
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      Earn these badges by completing specific requirements.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {badges.length > 0 ? (
-                  badges.map((badge: any) => (
-                    <div key={badge._id} className="group relative flex flex-col gap-4 rounded-xl border border-border/40 bg-background/50 p-6 transition-all hover:bg-muted/30 hover:shadow-md hover:border-primary/20">
-                      <div className="flex items-start justify-between">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-sm border border-primary/10 group-hover:scale-110 transition-transform">
-                          {getIcon(badge.icon || 'Award')}
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-foreground tracking-tight">
-                          {badge.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed mt-2 line-clamp-3">
-                          {badge.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-full py-12 flex flex-col items-center justify-center text-center border-2 border-dashed border-border/50 rounded-xl bg-background/30">
-                    <Trophy className="h-10 w-10 text-muted-foreground mb-3 opacity-20" />
-                    <p className="text-muted-foreground font-medium">No custom badges available yet.</p>
-                    <p className="text-sm text-muted-foreground/70 mt-1">Check back later for new challenges!</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-
-        </div>
-      </main>
       <Footer />
     </div>
   );

@@ -33,9 +33,8 @@ export async function GET(request: NextRequest) {
         const isSelf = auth.id === targetUserId;
         const isAdmin = auth.role === 'admin';
 
-        if (!isAdmin && !isSelf) {
-            return createErrorResponse('Unauthorized — You can only access your own credentials.', 403);
-        }
+        // We'll proceed to check if the certificate exists before fully denying access.
+        // Generation/Setup of NEW certificates still requires Admin/Self later.
 
         await connectDB();
         const user = await User.findById(targetUserId);
@@ -71,8 +70,11 @@ export async function GET(request: NextRequest) {
                 month: 'long',
                 day: 'numeric',
             });
-        } else if (isAdmin) {
-            // Only admin can create new certificate records
+        } else if (isAdmin || isSelf) {
+            // Only admin or the user themselves can trigger new generation logic if permitted
+            // (Note: usually only admins should generate if it's a formal merit badge)
+            if (!isAdmin) return createErrorResponse('Only administrators can issue new credentials.', 403);
+
             certId = crypto.randomUUID().split('-')[0].toUpperCase();
             await Certificate.create({
                 userId: user._id,
@@ -86,7 +88,7 @@ export async function GET(request: NextRequest) {
                 day: 'numeric',
             });
         } else {
-            return createErrorResponse('No valid certificate found for this achievement. Ask an admin to generate one.', 404);
+            return createErrorResponse('Access Denied — You can only view existing verified credentials.', 403);
         }
 
         // ── Notification Logic ──
