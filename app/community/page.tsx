@@ -228,39 +228,9 @@ export default function CommunityPage() {
                 ))}
               </div>
 
-              <div className="grid gap-8 lg:grid-cols-3">
-                 {/* Leaderboard Summary */}
-                 <div className="lg:col-span-1 rounded-3xl border border-white/5 bg-white/5 p-8 backdrop-blur-xl">
-                   <div className="mb-8 flex items-center justify-between">
-                     <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
-                       <Trophy className="w-5 h-5 text-yellow-500" />
-                       Elite Contributors
-                     </h2>
-                   </div>
-                   <div className="space-y-4">
-                     {contributors.map((user: any, index: number) => (
-                       <div key={user.name} className="flex items-center gap-4 rounded-xl p-3 border border-transparent hover:border-white/10 hover:bg-white/5 transition-all group">
-                         <span className="w-4 text-xs font-black text-muted-foreground">{index + 1}</span>
-                         <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary group-hover:scale-110 transition-transform">
-                           {user.avatar}
-                         </div>
-                         <div className="flex-1 min-w-0">
-                           <p className="text-sm font-bold truncate">{user.name}</p>
-                           <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tighter">{user.role}</p>
-                         </div>
-                         <div className="text-right">
-                           <span className="text-sm font-black text-primary">{user.points?.toLocaleString()}</span>
-                         </div>
-                       </div>
-                     ))}
-                   </div>
-                   <Button variant="outline" className="mt-8 w-full h-12 rounded-xl border-white/10 hover:bg-primary hover:text-primary-foreground font-black uppercase tracking-widest text-[10px]" asChild>
-                     <Link href="/leaderboard">Full Leaderboard <ArrowRight className="ml-2 w-4 h-4" /></Link>
-                   </Button>
-                 </div>
-
+              <div className="grid gap-8">
                  {/* Activity & Channels */}
-                 <div className="lg:col-span-2 space-y-8">
+                 <div className="space-y-8">
                    <div className="rounded-3xl border border-white/5 bg-white/5 p-8 backdrop-blur-xl">
                      <div className="mb-8 flex items-center justify-between">
                        <h2 className="text-xl font-black tracking-tight flex items-center gap-2">
@@ -400,7 +370,14 @@ export default function CommunityPage() {
                               <p className="text-sm font-black text-foreground">{hacker.badges?.length || 0}</p>
                            </div>
                         </div>
-                        <Button variant="ghost" className="mt-6 w-full h-10 rounded-xl text-[10px] uppercase font-black tracking-widest bg-white/5 border border-white/5 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary opacity-50 group-hover:opacity-100 transition-all">
+                        <Button 
+                          variant="ghost" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedHackerId(hacker._id);
+                          }}
+                          className="mt-6 w-full h-10 rounded-xl text-[10px] uppercase font-black tracking-widest bg-white/5 border border-white/5 group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary opacity-50 group-hover:opacity-100 transition-all font-black"
+                        >
                           Intercept ID
                         </Button>
                      </div>
